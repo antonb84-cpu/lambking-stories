@@ -1,0 +1,67 @@
+import { Book, type BookDocument } from '../models/Book.js'
+import { CacheService } from './CacheService.js'
+import { HttpError } from '../utils/httpError.js'
+import type { CreateBookInput, UpdateBookInput } from '../validators/book.schema.js'
+import { logger } from '../config/logger.js'
+import { absolutizeBook, absolutizeBooks, relativizeBook } from '../utils/bookUrls.js'
+
+function toDTO(doc: { toJSON: () => unknown }): unknown {
+  return doc.toJSON()
+}
+
+export const BookService = {
+  async list() {
+    const cached = await CacheService.getBooksList<unknown[]>()
+    if (cached) return { books: absolutizeBooks(cached), cacheHit: true }
+    const docs = await Book.find({}).sort({ updatedDate: -1 }).lean().exec()
+    await CacheService.setBooksList(docs)
+    return { books: absolutizeBooks(docs), cacheHit: false }
+  },
+
+  async getById(bookId: string) {
+    const cached = await CacheService.getBook<unknown>(bookId)
+    if (cached) return { book: absolutizeBook(cached), cacheHit: true }
+    const doc = await Book.findOne({ bookId }).lean().exec()
+    if (!doc) throw HttpError.notFound(`Book with id "${bookId}" not found`)
+    await CacheService.setBook(bookId, doc)
+    return { book: absolutizeBook(doc), cacheHit: false }
+  },
+
+  async create(input: CreateBookInput) {
+    const existing = await Book.findOne({ bookId: input.bookId }).lean().exec()
+    if (existing) {
+      throw HttpError.conflict(`Book with id "${input.bookId}" already exists`, [
+        { field: 'bookId', message: 'already exists' }
+      ])
+    }
+    const normalized = relativizeBook(input)
+    const doc = await Book.create({
+      ...normalized,
+      releaseDate: new Date(normalized.releaseDate),
+      updatedDate: new Date()
+    })
+    await CacheService.invalidateBooks(doc.bookId)
+    logger.info('book created', { bookId: doc.bookId, title: doc.localizations?.de?.title })
+    return absolutizeBook(toDTO(doc as unknown as { toJSON: () => unknown }))
+  },
+
+  async update(bookId: string, input: UpdateBookInput) {
+    const normalized = relativizeBook(input)
+    const updates: Partial<BookDocument> = { ...normalized } as Partial<BookDocument>
+    if (normalized.releaseDate) updates.releaseDate = new Date(normalized.releaseDate)
+    updates.updatedDate = new Date()
+    const doc = await Book.findOneAndUpdate({ bookId }, updates, { new: true, runValidators: true }).exec()
+    if (!doc) throw HttpError.notFound(`Book with id "${bookId}" not found`)
+    await CacheService.invalidateBooks(bookId)
+    logger.info('book updated', { bookId })
+    return absolutizeBook(toDTO(doc as unknown as { toJSON: () => unknown }))
+  },
+
+  async remove(bookId: string) {
+    const doc = await Book.findOneAndDelete({ bookId }).exec()
+    if (!doc) throw HttpError.notFound(`Book with id "${bookId}" not found`)
+    await CacheService.invalidateBooks(bookId)
+    logger.info('book deleted', { bookId })
+    return { deleted: true }
+  }
+}

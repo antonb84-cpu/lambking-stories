@@ -1,0 +1,101 @@
+# DigitalOcean App Platform blueprint for little-bible-stories-server.
+#
+# Usage:
+#   doctl apps create --spec server/.do/app.yaml
+#   doctl apps update <APP_ID> --spec server/.do/app.yaml
+#
+# All SECRET env vars must be set in the DO dashboard before the first deploy.
+#
+# Heads-up on persistence: App Platform containers are ephemeral. Files written
+# to disk during a request (uploaded audio/images/PDFs) are lost on every
+# redeploy and are NOT shared between multiple instances. For production you
+# want either:
+#   (a) a single instance + scheduled off-site backup of /workspace/server, or
+#   (b) refactoring UploadService to write to DO Spaces (S3-compatible).
+# This spec runs a single instance so the ephemeral FS stays coherent for the
+# duration of a deployment.
+
+name: little-bible-stories
+region: fra
+
+services:
+  - name: api
+    environment_slug: node-js
+    github:
+      repo: konstantinsteinmiller/kanaan-stories
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    build_command: |
+      corepack enable
+      corepack prepare pnpm@10.6.2 --activate
+      pnpm install --no-frozen-lockfile
+      pnpm --filter little-bible-stories-adminui build
+      pnpm --filter little-bible-stories-server build
+    run_command: pnpm --filter little-bible-stories-server start
+    http_port: 4000
+    instance_count: 1
+    instance_size_slug: basic-s
+    health_check:
+      http_path: /healthz
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 5
+    routes:
+      - path: /
+    envs:
+      - key: NODE_ENV
+        scope: RUN_AND_BUILD_TIME
+        value: production
+      - key: PORT
+        scope: RUN_TIME
+        value: '4000'
+      - key: LOG_LEVEL
+        scope: RUN_TIME
+        value: info
+
+      # --- Secrets (set in the DO dashboard, type=SECRET) -----------------
+      - key: MONGO_URI
+        scope: RUN_TIME
+        type: SECRET
+      - key: REDIS_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: ADMIN_PASSWORD
+        scope: RUN_TIME
+        type: SECRET
+      - key: CORS_ORIGIN
+        scope: RUN_TIME
+        type: SECRET
+      - key: PUBLIC_BASE_URL
+        scope: RUN_TIME
+        type: SECRET
+
+      # --- Plain config ---------------------------------------------------
+      - key: REDIS_ENABLED
+        scope: RUN_TIME
+        value: 'true'
+      - key: CACHE_TTL_SECONDS
+        scope: RUN_TIME
+        value: '600'
+      - key: ADMIN_USER
+        scope: RUN_TIME
+        value: admin
+      - key: TRANSLATION_ENABLED
+        scope: RUN_TIME
+        value: 'true'
+
+      # Filesystem paths — the App Platform container's only writable area is
+      # the working directory. Files here survive the lifetime of the deploy
+      # but disappear on redeploy (see note above).
+      - key: AUDIOBOOKS_DIR
+        scope: RUN_TIME
+        value: /workspace/server/audiobooks
+      - key: UPLOADS_DIR
+        scope: RUN_TIME
+        value: /workspace/server/uploads
+      - key: HF_HOME
+        scope: RUN_TIME
+        value: /workspace/server/.cache/huggingface

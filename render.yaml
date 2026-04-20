@@ -1,0 +1,53 @@
+services:
+  - type: web
+    name: lbs-be
+    runtime: node
+    region: frankfurt
+    plan: starter
+    branch: main
+    rootDir: .
+    buildCommand: npm install -g pnpm@10.6.2 && pnpm install --no-frozen-lockfile && pnpm --filter little-bible-stories-adminui build && pnpm --filter little-bible-stories-server build:prod
+    startCommand: cd server && node dist/index.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    disk:
+      name: storage
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: LOG_LEVEL
+        value: info
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: main_db
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_ENABLED
+        value: 'true'
+      - key: CACHE_TTL_SECONDS
+        value: '600'
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: AUDIOBOOKS_DIR
+        value: /var/data/audiobooks
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      # Translator runs locally via `pnpm translate:books` — keep it off in prod
+      # so Render can stay on the starter plan.
+      - key: TRANSLATION_ENABLED
+        value: 'false'
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: SENTRY_DSN
+        sync: false

@@ -1,0 +1,79 @@
+name: Server CI / Deploy
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Type-check + test (server + admin UI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.8.0'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Type-check server
+        run: pnpm --filter little-bible-stories-server type-check
+
+      - name: Type-check admin UI
+        run: pnpm --filter little-bible-stories-adminui type-check
+
+      - name: Test server
+        run: pnpm --filter little-bible-stories-server test
+        env:
+          NODE_ENV: test
+
+      - name: Test admin UI
+        run: pnpm --filter little-bible-stories-adminui test
+
+      - name: Build admin UI
+        run: pnpm --filter little-bible-stories-adminui build
+
+      - name: Build server
+        run: pnpm --filter little-bible-stories-server build
+
+      - name: Upload admin UI artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-ui-dist
+          path: server/public/admin
+          retention-days: 7
+
+  deploy:
+    name: Trigger Render deploy
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set — skipping deploy"
+            exit 0
+          fi
+          curl -fsSL -X POST "$RENDER_DEPLOY_HOOK_URL"

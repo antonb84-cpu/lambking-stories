@@ -1,0 +1,65 @@
+name: Translate all untranslated books
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-translate every book (including those with EN content)'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Dry run — print plan without writing to Mongo'
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: translate-books-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    name: Sweep all books missing EN
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.8.0'
+          cache: 'pnpm'
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-opus-mt-de-en-${{ runner.os }}
+          restore-keys: |
+            hf-opus-mt-
+
+      - name: Install dependencies (with optional transformers)
+        run: pnpm install --no-frozen-lockfile --include=optional
+
+      - name: Sweep untranslated books
+        working-directory: server
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          TRANSLATION_ENABLED: 'true'
+          TRANSLATION_DTYPE: ${{ vars.TRANSLATION_DTYPE || 'q8' }}
+          ADMIN_PASSWORD: ci-placeholder-password
+        run: |
+          EXTRA=''
+          if [ '${{ github.event.inputs.force }}' = 'true' ]; then EXTRA="$EXTRA --force"; fi
+          if [ '${{ github.event.inputs.dry_run }}' != 'true' ]; then EXTRA="$EXTRA --apply"; fi
+          echo "Running: tsx scripts/translate-books.ts $EXTRA"
+          pnpm exec tsx scripts/translate-books.ts $EXTRA

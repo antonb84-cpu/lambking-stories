@@ -3,7 +3,25 @@
     "allow": [
       "Bash(ls:*)",
       "WebFetch(domain:docs.crazygames.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter little-bible-stories-server type-check)",
+      "Bash(pnpm --filter little-bible-stories-adminui type-check)",
+      "Bash(pnpm --filter little-bible-stories-server test)",
+      "Bash(LOG_LEVEL=debug npx vitest run tests/health.test.ts)",
+      "Bash(pnpm --filter little-bible-stories-adminui test)",
+      "Bash(pnpm --filter little-bible-stories-server build)",
+      "Bash(pnpm --filter little-bible-stories-adminui build)",
+      "Bash(pnpm --filter little-bible-stories-server add -D dotenv-cli)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm migrate:test-to-main)",
+      "Bash(pnpm migrate:test-to-main -- --apply)",
+      "Bash(pnpm build:prod)",
+      "Bash(pnpm migrate:rewrite-upload-urls -- --from=http://localhost:4000 --to=https://lbs-be.onrender.com)",
+      "Bash(pnpm migrate:rewrite-upload-urls -- --from=http://localhost:4000 --to=https://lbs-be.onrender.com --apply)",
+      "Bash(pnpm migrate:rewrite-upload-urls -- --from=https://lbs-be.onrender.com --to=)",
+      "Bash(pnpm migrate:rewrite-upload-urls -- --from=https://lbs-be.onrender.com --to= --apply)",
+      "Bash(pnpm --filter little-bible-stories-server exec tsc -p tsconfig.build.json --noEmit)"
     ]
   }
 }

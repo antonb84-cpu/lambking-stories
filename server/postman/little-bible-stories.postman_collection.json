@@ -1,0 +1,480 @@
+{
+  "info": {
+    "name": "Little Bible Stories API",
+    "_postman_id": "c7f2f3a1-4c2d-4a9b-9f2b-9f2b9f2b9f2b",
+    "description": "Full API surface for the Little Bible Stories backend. Uses the environment file for {{baseUrl}}, {{adminUser}}, {{adminPassword}}. The collection-level pre-request script applies HTTP Basic Auth to every secured call.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{adminUser}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{adminPassword}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Apply Basic Auth only to requests that are marked as secured.",
+          "// Read endpoints can override auth: 'noauth' in their request config.",
+          "const user = pm.environment.get('adminUser') || 'admin';",
+          "const pass = pm.environment.get('adminPassword') || '***REMOVED***';",
+          "pm.variables.set('adminUser', user);",
+          "pm.variables.set('adminPassword', pass);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /healthz",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/healthz",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "healthz"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "GET /api/books",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/book/:bookId",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/book/fa-1-apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book",
+                "fa-1-apple"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/books",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookId\": \"fa-1-apple\",\n  \"author\": \"Konstantin Steinmiller\",\n  \"category\": \"Früchte\",\n  \"bookSeriesId\": \"fruit-agents\",\n  \"releaseDate\": \"2026-01-15\",\n  \"badges\": [\"Neu\"],\n  \"coverImage\": \"{{baseUrl}}/uploads/covers/placeholder.webp\",\n  \"previewImage\": \"{{baseUrl}}/uploads/previews/placeholder.webp\",\n  \"audio\": { \"de\": \"{{baseUrl}}/audiobooks/de/fa-1-apple.ogg\" },\n  \"attachments\": [],\n  \"localizations\": {\n    \"de\": {\n      \"title\": \"Der Apfel\",\n      \"shortDescription\": \"Ein einfaches Obst, das uns jeden Tag überrascht.\",\n      \"description\": \"Eine kurze Geschichte über einen Apfel, der in einem kleinen Dorf wächst.\",\n      \"content\": [\n        { \"page\": 1, \"title\": \"Seite 1\", \"text\": \"<p>Es war einmal ein Apfel...</p>\" },\n        { \"page\": 2, \"title\": \"Seite 2\", \"text\": \"<p>Und er wuchs und wuchs.</p>\" }\n      ]\n    }\n  },\n  \"isPublished\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/book/:bookId",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"badges\": [\"Neu\", \"Bestseller\"],\n  \"isPublished\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/book/fa-1-apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book",
+                "fa-1-apple"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/book/:bookId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/book/fa-1-apple",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book",
+                "fa-1-apple"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Book Series",
+      "item": [
+        {
+          "name": "GET /api/book-series",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/book-series",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book-series"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/book-series",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fruit Agents\",\n  \"description\": \"Kleine Geschichten rund um Obst.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/book-series",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book-series"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/book-series/:seriesId",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Aktualisierte Beschreibung.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/book-series/fruit-agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book-series",
+                "fruit-agents"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/book-series/:seriesId",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/book-series/fruit-agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "book-series",
+                "fruit-agents"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "GET /api/categories",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/categories",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"name\": \"Früchte\" }"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/categories/:name",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/Früchte",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "Früchte"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "POST /api/audiobooks",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/audiobooks?bookId=fa-1-apple&lang=de",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "audiobooks"
+              ],
+              "query": [
+                {
+                  "key": "bookId",
+                  "value": "fa-1-apple"
+                },
+                {
+                  "key": "lang",
+                  "value": "de"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/images (cover)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/images?kind=cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "images"
+              ],
+              "query": [
+                {
+                  "key": "kind",
+                  "value": "cover"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/attachments",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attachments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attachments"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Translation",
+      "item": [
+        {
+          "name": "POST /api/translate (de → en)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": \"de\",\n  \"to\": \"en\",\n  \"strings\": {\n    \"title\": \"Der Apfel\",\n    \"shortDescription\": \"Ein einfaches Obst, das uns jeden Tag überrascht.\",\n    \"content.1.title\": \"Seite 1\",\n    \"content.1.text\": \"Es war einmal ein Apfel, der in einem kleinen Dorf wuchs.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/translate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "translate"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.env.*
+!.env.example
+logs
+*.log
+.cache
+audiobooks/*
+!audiobooks/.gitkeep
+uploads/*
+!uploads/.gitkeep
+coverage

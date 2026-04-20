@@ -1,0 +1,20 @@
+.default-theme .toast.glass.card {
+  border: 1px solid black;
+  color: black;
+
+  div.border-solid {
+    border-color: black;
+  }
+}
+
+.default-theme:has( .fixed.top-0.left-0) .toast,
+.default-theme:has( .fixed.w-screen.bg-black) .toast {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-color);
+  border-color: var(--glass-color);
+  color: var(--glass-color);
+
+  div.border-solid {
+    border-color: var(--glass-color);
+  }
+}
