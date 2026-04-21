@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AHeader from '@/components/atoms/AHeader.vue'
@@ -9,13 +9,31 @@ import ASelect from '@/components/atoms/ASelect.vue'
 import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
 import useModels from '@/use/useModels'
+import useApiBooks from '@/use/useApiBooks'
 import useUser from '@/use/useUser'
+import type { ApiBook, Locale } from '@/types/apiBook'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const route = useRoute()
-const { watchListBooks, removeFromWatchList } = useModels()
+const { watchListIds, removeFromWatchList } = useModels()
+const apiBooks = useApiBooks()
 const { userLanguage, setSettingValue } = useUser()
+
+onMounted(() => {
+  void apiBooks.loadAllBooks()
+})
+
+const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
+const watchListBooks = computed<ApiBook[]>(() =>
+  watchListIds.value
+    .map((id) => apiBooks.getById(id))
+    .filter((b): b is ApiBook => b !== null)
+)
+
+function localizedTitle(book: ApiBook): string {
+  return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
+}
 
 if (locale.value !== userLanguage.value) locale.value = userLanguage.value
 watch(userLanguage, (v) => {
@@ -94,14 +112,14 @@ function openBook(bookId: string) {
       div(v-else class="mt-2 flex flex-col gap-3")
         div(
           v-for="book in watchListBooks"
-          :key="book.id"
+          :key="book.bookId"
           class="relative"
         )
           ACard(
-            :title="t(book.title)"
-            :category="book.author"
+            :title="localizedTitle(book)"
+            :category="book.category || book.author"
             :tags="['5 min', 'Alter 4-8']"
-            @click="openBook(book.id)"
+            @click="openBook(book.bookId)"
           )
             template(#image)
               div(class="relative w-full h-full")
@@ -112,13 +130,13 @@ function openBook(bookId: string) {
                 img(
                   v-if="book.previewImage || book.coverImage"
                   :src="book.previewImage || book.coverImage"
-                  :alt="t(book.title)"
+                  :alt="localizedTitle(book)"
                   class="absolute inset-0 w-full h-full object-cover"
                   loading="lazy"
                 )
           button(
             type="button"
-            @click.stop="removeFromWatchList(book.id)"
+            @click.stop="removeFromWatchList(book.bookId)"
             :aria-label="t('app.profile.remove')"
             class="remove-btn"
           )

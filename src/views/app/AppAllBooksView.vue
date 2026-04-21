@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AHeader from '@/components/atoms/AHeader.vue'
@@ -8,11 +8,24 @@ import ABadge from '@/components/atoms/ABadge.vue'
 import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
 import useModels from '@/use/useModels'
+import useApiBooks from '@/use/useApiBooks'
+import type { ApiBook, Locale } from '@/types/apiBook'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const route = useRoute()
-const { BOOKS, getSeriesOfBook } = useModels()
+const { getSeriesOfBook } = useModels()
+const apiBooks = useApiBooks()
+
+onMounted(() => {
+  void apiBooks.loadAllBooks()
+})
+
+const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
+
+function localizedTitle(book: ApiBook): string {
+  return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
+}
 
 function routeToNav(name: string): string {
   if (name === 'app-main') return 'home'
@@ -41,8 +54,11 @@ function openBook(bookId: string) {
   router.push({ name: 'app-book', params: { bookId } })
 }
 
-const allBooks = computed(() => {
-  return [...BOOKS].sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
+const allBooks = computed<ApiBook[]>(() => {
+  const list = (apiBooks.state.all ?? []) as ApiBook[]
+  return [...list].sort(
+    (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
+  )
 })
 
 function isNew(isoDate: string) {
@@ -50,8 +66,8 @@ function isNew(isoDate: string) {
   return Date.now() - released < 1000 * 60 * 60 * 24 * 90
 }
 
-function tagsForBook(b: typeof BOOKS[number]) {
-  const series = getSeriesOfBook(b.id)
+function tagsForBook(b: ApiBook) {
+  const series = getSeriesOfBook(b.bookId)
   const base = ['5 min', 'Alter 4-8']
   if (series) base.push(series.name)
   return base
@@ -76,11 +92,11 @@ function tagsForBook(b: typeof BOOKS[number]) {
       div(class="mt-3 flex flex-col gap-3")
         ACard(
           v-for="book in allBooks"
-          :key="book.id"
-          :title="t(book.title)"
-          :category="getSeriesOfBook(book.id)?.name || book.author"
+          :key="book.bookId"
+          :title="localizedTitle(book)"
+          :category="getSeriesOfBook(book.bookId)?.name || book.author"
           :tags="tagsForBook(book)"
-          @click="openBook(book.id)"
+          @click="openBook(book.bookId)"
         )
           template(#image)
             div(class="relative w-full h-full")
@@ -89,9 +105,9 @@ function tagsForBook(b: typeof BOOKS[number]) {
                 :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="book.coverImage || book.previewImage"
-                :src="book.coverImage || book.previewImage"
-                :alt="t(book.title)"
+                v-if="book.previewImage || book.coverImage"
+                :src="book.previewImage || book.coverImage"
+                :alt="localizedTitle(book)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               )
@@ -108,10 +124,10 @@ function tagsForBook(b: typeof BOOKS[number]) {
       div(class="grid grid-cols-2 gap-3")
         ACard(
           v-for="book in allBooks"
-          :key="`grid-${book.id}`"
+          :key="`grid-${book.bookId}`"
           layout="vertical"
-          :title="t(book.title)"
-          @click="openBook(book.id)"
+          :title="localizedTitle(book)"
+          @click="openBook(book.bookId)"
         )
           template(#image)
             div(class="relative w-full h-full")
@@ -120,9 +136,9 @@ function tagsForBook(b: typeof BOOKS[number]) {
                 :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="book.coverImage || book.previewImage"
-                :src="book.coverImage || book.previewImage"
-                :alt="t(book.title)"
+                v-if="book.previewImage || book.coverImage"
+                :src="book.previewImage || book.coverImage"
+                :alt="localizedTitle(book)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               )
@@ -168,4 +184,3 @@ function tagsForBook(b: typeof BOOKS[number]) {
   top: 2px !important
   left: 5px
 </style>
-

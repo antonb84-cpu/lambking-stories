@@ -18,7 +18,11 @@ const translations = mergeObjectsRecursive(
   appTranslations
 )
 
-const userLanguage = ref(sessionStorage.getItem(GAME_USER_LANGUAGE) || navigator.language?.split('-')[0])
+const userLanguage = ref(
+  localStorage.getItem(GAME_USER_LANGUAGE)
+  || sessionStorage.getItem(GAME_USER_LANGUAGE)
+  || navigator.language?.split('-')[0]
+)
 
 const i18n: any = createI18n({
   locale: userLanguage.value || 'en', // set locale

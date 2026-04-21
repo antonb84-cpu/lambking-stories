@@ -35,7 +35,20 @@ export default {
         download: 'Download',
         nowListening: 'NOW LISTENING',
         followAlong: 'FOLLOW ALONG',
-        noText: 'No text available.'
+        noText: 'No text available.',
+        progressLabel: 'READING PROGRESS',
+        progress: 'Reading progress {pct}',
+        completed: 'Finished!'
+      },
+      reader: {
+        back: 'Back',
+        loading: 'Loading…',
+        notFound: 'Story not found.',
+        cover: 'Cover',
+        finished: 'Done',
+        congratsTitle: 'You did it!',
+        congratsSub: 'You finished the story.',
+        nextStoryWaiting: 'The next story is waiting for you!'
       },
       bookSeries: {
         title: 'Book series',
@@ -95,7 +108,20 @@ export default {
         download: 'Herunterladen',
         nowListening: 'HÖRST GERADE',
         followAlong: 'MITLESEN',
-        noText: 'Kein Text verfügbar.'
+        noText: 'Kein Text verfügbar.',
+        progressLabel: 'LESEFORTSCHRITT',
+        progress: 'Lesefortschritt {pct}',
+        completed: 'Geschafft!'
+      },
+      reader: {
+        back: 'Zurück',
+        loading: 'Lade …',
+        notFound: 'Geschichte nicht gefunden.',
+        cover: 'Cover',
+        finished: 'Fertig',
+        congratsTitle: 'Geschafft!',
+        congratsSub: 'Du hast die Geschichte zu Ende gelesen.',
+        nextStoryWaiting: 'Die nächste Geschichte wartet auf dich!'
       },
       bookSeries: {
         title: 'Buchreihe',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AHeader from '@/components/atoms/AHeader.vue'
@@ -8,15 +8,31 @@ import ABadge from '@/components/atoms/ABadge.vue'
 import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
 import useModels from '@/use/useModels'
+import useApiBooks from '@/use/useApiBooks'
+import type { ApiBook, Locale } from '@/types/apiBook'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
-const { getSeries, getBooksOfSeries } = useModels()
+const { getSeries } = useModels()
+const apiBooks = useApiBooks()
 
+onMounted(() => {
+  void apiBooks.loadAllBooks()
+})
+
+const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 const seriesId = computed(() => String(route.params.seriesId))
 const series = computed(() => getSeries(seriesId.value))
-const books = computed(() => getBooksOfSeries(seriesId.value))
+const books = computed<ApiBook[]>(() => {
+  // Recompute when state.all changes; booksOfSeries reads from state.all.
+  void apiBooks.state.all
+  return apiBooks.booksOfSeries(seriesId.value)
+})
+
+function localizedTitle(book: ApiBook): string {
+  return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
+}
 
 const navItems = computed(() => [
   { id: 'home', label: t('app.nav.home'), icon: 'home' as const },
@@ -65,11 +81,11 @@ function isNew(iso: string) {
       div(class="flex flex-col gap-3")
         ACard(
           v-for="(book, idx) in books"
-          :key="book.id"
-          :title="t(book.title)"
+          :key="book.bookId"
+          :title="localizedTitle(book)"
           :category="`#${idx + 1}`"
           :tags="['5 min', 'Alter 4-8']"
-          @click="openBook(book.id)"
+          @click="openBook(book.bookId)"
         )
           template(#image)
             div(class="relative w-full h-full")
@@ -80,7 +96,7 @@ function isNew(iso: string) {
               img(
                 v-if="book.previewImage || book.coverImage"
                 :src="book.previewImage || book.coverImage"
-                :alt="t(book.title)"
+                :alt="localizedTitle(book)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               )
@@ -111,4 +127,3 @@ function isNew(iso: string) {
   color: var(--color-text-secondary)
   line-height: 1.55
 </style>
-

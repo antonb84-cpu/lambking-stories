@@ -1,21 +1,51 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AHeader from '@/components/atoms/AHeader.vue'
 import ACard from '@/components/atoms/ACard.vue'
 import ABadge from '@/components/atoms/ABadge.vue'
-import AChip from '@/components/atoms/AChip.vue'
 import APlayer from '@/components/atoms/APlayer.vue'
 import APlayButton from '@/components/atoms/APlayButton.vue'
 import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
 import useModels from '@/use/useModels'
+import useApiBooks from '@/use/useApiBooks'
+import useReadingProgress from '@/use/useReadingProgress'
+import type { ApiBook, Locale } from '@/types/apiBook'
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const route = useRoute()
-const { BOOKS, getSeriesOfBook, lastReadBook } = useModels()
+const { lastReadId, getSeriesOfBook } = useModels()
+const apiBooks = useApiBooks()
+const { getPct } = useReadingProgress()
+
+// Warm the API store so the reader and detail views can fetch from cache
+// instantly on first navigation. Failures are silently absorbed by the store.
+onMounted(() => {
+  void apiBooks.loadAllBooks()
+})
+
+const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
+
+function localizedTitle(book: ApiBook): string {
+  return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
+}
+
+function pageCount(book: ApiBook): number {
+  return book.localizations?.[lang.value]?.content?.length
+    || book.localizations?.de?.content?.length
+    || 0
+}
+
+function progressPct(book: ApiBook): number {
+  return getPct(book.bookId, pageCount(book))
+}
+
+function progressPctLabel(book: ApiBook): string {
+  return `${Math.round(progressPct(book) * 100)}%`
+}
 
 const navItems = computed(() => [
   { id: 'home', label: t('app.nav.home'), icon: 'home' as const },
@@ -49,18 +79,26 @@ function openAll() {
   router.push({ name: 'app-all-books' })
 }
 
+const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
+
+const lastReadBook = computed<ApiBook | null>(() =>
+  lastReadId.value ? apiBooks.getById(lastReadId.value) : null
+)
+
 const lastReadSeries = computed(() => {
   if (!lastReadBook.value) return null
-  return getSeriesOfBook(lastReadBook.value.id) ?? null
+  return getSeriesOfBook(lastReadBook.value.bookId) ?? null
 })
 
-const continueProgress = ref(0.42)
+const continueProgress = computed(() =>
+  lastReadBook.value ? progressPct(lastReadBook.value) : 0
+)
 
-const newReleases = computed(() => {
-  return [...BOOKS]
+const newReleases = computed<ApiBook[]>(() =>
+  [...allBooks.value]
     .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
     .slice(0, 6)
-})
+)
 
 function isNew(isoDate: string) {
   const released = new Date(isoDate).getTime()
@@ -68,8 +106,8 @@ function isNew(isoDate: string) {
   return now - released < 1000 * 60 * 60 * 24 * 90 // within 90 days
 }
 
-function tagsForBook(b: typeof BOOKS[number]) {
-  const series = getSeriesOfBook(b.id)
+function tagsForBook(b: ApiBook) {
+  const series = getSeriesOfBook(b.bookId)
   const base = ['5 min', 'Alter 4-8']
   if (series) base.push(series.name)
   return base
@@ -93,9 +131,9 @@ function tagsForBook(b: typeof BOOKS[number]) {
       ABreadcrumbs(:label="t('app.main.continueListening')")
       div(class="mt-2 px-2")
         ACard(
-          :title="t(lastReadBook.title)"
-          :category="t(lastReadSeries?.name) || t('app.main.continueReading')"
-          @click="openBook(lastReadBook.id)"
+          :title="localizedTitle(lastReadBook)"
+          :category="lastReadSeries?.name || t('app.main.continueReading')"
+          @click="openBook(lastReadBook.bookId)"
         )
           template(#image)
             div(class="relative w-full h-full")
@@ -104,9 +142,9 @@ function tagsForBook(b: typeof BOOKS[number]) {
                 :style="{ background: lastReadBook.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="lastReadBook.coverImage || lastReadBook.previewImage"
-                :src="lastReadBook.coverImage || lastReadBook.previewImage"
-                :alt="lastReadBook.title"
+                v-if="lastReadBook.previewImage || lastReadBook.coverImage"
+                :src="lastReadBook.previewImage || lastReadBook.coverImage"
+                :alt="localizedTitle(lastReadBook)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               )
@@ -120,9 +158,9 @@ function tagsForBook(b: typeof BOOKS[number]) {
             )
           div(class="flex items-center gap-2 mt-1.5 w-full")
             div(class="flex-1 min-w-0")
-              APlayer(:progress="continueProgress" :seekable="false" @seek="(v) => continueProgress = v")
+              APlayer(:progress="continueProgress" :seekable="false")
             div(class="shrink-0" @click.stop)
-              APlayButton(size="sm" @click="openBook(lastReadBook.id)")
+              APlayButton(size="sm" @click="openBook(lastReadBook.bookId)")
 
     //- New releases
     section(class="section-wrap mt-8")
@@ -140,11 +178,11 @@ function tagsForBook(b: typeof BOOKS[number]) {
       div(class="mt-3 flex flex-col gap-3")
         ACard(
           v-for="book in newReleases"
-          :key="book.id"
-          :title="t(book.title)"
-          :category="getSeriesOfBook(book.id)?.name || book.author"
+          :key="book.bookId"
+          :title="localizedTitle(book)"
+          :category="getSeriesOfBook(book.bookId)?.name || book.author"
           :tags="tagsForBook(book)"
-          @click="openBook(book.id)"
+          @click="openBook(book.bookId)"
         )
           template(#image)
             div(class="relative w-full h-full")
@@ -153,17 +191,28 @@ function tagsForBook(b: typeof BOOKS[number]) {
                 :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="book.coverImage || book.previewImage"
-                :src="book.coverImage || book.previewImage"
-                :alt="t(book.title)"
+                v-if="book.previewImage || book.coverImage"
+                :src="book.previewImage || book.coverImage"
+                :alt="localizedTitle(book)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               )
               ABadge.new-badge(
+                v-if="isNew(book.releaseDate)"
                 variant="new"
                 position="top-left"
                 label="NEU"
                 size="sm"
+              )
+          div(
+            v-if="progressPct(book) > 0"
+            class="card-progress mt-2"
+            :aria-label="'Fortschritt ' + progressPctLabel(book)"
+          )
+            div(class="card-progress-track")
+              div(
+                class="card-progress-fill"
+                :style="{ width: progressPctLabel(book) }"
               )
 
     div(class="h-32")
@@ -196,5 +245,19 @@ function tagsForBook(b: typeof BOOKS[number]) {
 :deep(.new-badge.a-badge-top-left)
   top: 4px !important
   left: 4px
-</style>
 
+.card-progress
+  width: 100%
+
+.card-progress-track
+  height: 5px
+  background: rgba(0, 0, 0, 0.08)
+  border-radius: 999px
+  overflow: hidden
+
+.card-progress-fill
+  height: 100%
+  background: linear-gradient(90deg, #ffd645 0%, #ff8b3a 100%)
+  border-radius: inherit
+  transition: width 240ms ease-out
+</style>

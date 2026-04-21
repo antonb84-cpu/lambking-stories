@@ -1,61 +1,106 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import AButton from '@/components/atoms/AButton.vue'
 import AChip from '@/components/atoms/AChip.vue'
 import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
-import APager from '@/components/atoms/APager.vue'
 import AAudioPlayer from '@/components/atoms/AAudioPlayer.vue'
 import AIconography from '@/components/atoms/AIconography.vue'
 import useModels from '@/use/useModels'
-import { prependBaseUrl } from '@/utils/function.ts'
-import { snapshotAt } from '@/utils/karaoke'
+import useApiBooks from '@/use/useApiBooks'
+import useReadingProgress from '@/use/useReadingProgress'
+import type { ApiBook, Locale } from '@/types/apiBook'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const {
-  getBook, getSeriesOfBook, isInWatchList, toggleWatchList, setLastRead,
+  getSeriesOfBook, isInWatchList, toggleWatchList, setLastRead,
   getPlaybackState, setPlaybackState
 } = useModels()
+const apiBooks = useApiBooks()
+const { getPct, isCompleted } = useReadingProgress()
 
 const bookId = computed(() => String(route.params.bookId))
-const book = computed(() => getBook(bookId.value))
-const series = computed(() => (book.value ? getSeriesOfBook(book.value.id) : undefined))
-const inWatchList = computed(() => (book.value ? isInWatchList(book.value.id) : false))
+const book = ref<ApiBook | null>(null)
 
-type ViewMode = 'detail' | 'listen' | 'read'
+const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
+const localization = computed(() => {
+  const b = book.value
+  if (!b) return null
+  return b.localizations?.[lang.value] ?? b.localizations?.de ?? null
+})
+const localizedTitle = computed(() => localization.value?.title || '')
+const localizedDescription = computed(() => localization.value?.description || '')
+
+const series = computed(() => (book.value ? getSeriesOfBook(book.value.bookId) : undefined))
+const inWatchList = computed(() => (book.value ? isInWatchList(book.value.bookId) : false))
+
+async function fetchBook() {
+  book.value = await apiBooks.loadBook(bookId.value)
+  if (book.value) {
+    setLastRead(book.value.bookId)
+    const saved = getPlaybackState(book.value.bookId)
+    if (saved && typeof saved.time === 'number' && saved.time > 0) {
+      pendingResumeTime = saved.time
+    }
+  }
+}
+
+type ViewMode = 'detail' | 'listen'
 const mode = ref<ViewMode>('detail')
 
 const audioEl = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
+const audioLoading = ref(false)
 let rafId = 0
 
 const audioSrc = computed(() => {
-  if (!book.value) return ''
-  const lang = locale.value as 'en' | 'de'
-  return prependBaseUrl(book.value.audio[lang] || book.value.audio.en)
+  const b = book.value
+  if (!b || !b.audio) return ''
+  return b.audio[lang.value] || b.audio.de || b.audio.en || ''
 })
+
+function onAudioLoadStart() {
+  audioLoading.value = true
+}
+
+function onAudioWaiting() {
+  audioLoading.value = true
+}
+
+function onAudioCanPlay() {
+  audioLoading.value = false
+}
+
+function onAudioPlaying() {
+  audioLoading.value = false
+}
+
+function onAudioStalled() {
+  audioLoading.value = true
+}
 
 function ensureAudio() {
   if (!audioEl.value) return
   audioEl.value.addEventListener('timeupdate', onTimeUpdate)
   audioEl.value.addEventListener('loadedmetadata', onLoadedMeta)
   audioEl.value.addEventListener('ended', onEnded)
+  audioEl.value.addEventListener('loadstart', onAudioLoadStart)
+  audioEl.value.addEventListener('waiting', onAudioWaiting)
+  audioEl.value.addEventListener('canplay', onAudioCanPlay)
+  audioEl.value.addEventListener('playing', onAudioPlaying)
+  audioEl.value.addEventListener('stalled', onAudioStalled)
 }
 
 function onTimeUpdate() {
   if (audioEl.value) currentTime.value = audioEl.value.currentTime
 }
 
-// `audio.currentTime` is already a sub-ms-accurate getter — just read it
-// each frame. The previous version added `performance.now()`-based delta
-// on top, which over-predicted and then snapped back on each timeupdate
-// event, causing the karaoke highlight to jitter forward and back.
 function tickRaf() {
   if (!isPlaying.value || !audioEl.value) {
     rafId = 0
@@ -78,7 +123,6 @@ function stopRaf() {
 function onLoadedMeta() {
   if (!audioEl.value) return
   duration.value = audioEl.value.duration || 0
-  // Restore saved playback position once metadata is available.
   if (pendingResumeTime > 0) {
     const t0 = Math.min(Math.max(0, pendingResumeTime), Math.max(0, duration.value - 0.5))
     audioEl.value.currentTime = t0
@@ -132,24 +176,15 @@ function seek(seconds: number) {
 
 function savePlayback() {
   if (!book.value) return
-  setPlaybackState(book.value.id, {
+  setPlaybackState(book.value.bookId, {
     time: currentTime.value || 0,
-    page: selectedPage.value,
     audioSrc: audioSrc.value
   })
 }
 
 onMounted(() => {
-  if (book.value) {
-    setLastRead(book.value.id)
-    const saved = getPlaybackState(book.value.id)
-    if (saved) {
-      if (typeof saved.time === 'number' && saved.time > 0) pendingResumeTime = saved.time
-      if (typeof saved.page === 'number' && saved.page > 0) selectedPage.value = saved.page
-    }
-  }
   ensureAudio()
-  loadAlignment(audioSrc.value)
+  void fetchBook()
 })
 onUnmounted(() => {
   savePlayback()
@@ -159,265 +194,20 @@ onUnmounted(() => {
     audioEl.value.removeEventListener('timeupdate', onTimeUpdate)
     audioEl.value.removeEventListener('loadedmetadata', onLoadedMeta)
     audioEl.value.removeEventListener('ended', onEnded)
+    audioEl.value.removeEventListener('loadstart', onAudioLoadStart)
+    audioEl.value.removeEventListener('waiting', onAudioWaiting)
+    audioEl.value.removeEventListener('canplay', onAudioCanPlay)
+    audioEl.value.removeEventListener('playing', onAudioPlaying)
+    audioEl.value.removeEventListener('stalled', onAudioStalled)
   }
 })
-watch(audioSrc, (src) => {
+watch(bookId, () => {
+  void fetchBook()
+})
+watch(audioSrc, () => {
   isPlaying.value = false
   currentTime.value = 0
   duration.value = 0
-  loadAlignment(src)
-})
-
-// ----- Subtitle / karaoke text flow -----
-// Two modes:
-//  (1) alignment JSON present next to the audio file → exact word timings.
-//  (2) no alignment → fallback: uniform-within-sentence timing scoped to the
-//      first non-empty page's text so sentences don't fly by at 10x rate.
-
-interface AlignedWord {
-  text: string;
-  start: number;
-  end: number
-}
-
-interface AlignedSentence {
-  text: string;
-  start: number;
-  end: number;
-  words: AlignedWord[]
-}
-
-interface Alignment {
-  duration: number
-  sentences: AlignedSentence[]
-}
-
-const alignment = ref<Alignment | null>(null)
-
-async function loadAlignment(src: string) {
-  alignment.value = null
-  if (!src) return
-  const url = src.replace(/\.(ogg|mp3|m4a|wav)(\?.*)?$/i, '.align.json$2')
-  if (url === src) return
-  try {
-    const res = await fetch(url)
-    if (!res.ok) return
-    const json = await res.json()
-    if (json && Array.isArray(json.sentences) && json.sentences.length) {
-      alignment.value = { duration: json.duration || 0, sentences: json.sentences }
-    }
-  } catch {
-    /* no alignment available — fallback path handles it */
-  }
-}
-
-// Fallback text source: first page with non-empty text. Scoping to one page
-// keeps the per-word duration realistic against the actual audio length.
-interface FallbackSentence {
-  words: string[];
-  startWord: number
-}
-
-const fallbackSentences = computed<FallbackSentence[]>(() => {
-  const pages = book.value?.content
-  if (!pages || !pages.length) return []
-  const list: FallbackSentence[] = []
-  let globalWord = 0
-  for (const p of pages) {
-    const raw = t(p.text) || ''
-    if (!raw.trim()) continue
-    const sentenceStrings = raw.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || []
-    for (const s of sentenceStrings) {
-      const trimmed = s.trim()
-      if (!trimmed) continue
-      const words = trimmed.split(/\s+/)
-      list.push({ words, startWord: globalWord })
-      globalWord += words.length
-    }
-    if (list.length) break // only first page with content
-  }
-  return list
-})
-
-// Current sentence / word using alignment if available, else fallback.
-// The alignment branch delegates to the pure helpers in @/utils/karaoke so
-// the behavior is covered by tests/karaoke.test.ts.
-const karaoke = computed(() => {
-  const t0 = currentTime.value
-  if (alignment.value) {
-    return snapshotAt(alignment.value, t0)
-  }
-  // Fallback: uniform timing scoped to the first non-empty page's text so
-  // sentences don't fly by at an unrealistic rate.
-  const fb = fallbackSentences.value
-  if (!fb.length || !duration.value) {
-    return { sentenceIndex: 0, activeWord: 0, currentWords: [], nextWords: [], showNext: false }
-  }
-  const totalWords = fb.reduce((n, s) => n + s.words.length, 0) || 1
-  const ratio = Math.min(1, t0 / duration.value)
-  const globalWord = Math.floor(ratio * totalWords)
-  let sentenceIndex = fb.length - 1
-  for (let i = 0; i < fb.length; i++) {
-    const s = fb[i]
-    if (s && globalWord < s.startWord + s.words.length) {
-      sentenceIndex = i
-      break
-    }
-  }
-  const sent = fb[sentenceIndex]
-  const perWord = duration.value / totalWords
-  const sentStart = sent ? sent.startWord * perWord : 0
-  const local = Math.max(0, t0 - sentStart)
-  const activeWord = sent
-    ? Math.max(0, Math.min(sent.words.length - 1, Math.floor(local / perWord)))
-    : 0
-  const next = fb[sentenceIndex + 1]
-  const denom = Math.max(1, (sent?.words.length || 1) - 1)
-  const showNext = !!(sent && next) && activeWord / denom >= 0.6
-  return {
-    sentenceIndex,
-    activeWord,
-    currentWords: sent?.words || [],
-    nextWords: next?.words || [],
-    showNext
-  }
-})
-
-const currentSentenceIndex = computed(() => karaoke.value.sentenceIndex)
-const activeWordInSentence = computed(() => karaoke.value.activeWord)
-const currentSentence = computed(() =>
-  karaoke.value.currentWords.length ? { words: karaoke.value.currentWords } : null
-)
-const nextSentence = computed(() =>
-  karaoke.value.nextWords.length ? { words: karaoke.value.nextWords } : null
-)
-const showNextSentence = computed(() => karaoke.value.showNext)
-
-// ----- Smooth karaoke overlay -----
-// Per-word start/end for the current sentence, used to interpolate the
-// position of a box overlay that glides linearly from one word to the next
-// at exactly the pace of the audio. No per-word background toggle, no
-// discrete jumps — the box moves every frame.
-const currentWordTimings = computed<Array<{ start: number; end: number }>>(() => {
-  const si = currentSentenceIndex.value
-  if (alignment.value) {
-    const s = alignment.value.sentences[si]
-    return s ? s.words.map(w => ({ start: w.start, end: w.end })) : []
-  }
-  const fb = fallbackSentences.value
-  if (!fb.length || !duration.value) return []
-  const totalWords = fb.reduce((n, s) => n + s.words.length, 0) || 1
-  const perWord = duration.value / totalWords
-  const sent = fb[si]
-  if (!sent) return []
-  return sent.words.map((_, i) => ({
-    start: (sent.startWord + i) * perWord,
-    end: (sent.startWord + i + 1) * perWord
-  }))
-})
-
-const subtitlesRef = ref<HTMLDivElement | null>(null)
-const wordSpans = ref<(HTMLElement | null)[]>([])
-
-function setWordRef(i: number, el: any) {
-  wordSpans.value[i] = (el as HTMLElement) || null
-}
-
-// Bump on resize / sentence change to invalidate the cached layout reads.
-const layoutTick = ref(0)
-watch(currentSentenceIndex, () => {
-  wordSpans.value = []
-  layoutTick.value++
-})
-watch(() => currentSentence.value?.words.length, () => {
-  layoutTick.value++
-})
-
-interface BoxStyle {
-  left: number
-  top: number
-  width: number
-  height: number
-  visible: boolean
-}
-
-const karaokeBox = computed<BoxStyle>(() => {
-  // Reactivity anchor so resize / sentence flips invalidate the memoized
-  // getBoundingClientRect reads below.
-  void layoutTick.value
-  const t0 = currentTime.value
-  const times = currentWordTimings.value
-  const spans = wordSpans.value
-  const container = subtitlesRef.value
-  if (!times.length || !spans.length || !container) {
-    return { left: 0, top: 0, width: 0, height: 0, visible: false }
-  }
-  // Find the word whose [start, nextStart) contains t0 so we can lerp
-  // smoothly from word i's position to word i+1's position over the real
-  // pronunciation time.
-  const first = times[0]
-  if (!first) return { left: 0, top: 0, width: 0, height: 0, visible: false }
-  let i = 0
-  for (; i < times.length - 1; i++) {
-    const nextT = times[i + 1]
-    if (nextT && t0 < nextT.start) break
-  }
-  const curT = times[i]
-  const cur = spans[i]
-  if (!cur || !curT) return { left: 0, top: 0, width: 0, height: 0, visible: false }
-  const cr = container.getBoundingClientRect()
-  const a = cur.getBoundingClientRect()
-  const base = {
-    left: a.left - cr.left,
-    top: a.top - cr.top,
-    width: a.width,
-    height: a.height
-  }
-  const nxt = spans[i + 1]
-  const nxtT = times[i + 1]
-  if (!nxt || !nxtT || i >= times.length - 1) {
-    return { ...base, visible: t0 >= first.start - 0.05 }
-  }
-  const span = Math.max(0.05, nxtT.start - curT.start)
-  const frac = Math.min(1, Math.max(0, (t0 - curT.start) / span))
-  const eased = frac < 0.5 ? 2 * frac * frac : 1 - Math.pow(-2 * frac + 2, 2) / 2
-  const b = nxt.getBoundingClientRect()
-  const tgt = {
-    left: b.left - cr.left,
-    top: b.top - cr.top,
-    width: b.width,
-    height: b.height
-  }
-  return {
-    left: base.left + (tgt.left - base.left) * eased,
-    top: base.top + (tgt.top - base.top) * eased,
-    width: base.width + (tgt.width - base.width) * eased,
-    height: base.height,
-    visible: t0 >= first.start - 0.05
-  }
-})
-
-const karaokeBoxStyle = computed(() => {
-  const b = karaokeBox.value
-  return {
-    transform: `translate3d(${b.left}px, ${b.top}px, 0)`,
-    width: `${b.width}px`,
-    height: `${b.height}px`,
-    opacity: b.visible ? '1' : '0'
-  }
-})
-
-function onWindowResize() {
-  layoutTick.value++
-}
-
-onMounted(() => window.addEventListener('resize', onWindowResize))
-onUnmounted(() => window.removeEventListener('resize', onWindowResize))
-// Remeasure once DOM has flushed new word spans.
-watch(currentSentence, () => {
-  nextTick(() => {
-    layoutTick.value++
-  })
 })
 
 const navItems = computed(() => [
@@ -459,7 +249,7 @@ function goBack() {
 }
 
 function onToggleWatchList() {
-  if (book.value) toggleWatchList(book.value.id)
+  if (book.value) toggleWatchList(book.value.bookId)
 }
 
 function onListen() {
@@ -476,33 +266,27 @@ function onListen() {
 }
 
 function onRead() {
-  mode.value = 'read'
+  if (!book.value) return
+  router.push({ name: 'app-reader', params: { bookId: book.value.bookId } })
 }
 
+const totalPages = computed(() => localization.value?.content?.length || 0)
+const readingPct = computed(() => {
+  if (!book.value) return 0
+  return getPct(book.value.bookId, totalPages.value)
+})
+const readingPctLabel = computed(() => `${Math.round(readingPct.value * 100)}%`)
+const readingDone = computed(() => (book.value ? isCompleted(book.value.bookId) : false))
+
 function onDownload() {
-  if (!book.value) return
-  const lang = locale.value as 'en' | 'de'
-  const src = prependBaseUrl(book.value.audio[lang] || book.value.audio.en)
+  const src = audioSrc.value
+  if (!src) return
   const a = document.createElement('a')
   a.href = src
-  a.download = `${book.value.title}.mp3`
+  a.download = `${localizedTitle.value || 'audio'}.mp3`
   a.click()
 }
 
-const selectedPage = ref(1)
-const totalPages = computed(() => book.value?.content?.length || 0)
-const currentPage = computed(() => {
-  const pages = book.value?.content
-  if (!pages || !pages.length) return { title: '', text: '' }
-  const p = pages[Math.min(pages.length, Math.max(1, selectedPage.value)) - 1]
-  if (!p) return { title: '', text: '' }
-  return { title: t(p.title) || '', text: t(p.text) || '' }
-})
-watch(bookId, () => {
-  selectedPage.value = 1
-})
-watch(selectedPage, () => savePlayback())
-// Save every few seconds while listening so a hard close still resumes.
 watch(currentTime, (v, prev) => {
   if (mode.value !== 'listen' || !isPlaying.value) return
   if (Math.floor(v / 3) !== Math.floor(prev / 3)) savePlayback()
@@ -523,7 +307,7 @@ watch(currentTime, (v, prev) => {
           img(
             v-if="book.coverImage || book.previewImage"
             :src="book.coverImage || book.previewImage"
-            :alt="t(book.title)"
+            :alt="localizedTitle"
             class="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
           )
@@ -541,12 +325,8 @@ watch(currentTime, (v, prev) => {
       //- ===== Detail mode =====
       template(v-if="mode === 'detail'")
         section(class="section-wrap mt-5")
-          ABreadcrumbs(:label="series ? (series.name + ' · Band ' + (series.books?.indexOf(book.id) + 1 || 1)) : t('app.bookDetail.story')")
-          h1(class="book-title mt-1 text-2xl md:text-3xl font-black leading-tight") {{ t(book.title) }}
-          p(
-            v-if="book.subtitle"
-            class="book-subtitle mt-1 italic text-sm md:text-base"
-          ) {{ t(book.subtitle) }}
+          ABreadcrumbs(:label="series ? series.name : t('app.bookDetail.story')")
+          h1(class="book-title mt-1 text-2xl md:text-3xl font-black leading-tight") {{ localizedTitle }}
 
           div(class="meta-row mt-3 flex items-center gap-2")
             template(v-for="(badge, i) in book.badges" :key="badge + i")
@@ -571,63 +351,50 @@ watch(currentTime, (v, prev) => {
             AButton.self-read(type="secondary" icon="book" size="sm" @click="onRead") {{ t('app.bookDetail.readMyself') }}
             AButton.download(type="secondary" icon="download" size="sm" @click="onDownload") {{ t('app.bookDetail.download') }}
 
+          //- Reading progress (only once the user has actually started)
+          div(
+            v-if="readingPct > 0"
+            class="reading-progress mt-4"
+            :aria-label="t('app.bookDetail.progress', { pct: readingPctLabel }) || ('Lesefortschritt ' + readingPctLabel)"
+          )
+            div(class="reading-progress-row")
+              span(class="reading-progress-label") {{ readingDone ? (t('app.bookDetail.completed') || 'Geschafft!') : (t('app.bookDetail.progressLabel') || 'Lesefortschritt') }}
+              span(class="reading-progress-pct") {{ readingPctLabel }}
+            div(class="reading-progress-track")
+              div(
+                class="reading-progress-fill"
+                :class="{ 'is-done': readingDone }"
+                :style="{ width: readingPctLabel }"
+              )
+
         //- ===== Description =====
         section(class="section-wrap mt-7 pb-6")
-          p(class="book-desc text-sm md:text-base") {{ book.description }}
+          p(class="book-desc text-sm md:text-base") {{ localizedDescription }}
 
-      //- ===== Listen mode =====
+      //- ===== Listen mode (audio player only — read-along is parked in
+      //- ReadAlong.vue for later reuse) =====
       template(v-else-if="mode === 'listen'")
         section(class="section-wrap mt-5")
           ABreadcrumbs(:label="t('app.bookDetail.nowListening')")
-          h2(class="book-title mt-1 text-lg md:text-xl font-black") {{ t(book.title) }}
+          h2(class="book-title mt-1 text-lg md:text-xl font-black") {{ localizedTitle }}
 
         section(class="section-wrap mt-4")
-          AAudioPlayer(
-            :is-playing="isPlaying"
-            :current-time="currentTime"
-            :duration="duration"
-            @toggle="togglePlay"
-            @rewind="rewind"
-            @forward="forward"
-            @seek="seek"
-          )
-
-        section(class="section-wrap mt-5")
-          ABreadcrumbs(:label="t('app.bookDetail.followAlong')")
-          div(
-            ref="subtitlesRef"
-            class="subtitles relative mt-2 p-5"
-          )
-            div(
-              class="karaoke-box"
-              :style="karaokeBoxStyle"
-              aria-hidden="true"
+          div(class="mx-auto max-w-[420px]")
+            AAudioPlayer(
+              :is-playing="isPlaying"
+              :current-time="currentTime"
+              :duration="duration"
+              :loading="audioLoading"
+              @toggle="togglePlay"
+              @rewind="rewind"
+              @forward="forward"
+              @seek="seek"
             )
-            p(v-if="currentSentence" class="subtitle-current relative")
-              span(
-                v-for="(w, i) in currentSentence.words"
-                :key="i"
-                :ref="el => setWordRef(i, el)"
-                class="sub-word"
-              ) {{ w + ' ' }}
-            p(v-else class="subtitle-current subtitle-placeholder") {{ t('app.bookDetail.noText') }}
-            p(v-if="showNextSentence" class="subtitle-next relative mt-3")
-              span(v-for="(w, i) in nextSentence.words" :key="i") {{ w + ' ' }}
-
-      //- ===== Read mode =====
-      template(v-else-if="mode === 'read'")
-        section(class="section-wrap mt-5")
-          ABreadcrumbs(:label="t('app.bookDetail.pages')")
-          div(class="page-card p-5 mt-2")
-            h3(class="page-title") {{ currentPage.title }}
-            p(class="page-text mt-2") {{ currentPage.text }}
-            div(class="mt-5 pt-4 border-top")
-              APager(v-model="selectedPage" :total="totalPages" :skip="5")
 
       audio(
         ref="audioEl"
         :src="audioSrc"
-        preload="metadata"
+        preload="auto"
         class="hidden"
       )
 
@@ -704,94 +471,6 @@ watch(currentTime, (v, prev) => {
     border-color: #ff7ab3
     box-shadow: 0 0 0 1px rgba(255, 122, 179, 0.3), 0 10px 22px -8px rgba(255, 122, 179, 0.55)
 
-.subtitles
-  background-color: var(--color-bg-card)
-  border: 1px solid var(--color-border-subtle)
-  border-radius: 24px
-  box-shadow: 0 1px 2px rgba(126, 58, 242, 0.04), 0 10px 28px -14px rgba(126, 58, 242, 0.25)
-  min-height: 8rem
-  overflow-wrap: break-word
-  word-break: normal
-  hyphens: auto
-
-  p
-    overflow-wrap: break-word
-    word-break: normal
-    hyphens: auto
-
-  span
-    display: inline
-
-.subtitle-current
-  font-size: 17px
-  font-weight: 800
-  line-height: 1.55
-  color: var(--color-text-secondary)
-
-@media (max-width: 400px)
-  .subtitles
-    padding: 16px !important
-    border-radius: 20px
-  .subtitle-current
-    font-size: 15px
-  .subtitle-next
-    font-size: 13px !important
-
-.subtitle-placeholder
-  color: var(--color-text-secondary)
-  font-weight: 600
-  font-style: italic
-
-.subtitle-next
-  font-size: 14px
-  font-weight: 600
-  line-height: 1.5
-  color: rgba(138, 116, 170, 0.7)
-
-.subtitle-current .sub-word
-  position: relative
-  z-index: 1
-  // A tiny pad keeps the box sitting cleanly under each word without the
-  // layout shifting as words become active.
-  padding: 2px 2px
-  margin: 0 -1px
-  color: var(--color-text-primary)
-
-.karaoke-box
-  position: absolute
-  left: 0
-  top: 0
-  pointer-events: none
-  z-index: 0
-  border-radius: 8px
-  background: linear-gradient(180deg, rgba(255, 209, 71, 0.55) 0%, rgba(255, 184, 77, 0.55) 100%)
-  box-shadow: 0 0 0 1px rgba(255, 209, 71, 0.35), 0 6px 18px -8px rgba(255, 170, 0, 0.35)
-  // No CSS transition — position is driven by the per-frame RAF loop, so
-  // the box already moves at 60fps. Adding a transition would double-smooth
-  // and introduce lag behind the audio.
-  will-change: transform, width, height, opacity
-
-.page-card
-  background-color: var(--color-bg-card)
-  border: 1px solid var(--color-border-subtle)
-  border-radius: 20px
-  box-shadow: 0 1px 2px rgba(126, 58, 242, 0.04), 0 8px 22px -14px rgba(126, 58, 242, 0.2)
-
-.page-title
-  font-size: 15px
-  font-weight: 800
-  color: var(--color-text-primary)
-
-.page-text
-  font-size: 14px
-  color: var(--color-text-primary)
-  line-height: 1.55
-  white-space: pre-line
-  min-height: 6rem
-
-.border-top
-  border-top: 1px solid var(--color-border-subtle)
-
 :deep(.self-read) button, :deep(.download) button
   padding: 8px 11px
 
@@ -800,4 +479,39 @@ watch(currentTime, (v, prev) => {
 
 .header
   background: linear-gradient(180deg, #4a1b91 0%, #3a1272 100%)
+
+.reading-progress
+  display: flex
+  flex-direction: column
+  gap: 6px
+
+.reading-progress-row
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 12px
+  font-size: 12px
+  font-weight: 800
+  color: var(--color-text-secondary)
+  text-transform: uppercase
+  letter-spacing: 0.06em
+
+.reading-progress-pct
+  color: var(--color-text-primary)
+  font-variant-numeric: tabular-nums
+
+.reading-progress-track
+  height: 8px
+  background: rgba(0, 0, 0, 0.08)
+  border-radius: 999px
+  overflow: hidden
+
+.reading-progress-fill
+  height: 100%
+  background: linear-gradient(90deg, #ffd645 0%, #ff8b3a 100%)
+  border-radius: inherit
+  transition: width 240ms ease-out
+
+  &.is-done
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%)
 </style>

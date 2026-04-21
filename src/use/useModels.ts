@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { prependBaseUrl, repeatPages } from '@/utils/function'
+import { prependBaseUrl } from '@/utils/function'
 
 // ---------------------------------------------------------------------------
 // Legacy helper kept for existing call sites (tests, useAssets, useMatch...)
@@ -55,110 +55,11 @@ export interface BookSeries {
 }
 
 // ----- Books ---------------------------------------------------------------
-export const BOOKS: Book[] = [
-  {
-    id: 'fa-1-apple',
-    title: 'fa-1.title',
-    author: 'Anton Bernt',
-    releaseDate: '2026-02-12',
-    badges: ['fa-1.badges.1', 'fa-1.badges.2'],
-    shortDescription: 'Adam learns the cost of a single bite.',
-    description: 'A retelling of the very first choice — and the very first lesson — set in a luminous garden where every fruit has a name and every name carries a story.',
-    content: [...repeatPages(16, (item, i) => ({
-      page: i + 1,
-      title: `fa-1.page.${i + 1}.title`,
-      text: `fa-1.page.${i + 1}.text`
-    } as Page))],
-    audio: {
-      en: 'https://cdn.example.com/kanaan/audio/en/apple-mission.mp3',
-      de: 'audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1-page-1.ogg'
-    },
-    cover: 'linear-gradient(135deg, #E74C3C 0%, #F1C40F 100%)',
-    coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_800x500.jpeg'),
-    previewImage: prependBaseUrl('images/fruit-agents/preview-fruit-agents_300x550.jpeg')
-  },
-  {
-    id: 'fa-2-fig',
-    title: 'fa-2.title',
-    author: 'Anton Bernt',
-    releaseDate: '2024-04-09',
-    shortDescription: 'Two hidden friends and a garden full of secrets.',
-    description: 'When the cool of the day arrives, two friends discover that the loudest sound in the world is the sound of hiding. A gentle story about courage, honesty, and being found.',
-    content: [...repeatPages(16, i => ({
-      page: i + 1,
-      title: `fa-2.page.${i + 1}.title`,
-      text: `fa-2.page.${i + 1}.text`
-    } as Page))],
-    audio: {
-      en: 'https://cdn.example.com/kanaan/audio/en/fig-leaf-code.mp3',
-      de: 'https://cdn.example.com/kanaan/audio/de/fig-leaf-code.mp3'
-    },
-    cover: 'linear-gradient(135deg, #27AE60 0%, #A2D149 100%)',
-    coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_800x500.jpeg'),
-    previewImage: prependBaseUrl('images/fruit-agents/preview-fruit-agents_300x550.jpeg')
-  },
-  {
-    id: 'fa-3-grape',
-    title: 'fa-3.title',
-    author: 'Anton Bernt',
-    releaseDate: '2024-05-21',
-    shortDescription: 'Noah, a vineyard, and the promise of a rainbow.',
-    description: 'After the flood receded and the dove came home, Noah planted a vineyard. This is the story of what grew there — and the colors that arched across the sky to keep their promise.',
-    content: [...repeatPages(16, i => ({
-      page: i + 1,
-      title: `fa-3.page.${i + 1}.title`,
-      text: `fa-3.page.${i + 1}.text`
-    } as Page))],
-    audio: {
-      en: 'https://cdn.example.com/kanaan/audio/en/grape-escape.mp3',
-      de: 'https://cdn.example.com/kanaan/audio/de/grape-escape.mp3'
-    },
-    cover: 'linear-gradient(135deg, #9B59B6 0%, #3498DB 100%)',
-    coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_800x500.jpeg'),
-    previewImage: prependBaseUrl('images/fruit-agents/preview-fruit-agents_300x550.jpeg')
-  },
-  {
-    id: 'fa-4-pomegranate',
-    title: 'fa-4.title',
-    author: 'Anton Bernt',
-    releaseDate: '2024-07-04',
-    shortDescription: 'Twelve scouts and a fruit too heavy to carry alone.',
-    description: 'In a land flowing with milk and honey, twelve scouts find a single bunch so heavy that it takes two of them to lift it. A story about big news, brave hearts, and the friends who help us hold them.',
-    content: [...repeatPages(16, i => ({
-      page: i + 1,
-      title: `fa-4.page.${i + 1}.title`,
-      text: `fa-4.page.${i + 1}.text`
-    } as Page))],
-    audio: {
-      en: 'https://cdn.example.com/kanaan/audio/en/pomegranate-pact.mp3',
-      de: 'https://cdn.example.com/kanaan/audio/de/pomegranate-pact.mp3'
-    },
-    cover: 'linear-gradient(135deg, #E67E22 0%, #E74C3C 100%)',
-    coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_800x500.jpeg'),
-    previewImage: prependBaseUrl('images/fruit-agents/preview-fruit-agents_300x550.jpeg')
-  },
-  {
-    id: 'fa-5-olive',
-    title: 'fa-5.title',
-    author: 'Anton Bernt',
-    releaseDate: '2024-09-18',
-    shortDescription: 'A small leaf, a long flight, a brand new world.',
-    description: 'On her third flight from the ark, the dove returns with a single olive leaf in her beak. This is her story — a tiny adventure with a sky-sized ending.',
-    content: [...repeatPages(16, i => ({
-      page: i + 1,
-      title: `fa-5.page.${i + 1}.title`,
-      text: `fa-5.page.${i + 1}.text`
-    } as Page))],
-    audio: {
-      en: 'https://cdn.example.com/kanaan/audio/en/olive-branch.mp3',
-      de:
-        'https://cdn.example.com/kanaan/audio/de/olive-branch.mp3'
-    },
-    cover: 'linear-gradient(135deg, #1ABC9C 0%, #2ECC71 100%)',
-    coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_800x500.jpeg'),
-    previewImage: prependBaseUrl('images/fruit-agents/preview-fruit-agents_300x550.jpeg')
-  }
-]
+// Book content now comes from the API (see useApiBooks). The legacy in-memory
+// catalogue is retained as an empty array so the few legacy lookups
+// (`getBook`, `lastReadBook`, etc.) keep returning undefined safely until
+// every consumer is migrated.
+export const BOOKS: Book[] = []
 
 // ----- Series --------------------------------------------------------------
 export const BOOK_SERIES: BookSeries[] = [
@@ -166,7 +67,7 @@ export const BOOK_SERIES: BookSeries[] = [
     id: 'fruit-agents',
     name: 'Fruit Agents',
     description: 'Five sweet stories about the fruits of the Bible — and the friends who carried them.',
-    bookIds: ['fa-1-apple', 'fa-2-fig', 'fa-3-grape', 'fa-4-pomegranate', 'fa-5-olive'],
+    bookIds: ['fa-1-piece', 'fa-2-lemon', 'fa-3-grape', 'fa-4-pomegranate', 'fa-5-olive'],
     cover: 'linear-gradient(135deg, #F1C40F 0%, #E67E22 100%)',
     coverImage: prependBaseUrl('images/fruit-agents/cover-fruit-agents_1024x1024.jpeg')
   }

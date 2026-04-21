@@ -1,15 +1,32 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { orientation } from '@/use/useUser'
 import { mobileCheck } from '@/utils/function'
 import { useMusic } from '@/use/useSound'
 import { useExtensionGuard } from '@/use/useExtensionGuard'
 import { windowWidth, windowHeight } from '@/use/useUser'
+import useUser from '@/use/useUser'
 import useCheats from '@/use/useCheats'
 import useAssets from '@/use/useAssets'
+import { GAME_USER_LANGUAGE } from '@/utils/constants.ts'
 
 const { initMusic, pauseMusic, continueMusic } = useMusic()
+const { userLanguage } = useUser()
+const { locale } = useI18n({ useScope: 'global' })
+
+// Keep i18n locale + localStorage in sync with the user's stored language.
+// IDB seeds `userLanguage` after boot, so `immediate: true` updates the
+// already-mounted i18n to whatever was last persisted.
+watch(userLanguage, (v) => {
+  if (!v) return
+  if (locale.value !== v) locale.value = v as any
+  try {
+    localStorage.setItem(GAME_USER_LANGUAGE, v)
+  } catch { /* quota / disabled */
+  }
+}, { immediate: true })
 useExtensionGuard()
 useCheats()
 const { resourceCache } = useAssets()

@@ -26,7 +26,9 @@
       "Bash(pnpm --filter little-bible-stories-server add nodemailer node-cron)",
       "Bash(pnpm --filter little-bible-stories-server add -D @types/nodemailer @types/node-cron)",
       "Bash(pnpm --filter little-bible-stories-server add bson)",
-      "Bash(pnpm --filter little-bible-stories-server add bson@6)"
+      "Bash(pnpm --filter little-bible-stories-server add bson@6)",
+      "Bash(pnpm --silent type-check)",
+      "Bash(curl -sS -m 30 \"https://lbs-be.onrender.com/api/book/fa-1-apple\")"
     ]
   }
 }

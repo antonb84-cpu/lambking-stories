@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 
 .page-body {
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.05;
   color: #333;
 }
 

@@ -16,6 +16,7 @@ const DesignSystemAView = () => import(/* webpackChunkName: "design-system-a" */
 const AppAllBooksView = () => import('@/views/app/AppAllBooksView.vue')
 const AppBookSeriesView = () => import('@/views/app/AppBookSeriesView.vue')
 const AppBookDetailView = () => import('@/views/app/AppBookDetailView.vue')
+const AppReaderView = () => import('@/views/app/AppReaderView.vue')
 const AppAwardsView = () => import('@/views/app/AppAwardsView.vue')
 const AppProfileView = () => import('@/views/app/AppProfileView.vue')
 
@@ -28,6 +29,7 @@ const routes = [
   { path: '/app/all-books', name: 'app-all-books', component: AppAllBooksView },
   { path: '/app/series/:seriesId', name: 'app-series', component: AppBookSeriesView },
   { path: '/app/book/:bookId', name: 'app-book', component: AppBookDetailView },
+  { path: '/app/book/:bookId/reader', name: 'app-reader', component: AppReaderView },
   { path: '/app/awards', name: 'app-awards', component: AppAwardsView },
   { path: '/app/profile', name: 'app-profile', component: AppProfileView }
 ]
