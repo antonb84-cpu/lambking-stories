@@ -37,7 +37,27 @@ const schema = z.object({
   PUBLIC_BASE_URL: z.string().default('http://localhost:4000'),
 
   SENTRY_DSN: z.string().optional(),
-  SENTRY_RELEASE: z.string().optional()
+  SENTRY_RELEASE: z.string().optional(),
+
+  // Nightly DB backup (emailed as gzipped JSON). Disabled by default so local
+  // dev does not try to send mail unless explicitly configured.
+  BACKUP_ENABLED: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
+  BACKUP_CRON: z.string().default('0 2 * * *'),
+  BACKUP_TIMEZONE: z.string().default('Europe/Berlin'),
+  BACKUP_EMAIL_TO: z.string().default('littlebiblestories.app@gmail.com'),
+  BACKUP_EMAIL_FROM: z.string().optional(),
+
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_SECURE: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional()
 })
 
 const parsed = schema.safeParse(process.env)

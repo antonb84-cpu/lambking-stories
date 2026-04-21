@@ -21,7 +21,12 @@
       "Bash(pnpm migrate:rewrite-upload-urls -- --from=http://localhost:4000 --to=https://lbs-be.onrender.com --apply)",
       "Bash(pnpm migrate:rewrite-upload-urls -- --from=https://lbs-be.onrender.com --to=)",
       "Bash(pnpm migrate:rewrite-upload-urls -- --from=https://lbs-be.onrender.com --to= --apply)",
-      "Bash(pnpm --filter little-bible-stories-server exec tsc -p tsconfig.build.json --noEmit)"
+      "Bash(pnpm --filter little-bible-stories-server exec tsc -p tsconfig.build.json --noEmit)",
+      "Read(//c/Users/**)",
+      "Bash(pnpm --filter little-bible-stories-server add nodemailer node-cron)",
+      "Bash(pnpm --filter little-bible-stories-server add -D @types/nodemailer @types/node-cron)",
+      "Bash(pnpm --filter little-bible-stories-server add bson)",
+      "Bash(pnpm --filter little-bible-stories-server add bson@6)"
     ]
   }
 }

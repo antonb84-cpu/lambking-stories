@@ -8,6 +8,7 @@ import { connectDatabase, disconnectDatabase } from './config/db.js'
 import { getRedis, disconnectRedis } from './config/redis.js'
 import { createApp } from './app.js'
 import { TranslationService } from './services/TranslationService.js'
+import { startBackupJob, stopBackupJob } from './jobs/backupJob.js'
 
 async function bootstrap() {
   await connectDatabase()
@@ -22,8 +23,11 @@ async function bootstrap() {
   // request doesn't pay the 10–30s ONNX init cost.
   TranslationService.warmup()
 
+  startBackupJob()
+
   const shutdown = async (signal: string) => {
     logger.info(`received ${signal}, shutting down`)
+    stopBackupJob()
     server.close(() => logger.info('HTTP server closed'))
     await disconnectDatabase().catch(() => {
     })

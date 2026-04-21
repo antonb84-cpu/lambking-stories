@@ -51,3 +51,22 @@ services:
         sync: false
       - key: SENTRY_DSN
         sync: false
+      # Nightly DB backup → emailed to BACKUP_EMAIL_TO as gzipped JSON.
+      - key: BACKUP_ENABLED
+        value: 'true'
+      - key: BACKUP_CRON
+        value: 0 2 * * *
+      - key: BACKUP_TIMEZONE
+        value: Europe/Berlin
+      - key: BACKUP_EMAIL_TO
+        value: littlebiblestories.app@gmail.com
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: '465'
+      - key: SMTP_SECURE
+        value: 'true'
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false

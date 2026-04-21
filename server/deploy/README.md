@@ -106,10 +106,55 @@ no scripts. To roll back, use the **Deploys** tab → *Rollback to previous succ
 
 ## 7. Backups
 
-- **MongoDB:** Atlas M0 has no automated backups — either upgrade, or run `mongodump` from a cron (GitHub Actions
-  works well) against the Atlas URI.
-- **Persistent disk:** Render takes a daily snapshot of disks on paid plans (retained 7 days). For longer retention or
-  off-site copies, add a nightly job that `rsync`s `/var/data` to S3/R2/Backblaze.
+### 7a. MongoDB — nightly email dump
+
+An in-process `node-cron` job dumps every collection in `MONGO_DB_NAME` to
+**EJSON**, gzips it, and emails the artifact to `BACKUP_EMAIL_TO` at
+`BACKUP_CRON` (default `0 2 * * *` in `BACKUP_TIMEZONE`). The dataset
+(~100–200 books + ~20 categories) gzips to a few hundred KB — well inside
+Gmail's 25 MB attachment limit. Atlas M0's lack of automated backups is
+covered by this instead of `mongodump`.
+
+**Wire-up (one-time):**
+
+1. Generate a **Gmail App Password** for `littlebiblestories.app@gmail.com`:
+   Google Account → Security → 2-Step Verification → App passwords.
+2. On the Render **Environment** tab, set the two secrets:
+    - `SMTP_USER` = `littlebiblestories.app@gmail.com`
+    - `SMTP_PASS` = the 16-char app password
+3. Redeploy. The boot log should show `backup job scheduled` with the cron
+   expression and timezone.
+
+All other backup knobs (`BACKUP_ENABLED=true`, `BACKUP_CRON`,
+`BACKUP_TIMEZONE`, `BACKUP_EMAIL_TO`, `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_SECURE`) are pre-filled in `render.yaml`.
+
+**Restore a dump:**
+
+```bash
+# download the .json.gz from the email, save as ./backup.json.gz
+pnpm --filter little-bible-stories-server restore:backup -- --file=./backup.json.gz         # dry-run
+pnpm --filter little-bible-stories-server restore:backup -- --file=./backup.json.gz --apply # upsert by _id
+pnpm --filter little-bible-stories-server restore:backup -- --file=./backup.json.gz --apply --drop  # point-in-time
+```
+
+Without `--drop`, each document is upserted by `_id` — safe to replay into
+a populated DB. With `--drop`, the target collection is wiped first (true
+point-in-time rollback, lossy for anything created after the snapshot).
+
+**Ad-hoc snapshot** (e.g. before a risky migration):
+
+```bash
+pnpm --filter little-bible-stories-server backup:now
+```
+
+`BACKUP_ENABLED` gates only the scheduler; `backup:now` always runs.
+
+### 7b. Persistent disk
+
+Render takes a daily snapshot of disks on paid plans (retained 7 days).
+For longer retention or off-site copies, add a nightly job that `rsync`s
+`/var/data` to S3/R2/Backblaze.
 
 ## 8. Translating books (local, not on the server)
 
