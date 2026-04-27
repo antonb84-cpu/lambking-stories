@@ -308,10 +308,12 @@ onBeforeUnmount(() => {
 .page-body :deep(.page-img) {
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  height: auto;
+  max-height: 45%;
   object-fit: cover;
   border-radius: 14px;
-  margin: 10px 0;
+  margin: 0.5em auto;
   background: #f1f1f1;
 }
 

@@ -1,5 +1,6 @@
 import { Category } from '../models/Category.js'
 import { HttpError } from '../utils/httpError.js'
+import { isReservedCategory } from '../config/categories.js'
 import type { CreateCategoryInput } from '../validators/category.schema.js'
 
 export const CategoryService = {
@@ -19,6 +20,9 @@ export const CategoryService = {
   },
 
   async remove(name: string) {
+    if (isReservedCategory(name)) {
+      throw HttpError.forbidden(`Category "${name}" is reserved and cannot be deleted`)
+    }
     const res = await Category.findOneAndDelete({ name }).exec()
     if (!res) throw HttpError.notFound(`Category "${name}" not found`)
     return { deleted: true }

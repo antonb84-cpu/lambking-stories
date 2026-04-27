@@ -19,6 +19,7 @@ function emptyBook(): BookDTO {
     previewImage: '',
     contentCoverImage: { de: '', en: '' },
     achievementBadge: { de: '', en: '' },
+    etsyLink: { de: '', en: '' },
     audio: { de: '', en: '' },
     attachments: [],
     localizations: { de: emptyLocalization() },

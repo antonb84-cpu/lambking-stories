@@ -98,6 +98,14 @@
             placeholder="Ausführliche Beschreibung für die Detailseite."
           />
         </div>
+
+        <div class="field col-12">
+          <label class="field-label">
+            Etsy-Link ({{ activeLocale.toUpperCase() }})
+            <span class="muted">Druckausgabe — andere Sprache wird automatisch befüllt, solange sie leer ist</span>
+          </label>
+          <XInput v-model="activeEtsyLink" placeholder="https://www.etsy.com/listing/…" />
+        </div>
       </div>
     </section>
 
@@ -391,6 +399,22 @@ const achievementBadgePreview = computed(() => {
   const ab = draft.book.achievementBadge
   if (!ab) return ''
   return ab[activeLocale.value] || ab.de || ab.en || ''
+})
+
+const activeEtsyLink = computed<string>({
+  get() {
+    return draft.book.etsyLink?.[activeLocale.value] ?? ''
+  },
+  set(value: string) {
+    if (!draft.book.etsyLink) draft.book.etsyLink = { de: '', en: '' }
+    const other: 'de' | 'en' = activeLocale.value === 'de' ? 'en' : 'de'
+    draft.book.etsyLink[activeLocale.value] = value
+    // Mirror only into an empty other-locale slot — user's deliberate
+    // overwrite on the other locale must not get clobbered.
+    if (value && !draft.book.etsyLink[other]) {
+      draft.book.etsyLink[other] = value
+    }
+  }
 })
 
 async function uploadAchievementBadge(file: File) {

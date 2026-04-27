@@ -1,6 +1,7 @@
 import { Book, type BookDocument } from '../models/Book.js'
 import { CacheService } from './CacheService.js'
 import { HttpError } from '../utils/httpError.js'
+import { HIDDEN_CATEGORY } from '../config/categories.js'
 import type { CreateBookInput, UpdateBookInput } from '../validators/book.schema.js'
 import { logger } from '../config/logger.js'
 import { absolutizeBook, absolutizeBooks, relativizeBook } from '../utils/bookUrls.js'
@@ -20,12 +21,23 @@ function fillBadgeLocaleFallback<T extends { achievementBadge?: { de?: string; e
 }
 
 export const BookService = {
-  async list() {
+  async list(opts: { includeHidden?: boolean } = {}) {
     const cached = await CacheService.getBooksList<unknown[]>()
-    if (cached) return { books: absolutizeBooks(cached), cacheHit: true }
-    const docs = await Book.find({}).sort({ updatedDate: -1 }).lean().exec()
-    await CacheService.setBooksList(docs)
-    return { books: absolutizeBooks(docs), cacheHit: false }
+    let docs: unknown[]
+    let cacheHit: boolean
+    if (cached) {
+      docs = cached
+      cacheHit = true
+    } else {
+      docs = await Book.find({}).sort({ updatedDate: -1 }).lean().exec()
+      await CacheService.setBooksList(docs)
+      cacheHit = false
+    }
+    let books = absolutizeBooks(docs)
+    if (!opts.includeHidden) {
+      books = books.filter((b) => (b as { category?: string }).category !== HIDDEN_CATEGORY)
+    }
+    return { books, cacheHit }
   },
 
   async getById(bookId: string) {

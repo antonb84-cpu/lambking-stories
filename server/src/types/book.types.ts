@@ -31,6 +31,7 @@ export interface BookDTO {
   previewImage: string
   contentCoverImage?: BookAudio
   achievementBadge?: BookAudio
+  etsyLink?: BookAudio
   audio: BookAudio
   attachments: string[]
   localizations: Record<Locale, BookLocalization>

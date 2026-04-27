@@ -31,6 +31,7 @@ export interface BookDTO {
   previewImage: string
   contentCoverImage?: BookAudio
   achievementBadge?: BookAudio
+  etsyLink?: BookAudio
   audio: BookAudio
   attachments: string[]
   localizations: Partial<Record<Locale, BookLocalization>>
@@ -46,4 +47,13 @@ export interface SeriesDTO {
 
 export interface CategoryDTO {
   name: string
+}
+
+// Books in this category are filtered out of the public Book app listing.
+// The category itself is seeded server-side and cannot be deleted.
+export const HIDDEN_CATEGORY = 'NO SHOW'
+export const RESERVED_CATEGORIES: readonly string[] = [HIDDEN_CATEGORY]
+
+export function isReservedCategory(name: string): boolean {
+  return RESERVED_CATEGORIES.includes(name)
 }

@@ -19,9 +19,17 @@
         v-for="c in store.items"
         :key="c.name"
         class="tax-chip"
+        :class="{ 'is-reserved': isReservedCategory(c.name) }"
       >
         <span class="chip-name">{{ c.name }}</span>
+        <span
+          v-if="isReservedCategory(c.name)"
+          class="chip-lock has-tooltip"
+          data-tooltip="Reservierte Kategorie — Bücher hier sind in der App ausgeblendet und können nicht gelöscht werden."
+          aria-label="Reserviert"
+        >🔒</span>
         <button
+          v-else
           class="chip-remove has-tooltip"
           data-tooltip="ALT + Rechtsklick zum PERMANENTEN Löschen (ich hoffe du weißt was du tust!!!)"
           @click.prevent
@@ -38,6 +46,7 @@ import { ref } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { useCategoryStore } from '@/stores/categories'
 import { useToastStore } from '@/stores/toast'
+import { isReservedCategory } from '@/types'
 
 const store = useCategoryStore()
 const toast = useToastStore()
@@ -69,6 +78,7 @@ const remove = async (n: string) => {
 }
 
 const onRemoveContext = (e: MouseEvent, n: string) => {
+  if (isReservedCategory(n)) return
   if (e.altKey) remove(n)
 }
 </script>

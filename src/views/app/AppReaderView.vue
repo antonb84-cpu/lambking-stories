@@ -48,6 +48,13 @@ async function fetchBook() {
 
 onMounted(fetchBook)
 watch(bookId, () => {
+  if (isAnimating.value) {
+    if (pendingFallbackTimer) clearTimeout(pendingFallbackTimer)
+    pendingFallbackTimer = null
+    isAnimating.value = false
+    pendingShift.value = 0
+    dragOffset.value = 0
+  }
   currentIndex.value = 0
   fetchBook()
 })
@@ -168,12 +175,57 @@ function renderPageHtml(text: string): string {
 }
 
 // ----- Page navigation + swipe -----
+// The "deck" model: the current entry plus, while dragging or animating, the
+// adjacent entry in the direction of motion are both rendered. Each slot sits
+// at a static x = ±stageWidth offset; a wrapping `.deck` element translates
+// horizontally to reveal the neighbour. Mouse/touch drags update the deck
+// translation directly (no transition); on release we toggle the animating
+// class and let CSS interpolate to either the committed neighbour position or
+// back to zero, then atomically swap currentIndex + reset the deck once the
+// transitionend fires.
 
 const currentIndex = ref(0)
-const offset = ref(0)
+const dragOffset = ref(0)
 const dragStartX = ref<number | null>(null)
 const isDragging = ref(false)
+const isAnimating = ref(false)
+const pendingShift = ref<-1 | 0 | 1>(0)
 const SWIPE_THRESHOLD = 60
+const EDGE_DAMPENING = 3
+const ANIMATION_FALLBACK_MS = 600
+
+const stageRef = ref<HTMLElement | null>(null)
+const stageWidth = ref(0)
+
+function measureStage() {
+  if (stageRef.value) stageWidth.value = stageRef.value.clientWidth
+}
+
+let pendingFallbackTimer: ReturnType<typeof setTimeout> | null = null
+
+interface RenderedSlot {
+  entry: DisplayEntry
+  index: number
+  x: number
+}
+
+const renderedSlots = computed<RenderedSlot[]>(() => {
+  const slots: RenderedSlot[] = []
+  const cur = displayEntries.value[currentIndex.value]
+  if (cur) slots.push({ entry: cur, index: currentIndex.value, x: 0 })
+
+  let adjacentDir: -1 | 0 | 1 = 0
+  if (isAnimating.value) adjacentDir = pendingShift.value
+  else if (dragOffset.value < 0) adjacentDir = 1
+  else if (dragOffset.value > 0) adjacentDir = -1
+
+  if (adjacentDir !== 0 && stageWidth.value > 0) {
+    const idx = currentIndex.value + adjacentDir
+    const entry = displayEntries.value[idx]
+    if (entry) slots.push({ entry, index: idx, x: adjacentDir * stageWidth.value })
+  }
+  return slots
+})
 
 function getX(e: MouseEvent | TouchEvent): number {
   if ('touches' in e) return e.touches[0]?.clientX ?? 0
@@ -181,41 +233,108 @@ function getX(e: MouseEvent | TouchEvent): number {
 }
 
 function startSwipe(e: MouseEvent | TouchEvent) {
+  if (isAnimating.value) finalizeAnimation()
+  measureStage()
   dragStartX.value = getX(e)
   isDragging.value = true
 }
 
 function duringSwipe(e: MouseEvent | TouchEvent) {
   if (dragStartX.value === null) return
-  offset.value = getX(e) - dragStartX.value
+  let raw = getX(e) - dragStartX.value
+  const lastIdx = displayEntries.value.length - 1
+  // No neighbour in this direction → rubber-band the drag so the user feels
+  // the edge instead of dragging the void in.
+  if (raw < 0 && currentIndex.value >= lastIdx) raw = raw / EDGE_DAMPENING
+  if (raw > 0 && currentIndex.value <= 0) raw = raw / EDGE_DAMPENING
+  dragOffset.value = raw
 }
 
 function endSwipe() {
   if (dragStartX.value === null) return
-  const delta = offset.value
-  if (delta < -SWIPE_THRESHOLD && currentIndex.value < displayEntries.value.length - 1) {
-    currentIndex.value += 1
-  } else if (delta > SWIPE_THRESHOLD && currentIndex.value > 0) {
-    currentIndex.value -= 1
-  }
-  offset.value = 0
-  dragStartX.value = null
+  const delta = dragOffset.value
   isDragging.value = false
+  dragStartX.value = null
+
+  const lastIdx = displayEntries.value.length - 1
+  let shift: -1 | 0 | 1 = 0
+  if (delta < -SWIPE_THRESHOLD && currentIndex.value < lastIdx) shift = 1
+  else if (delta > SWIPE_THRESHOLD && currentIndex.value > 0) shift = -1
+
+  animateToShift(shift)
   onUserGesture()
 }
 
+function animateToShift(shift: -1 | 0 | 1) {
+  // No-op when there's nothing to commit and nothing to spring back from —
+  // avoids spinning a 600ms fallback timer for every plain pager-dot click.
+  if (shift === 0 && dragOffset.value === 0) return
+  pendingShift.value = shift
+  isAnimating.value = true
+  // Target: deck translates so the neighbouring slot lands at viewport x=0.
+  // Slot at x = +stageWidth (next) → deck at -stageWidth.
+  dragOffset.value = -shift * stageWidth.value
+  schedulePendingFallback()
+}
+
+function schedulePendingFallback() {
+  if (pendingFallbackTimer) clearTimeout(pendingFallbackTimer)
+  // Some browsers swallow transitionend if the tab is hidden mid-animation;
+  // a short fallback guarantees we still finalize.
+  pendingFallbackTimer = setTimeout(finalizeAnimation, ANIMATION_FALLBACK_MS)
+}
+
+function onDeckTransitionEnd(e: TransitionEvent) {
+  if (e.propertyName !== 'transform') return
+  finalizeAnimation()
+}
+
+function finalizeAnimation() {
+  if (!isAnimating.value) return
+  if (pendingFallbackTimer) {
+    clearTimeout(pendingFallbackTimer)
+    pendingFallbackTimer = null
+  }
+  isAnimating.value = false
+  if (pendingShift.value !== 0) {
+    currentIndex.value += pendingShift.value
+    pendingShift.value = 0
+  }
+  // Reset without animation — Vue batches this with the class change so the
+  // deck snaps to 0 in the same render flush as the now-current slot landing
+  // at x=0, no visible jump.
+  dragOffset.value = 0
+}
+
+function commitSlide(direction: -1 | 1) {
+  if (isAnimating.value) finalizeAnimation()
+  if (direction === 1 && currentIndex.value >= displayEntries.value.length - 1) return
+  if (direction === -1 && currentIndex.value <= 0) return
+  measureStage()
+  animateToShift(direction)
+}
+
 function goPrev() {
-  if (currentIndex.value > 0) currentIndex.value -= 1
+  commitSlide(-1)
   onUserGesture()
 }
 
 function goNext() {
-  if (currentIndex.value < displayEntries.value.length - 1) currentIndex.value += 1
+  commitSlide(1)
   onUserGesture()
 }
 
 function gotoIndex(i: number) {
-  if (i >= 0 && i < displayEntries.value.length) currentIndex.value = i
+  if (i < 0 || i >= displayEntries.value.length) return
+  if (i === currentIndex.value) return
+  if (isAnimating.value) finalizeAnimation()
+  // Single-step jumps animate; further leaps from the dot pager teleport.
+  if (Math.abs(i - currentIndex.value) === 1) {
+    measureStage()
+    animateToShift((i - currentIndex.value) as -1 | 1)
+  } else {
+    currentIndex.value = i
+  }
   onUserGesture()
 }
 
@@ -375,17 +494,20 @@ function openNextBook() {
 // `scrollHeight <= clientHeight` (and width fits too). Inline-style mutation
 // skips Vue reactivity so each search iteration is one synchronous reflow.
 
-const pageInnerRef = ref<HTMLElement | null>(null)
+const pageInnerEls = new Map<number, HTMLElement>()
 const FIT_MIN_PX = 12
 const FIT_MAX_PX = 64
 
-function fitText() {
-  const inner = pageInnerRef.value
-  // Guard: no element yet, or the page-inner doesn't exist on the active
-  // entry kind (cover / celebration). Nothing to fit either way.
-  if (!(inner instanceof HTMLElement)) return
-  // Try the maximum first — most short pages already fit at the top end and
-  // we can skip the search entirely.
+function bindPageInner(idx: number, el: unknown) {
+  if (el instanceof HTMLElement) {
+    pageInnerEls.set(idx, el)
+    scheduleFit()
+  } else {
+    pageInnerEls.delete(idx)
+  }
+}
+
+function fitOne(inner: HTMLElement) {
   inner.style.fontSize = `${FIT_MAX_PX}px`
   if (
     inner.scrollHeight <= inner.clientHeight &&
@@ -393,8 +515,6 @@ function fitText() {
   ) {
     return
   }
-  // Binary search between FIT_MIN_PX and FIT_MAX_PX. 10 iterations narrows
-  // the answer to <0.06px which is well below sub-pixel rendering noise.
   let lo = FIT_MIN_PX
   let hi = FIT_MAX_PX
   for (let i = 0; i < 10; i++) {
@@ -412,6 +532,12 @@ function fitText() {
   inner.style.fontSize = `${lo}px`
 }
 
+function fitText() {
+  // Each rendered slot has its own page-inner; fit them all so the neighbour
+  // is sized correctly the moment it slides into view. At most 2 elements.
+  for (const inner of pageInnerEls.values()) fitOne(inner)
+}
+
 function scheduleFit() {
   // Two RAFs: one for Vue's render flush, one for the browser to settle
   // layout (image natural size, font swap, etc.) before we measure.
@@ -424,15 +550,18 @@ watch(blobUrlByOriginal, scheduleFit, { deep: true })
 watch(pages, scheduleFit, { deep: true })
 
 function onWindowResize() {
+  measureStage()
   scheduleFit()
 }
 
 onMounted(() => {
   window.addEventListener('resize', onWindowResize)
+  measureStage()
   scheduleFit()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
+  if (pendingFallbackTimer) clearTimeout(pendingFallbackTimer)
 })
 
 // ----- Counter / dots -----
@@ -465,6 +594,7 @@ function goBack() {
         path(d="m15 18-6-6 6-6")
 
     div(
+      ref="stageRef"
       class="stage"
       :class="{ swiping: isDragging }"
       @mousedown="startSwipe"
@@ -485,75 +615,84 @@ function goBack() {
           span {{ t('app.reader.notFound') || 'Geschichte nicht gefunden.' }}
 
       template(v-else)
-        //- Only the current entry is rendered. Avoiding `v-for` here keeps
-        //- `pageInnerRef` a single element ref instead of an array, which is
-        //- what the font-fitter needs for `inner.style.fontSize = …`.
-
-        //- Cover
+        //- The deck moves all rendered slots together. Per-slot `x` keeps
+        //- adjacent pages parked just off-stage so they slide in cleanly when
+        //- the deck translates; the `animating` class enables CSS interp on
+        //- the deck transform after the user releases.
         div(
-          v-if="currentEntry?.kind === 'cover'"
-          class="page-frame cover-frame"
-          :style="{ transform: `translateX(${offset}px)` }"
-        )
-          img(
-            :src="resolved(currentEntry.image)"
-            :alt="t(localization?.title || '')"
-            class="cover-img"
-            draggable="false"
-            @dragstart.prevent
-          )
-
-        //- Content page
-        div(
-          v-else-if="currentEntry?.kind === 'page'"
-          class="page-frame content-frame"
-          :style="{ transform: `translateX(${offset}px)` }"
+          class="deck"
+          :class="{ animating: isAnimating }"
+          :style="{ transform: `translate3d(${dragOffset}px, 0, 0)` }"
+          @transitionend="onDeckTransitionEnd"
         )
           div(
-            ref="pageInnerRef"
-            class="page-inner"
+            v-for="slot in renderedSlots"
+            :key="`slot-${slot.index}-${slot.entry.kind}`"
+            class="slot"
+            :style="{ transform: `translate3d(${slot.x}px, 0, 0)` }"
           )
-            h1(
-              v-if="currentEntry.page.title && currentEntry.page.title.trim()"
-              class="page-title"
-            ) {{ currentEntry.page.title }}
+            //- Cover
             div(
-              class="page-body"
-              v-html="renderPageHtml(currentEntry.page.text)"
+              v-if="slot.entry.kind === 'cover'"
+              class="page-frame cover-frame"
             )
-
-        //- Celebration
-        div(
-          v-else-if="currentEntry?.kind === 'celebration'"
-          class="page-frame celebration-frame"
-          :style="{ transform: `translateX(${offset}px)` }"
-        )
-          div(class="celebration-inner")
-            img(
-              v-if="achievementBadge"
-              :src="resolved(achievementBadge)"
-              alt=""
-              class="celebration-badge"
-              draggable="false"
-              @dragstart.prevent
-            )
-            div(v-else class="celebration-burst" aria-hidden="true") 🎉
-            h1(class="celebration-title") {{ t('app.reader.congratsTitle') }}
-            p(class="celebration-sub") {{ t('app.reader.congratsSub') }}
-
-            div(
-              v-if="nextBook"
-              class="next-volume"
-            )
-              p(class="next-label") {{ t('app.reader.nextStoryWaiting') }}
-              ABookCard(
-                :title="nextBook.localizations?.[lang]?.title || nextBook.localizations?.de?.title || ''"
-                :subtitle="nextBook.author"
-                :image="resolved(nextBookCoverUrl)"
-                :cover-gradient="nextBook.cover"
-                badge="NEU"
-                @click="openNextBook"
+              img(
+                :src="resolved(slot.entry.image)"
+                :alt="t(localization?.title || '')"
+                class="cover-img"
+                draggable="false"
+                @dragstart.prevent
               )
+
+            //- Content page
+            div(
+              v-else-if="slot.entry.kind === 'page'"
+              class="page-frame content-frame"
+            )
+              div(
+                :ref="(el) => bindPageInner(slot.index, el)"
+                class="page-inner"
+              )
+                h1(
+                  v-if="slot.entry.page.title && slot.entry.page.title.trim()"
+                  class="page-title"
+                ) {{ slot.entry.page.title }}
+                div(
+                  class="page-body"
+                  v-html="renderPageHtml(slot.entry.page.text)"
+                )
+
+            //- Celebration
+            div(
+              v-else-if="slot.entry.kind === 'celebration'"
+              class="page-frame celebration-frame"
+            )
+              div(class="celebration-inner")
+                img(
+                  v-if="achievementBadge"
+                  :src="resolved(achievementBadge)"
+                  alt=""
+                  class="celebration-badge"
+                  draggable="false"
+                  @dragstart.prevent
+                )
+                div(v-else class="celebration-burst" aria-hidden="true") 🎉
+                h1(class="celebration-title") {{ t('app.reader.congratsTitle') }}
+                p(class="celebration-sub") {{ t('app.reader.congratsSub') }}
+
+                div(
+                  v-if="nextBook"
+                  class="next-volume"
+                )
+                  p(class="next-label") {{ t('app.reader.nextStoryWaiting') }}
+                  ABookCard(
+                    :title="nextBook.localizations?.[lang]?.title || nextBook.localizations?.de?.title || ''"
+                    :subtitle="nextBook.author"
+                    :image="resolved(nextBookCoverUrl)"
+                    :cover-gradient="nextBook.cover"
+                    badge="NEU"
+                    @click="openNextBook"
+                  )
 
       //- Swipe hint (only when book loaded; SwipeHintHand handles its own
       //- visible/active flow based on `enabled`).
@@ -636,10 +775,23 @@ function goBack() {
   &.swiping
     cursor: grabbing
 
+
+.deck
+  position: absolute
+  inset: 0
+  will-change: transform
+
+  &.animating
+    transition: transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1)
+
+.slot
+  position: absolute
+  inset: 0
+  will-change: transform
+
 .page-frame
   position: absolute
   inset: 0
-  transition: transform 140ms ease-out
   display: flex
   flex-direction: column
 

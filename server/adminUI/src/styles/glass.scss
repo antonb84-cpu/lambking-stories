@@ -300,6 +300,30 @@ textarea.glass:focus,
   background: #e74c3c;
 }
 
+.tax-chip.is-reserved {
+  background: linear-gradient(140deg, rgba(255, 235, 220, 0.95) 0%, rgba(255, 220, 200, 0.95) 100%);
+  border-color: rgba(220, 130, 70, 0.35);
+}
+
+.tax-chip.is-reserved .chip-name {
+  color: #7a3f10;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tax-chip .chip-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 11px;
+  line-height: 1;
+  color: #7a3f10;
+  cursor: help;
+  user-select: none;
+}
+
 /* Tooltip that reveals a keyboard shortcut on hover. Uses data-tooltip
  * attribute so any element can opt in without extra markup. */
 .has-tooltip {

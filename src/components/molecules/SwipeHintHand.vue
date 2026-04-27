@@ -134,23 +134,25 @@ onBeforeUnmount(() => {
 .hand-svg
   position: absolute
   bottom: 22%
-  left: 18%
+  right: 18%
   width: 72px
   height: 99px
-  transform: translate(0, 0) rotate(-12deg)
+  // scaleX(-1) mirrors the hand so the index finger points the right way for
+  // a right→left swipe (page 1 → page 2).
+  transform: translate(0, 0) rotate(12deg) scaleX(-1)
   transition: transform 1800ms cubic-bezier(0.45, 0.05, 0.4, 1), opacity 220ms ease
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.25))
   opacity: 0
 
 .hand-svg.is-active
-  // Press + drag right across roughly half of a mobile page.
-  transform: translate(52vw, -6px) rotate(-4deg)
+  // Press + drag left across roughly half of a mobile page.
+  transform: translate(-52vw, -6px) rotate(4deg) scaleX(-1)
   opacity: 1
 
 .press-dot
   position: absolute
   bottom: calc(22% + 6px)
-  left: calc(18% + 8px)
+  right: calc(18% + 8px)
   width: 18px
   height: 18px
   border-radius: 999px
@@ -160,14 +162,14 @@ onBeforeUnmount(() => {
   transition: transform 1800ms cubic-bezier(0.45, 0.05, 0.4, 1), opacity 260ms ease
 
 .press-dot.is-active
-  transform: translate(52vw, -6px) scale(1)
+  transform: translate(-52vw, -6px) scale(1)
   opacity: 1
 
 @media (max-width: 420px)
   .hand-svg
     bottom: 20%
-    left: 14%
+    right: 14%
   .press-dot
     bottom: calc(20% + 6px)
-    left: calc(14% + 8px)
+    right: calc(14% + 8px)
 </style>

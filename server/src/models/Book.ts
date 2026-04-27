@@ -49,6 +49,7 @@ const BookSchema = new Schema(
     previewImage: { type: String, required: true },
     contentCoverImage: { type: AudioSchema, default: () => ({}) },
     achievementBadge: { type: AudioSchema, default: () => ({}) },
+    etsyLink: { type: AudioSchema, default: () => ({}) },
     audio: { type: AudioSchema, default: () => ({}) },
     attachments: { type: [String], default: [] },
     localizations: {

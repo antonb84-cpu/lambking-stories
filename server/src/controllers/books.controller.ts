@@ -2,8 +2,9 @@ import type { Request, Response } from 'express'
 import { BookService } from '../services/BookService.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 
-export const listBooks = asyncHandler(async (_req: Request, res: Response) => {
-  const { books, cacheHit } = await BookService.list()
+export const listBooks = asyncHandler(async (req: Request, res: Response) => {
+  const includeHidden = req.query.all === 'true'
+  const { books, cacheHit } = await BookService.list({ includeHidden })
   res.setHeader('X-Cache', cacheHit ? 'HIT' : 'MISS')
   res.json({ books })
 })
