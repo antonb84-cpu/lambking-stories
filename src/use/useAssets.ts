@@ -29,7 +29,7 @@ const SOUND_ASSETS = [
   'audio/sfx/reward-continue.ogg'
 ]
 
-const MUSIC_ASSETS = [
+const MUSIC_ASSETS: string[] = [
   // 'audio/music/battle.ogg',
 ]
 

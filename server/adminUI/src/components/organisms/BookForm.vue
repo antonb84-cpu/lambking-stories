@@ -173,6 +173,19 @@
             :on-file="uploadContentCoverEn"
           />
         </div>
+
+        <div class="col-6">
+          <DropZone
+            :label="`Achievement-Badge (${activeLocale.toUpperCase()})`"
+            accept="image/webp,image/jpeg,image/png"
+            kind="image"
+            hint="1:1 · z.B. 512×512 · max 2 MB"
+            subhint=".webp bevorzugt · andere Sprache erbt automatisch · optional"
+            :status="activeLocale === 'de' ? draft.uploadStatus.achievementBadgeDe : draft.uploadStatus.achievementBadgeEn"
+            :preview-url="achievementBadgePreview || undefined"
+            :on-file="uploadAchievementBadge"
+          />
+        </div>
       </div>
     </section>
 
@@ -374,6 +387,26 @@ async function uploadContentCoverFor(locale: 'de' | 'en', file: File) {
 const uploadContentCoverDe = (file: File) => uploadContentCoverFor('de', file)
 const uploadContentCoverEn = (file: File) => uploadContentCoverFor('en', file)
 
+const achievementBadgePreview = computed(() => {
+  const ab = draft.book.achievementBadge
+  if (!ab) return ''
+  return ab[activeLocale.value] || ab.de || ab.en || ''
+})
+
+async function uploadAchievementBadge(file: File) {
+  try {
+    const res = await uploadsApi.image(file, 'achievement')
+    if (!draft.book.achievementBadge) draft.book.achievementBadge = { de: '', en: '' }
+    draft.book.achievementBadge[activeLocale.value] = res.url
+    draft.uploadStatus[activeLocale.value === 'de' ? 'achievementBadgeDe' : 'achievementBadgeEn'] = {
+      ok: true,
+      filename: file.name
+    }
+  } catch (err) {
+    throw new Error(explainApiError(err))
+  }
+}
+
 async function uploadAttachment(file: File) {
   try {
     const res = await uploadsApi.attachment(file)
@@ -476,6 +509,14 @@ async function onTranslateSwitch(from: 'de' | 'en', to: 'de' | 'en') {
 async function submit() {
   submitting.value = true
   try {
+    const ab = draft.book.achievementBadge
+    if (ab) {
+      const de = ab.de || ''
+      const en = ab.en || ''
+      if (de && !en) draft.book.achievementBadge = { de, en: de }
+      else if (en && !de) draft.book.achievementBadge = { de: en, en }
+    }
+
     const src = draft.book as Record<string, unknown>
     const { _id, updatedDate, createdAt, updatedAt, __v, ...rest } = src
     void _id

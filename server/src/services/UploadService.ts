@@ -5,7 +5,7 @@ import mime from 'mime-types'
 import { env } from '../config/env.js'
 import { HttpError } from '../utils/httpError.js'
 
-export type ImageKind = 'cover' | 'preview' | 'content'
+export type ImageKind = 'cover' | 'preview' | 'content' | 'achievement'
 
 const IMAGE_MIME_TO_EXT: Record<string, string> = {
   'image/webp': 'webp',
@@ -20,7 +20,8 @@ const PDF_MIME = 'application/pdf'
 export const IMAGE_DIR_MAP: Record<ImageKind, string> = {
   cover: 'covers',
   preview: 'previews',
-  content: 'content-images'
+  content: 'content-images',
+  achievement: 'achievement-badges'
 }
 
 export const MAX_AUDIO_BYTES = 50 * 1024 * 1024

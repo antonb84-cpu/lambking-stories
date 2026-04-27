@@ -9,6 +9,16 @@ function toDTO(doc: { toJSON: () => unknown }): unknown {
   return doc.toJSON()
 }
 
+function fillBadgeLocaleFallback<T extends { achievementBadge?: { de?: string; en?: string } }>(input: T): T {
+  const ab = input.achievementBadge
+  if (!ab) return input
+  const de = ab.de?.trim() ?? ''
+  const en = ab.en?.trim() ?? ''
+  if (de && !en) return { ...input, achievementBadge: { de, en: de } }
+  if (en && !de) return { ...input, achievementBadge: { de: en, en } }
+  return input
+}
+
 export const BookService = {
   async list() {
     const cached = await CacheService.getBooksList<unknown[]>()
@@ -34,7 +44,7 @@ export const BookService = {
         { field: 'bookId', message: 'already exists' }
       ])
     }
-    const normalized = relativizeBook(input)
+    const normalized = fillBadgeLocaleFallback(relativizeBook(input))
     const doc = await Book.create({
       ...normalized,
       releaseDate: new Date(normalized.releaseDate),
@@ -46,7 +56,7 @@ export const BookService = {
   },
 
   async update(bookId: string, input: UpdateBookInput) {
-    const normalized = relativizeBook(input)
+    const normalized = fillBadgeLocaleFallback(relativizeBook(input))
     const updates: Partial<BookDocument> = { ...normalized } as Partial<BookDocument>
     if (normalized.releaseDate) updates.releaseDate = new Date(normalized.releaseDate)
     updates.updatedDate = new Date()

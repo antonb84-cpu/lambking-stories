@@ -33,6 +33,38 @@
         />
       </div>
       <div
+        v-else-if="currentDisplay?.kind === 'celebration'"
+        class="celebration"
+        :class="{ 'swipe-hint': showHint }"
+        :style="{ transform: `translateX(${offset}px)` }"
+      >
+        <img
+          v-if="achievementBadge"
+          :src="achievementBadge"
+          alt=""
+          class="celebration-badge"
+          draggable="false"
+          @dragstart.prevent
+        />
+        <div v-else class="celebration-burst" aria-hidden="true">🎉</div>
+        <h3 class="celebration-title">Geschafft!</h3>
+        <p class="celebration-sub">Tolle Geschichte gelesen.</p>
+
+        <div class="next-volume">
+          <p class="next-label">Nächste Geschichte</p>
+          <div class="next-card">
+            <div class="next-card-cover">
+              <div class="next-card-cover-bg" />
+              <span class="next-card-badge">NEU</span>
+            </div>
+            <div class="next-card-body">
+              <h4 class="next-card-title">Beispieltitel</h4>
+              <p class="next-card-subtitle">Anton Bernt</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
         v-else
         class="page"
         :class="{ 'swipe-hint': showHint }"
@@ -52,8 +84,8 @@
       <div class="pager">
         <button
           v-for="(entry, i) in displayPages"
-          :key="entry.kind === 'cover' ? 'cover' : `p-${entry.page.page}`"
-          :class="{ active: i === currentPageIndex, 'is-cover': entry.kind === 'cover' }"
+          :key="entry.kind === 'cover' ? 'cover' : entry.kind === 'celebration' ? 'end' : `p-${entry.page.page}`"
+          :class="{ active: i === currentPageIndex, 'is-cover': entry.kind === 'cover', 'is-end': entry.kind === 'celebration' }"
           @click="currentPageIndex = i"
           aria-label="Seite"
         />
@@ -71,7 +103,7 @@
 import { ref, computed, onBeforeUnmount } from 'vue'
 import type { BookPage } from '@/types'
 
-const props = defineProps<{ pages: BookPage[]; coverImage?: string }>()
+const props = defineProps<{ pages: BookPage[]; coverImage?: string; achievementBadge?: string }>()
 const currentPageIndex = ref(0)
 const offset = ref(0)
 const dragStartX = ref<number | null>(null)
@@ -82,11 +114,13 @@ let hintTimer: ReturnType<typeof setTimeout> | null = null
 type DisplayEntry =
   | { kind: 'cover'; image: string }
   | { kind: 'page'; page: BookPage }
+  | { kind: 'celebration' }
 
 const displayPages = computed<DisplayEntry[]>(() => {
   const list: DisplayEntry[] = []
   if (props.coverImage) list.push({ kind: 'cover', image: props.coverImage })
   for (const p of props.pages) list.push({ kind: 'page', page: p })
+  if (props.pages.length > 0) list.push({ kind: 'celebration' })
   return list
 })
 
@@ -279,6 +313,141 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   margin: 10px 0;
   background: #f1f1f1;
+}
+
+.celebration {
+  position: relative;
+  height: calc(100% - 40px);
+  transition: transform 120ms ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.celebration.swipe-hint {
+  animation: swipe-hint 1.6s ease-in-out infinite;
+}
+
+.celebration-badge {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  display: block;
+  border-radius: 18px;
+  filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.celebration-burst {
+  font-size: 64px;
+  line-height: 1;
+  margin-top: 8px;
+  filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35));
+}
+
+.celebration-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 4px 0 0;
+}
+
+.celebration-sub {
+  font-size: 12px;
+  color: #5a4a26;
+  font-weight: 600;
+  margin: 0;
+}
+
+.next-volume {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.next-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #5a3b14;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.next-card {
+  width: 100%;
+  max-width: 200px;
+  background: linear-gradient(180deg, #ffffff 0%, #fdf7ef 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 10px -4px rgba(30, 30, 60, 0.15),
+  0 14px 28px -14px rgba(30, 30, 60, 0.3);
+  overflow: hidden;
+}
+
+.next-card-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
+.next-card-cover-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.12) 100%),
+  linear-gradient(135deg, #9560f4 0%, #7e3af2 100%);
+}
+
+.next-card-cover-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1.2px, transparent 1.4px);
+  background-size: 14px 14px;
+  opacity: 0.45;
+  mix-blend-mode: screen;
+}
+
+.next-card-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, #ff7a59 0%, #ff4d8d 100%);
+  border-radius: 999px;
+  box-shadow: 0 3px 8px -2px rgba(255, 80, 140, 0.4);
+}
+
+.next-card-body {
+  padding: 10px 12px 12px;
+  text-align: left;
+}
+
+.next-card-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.next-card-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b5a3e;
 }
 
 .pager {

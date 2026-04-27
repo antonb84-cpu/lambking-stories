@@ -30,5 +30,8 @@
       "Bash(pnpm --silent type-check)",
       "Bash(curl -sS -m 30 \"https://lbs-be.onrender.com/api/book/fa-1-apple\")"
     ]
-  }
+  },
+  "defaultMode": "auto",
+  "defaultName": "Seedolino",
+  "defaultColor": "green"
 }

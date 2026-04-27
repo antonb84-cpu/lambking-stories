@@ -1,7 +1,6 @@
 import { ref, computed, type ComputedRef } from 'vue'
 import useModels, { modelImgPath } from '@/use/useModels'
 import { useRouter } from 'vue-router'
-import type { CampaignNode } from '@/use/useCampaign'
 import useSound from '@/use/useSound.ts'
 
 const debugSaved = localStorage.getItem('debug') || 'false'

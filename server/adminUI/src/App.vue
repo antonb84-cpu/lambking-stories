@@ -29,7 +29,7 @@
             <img src="/images/logo/logo_256x256.webp" alt="logo">
           </span>
           <div class="app-header-text">
-            <h1 class="app-header-title">Little Bible Stories</h1>
+            <h1 class="app-header-title">Seedolino</h1>
             <p class="app-header-subtitle">Admin · Buchverwaltung &amp; Lokalisierung</p>
           </div>
         </div>

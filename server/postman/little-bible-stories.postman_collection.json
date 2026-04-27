@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Little Bible Stories API",
+    "name": "Seedolino API",
     "_postman_id": "c7f2f3a1-4c2d-4a9b-9f2b-9f2b9f2b9f2b",
-    "description": "Full API surface for the Little Bible Stories backend. Uses the environment file for {{baseUrl}}, {{adminUser}}, {{adminPassword}}. The collection-level pre-request script applies HTTP Basic Auth to every secured call.",
+    "description": "Full API surface for the Seedolino backend. Uses the environment file for {{baseUrl}}, {{adminUser}}, {{adminPassword}}. The collection-level pre-request script applies HTTP Basic Auth to every secured call.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

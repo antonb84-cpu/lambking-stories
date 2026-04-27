@@ -29,6 +29,7 @@
         <IPhonePreview
           :pages="previewPages"
           :cover-image="previewCoverImage"
+          :achievement-badge="previewAchievementBadge"
         />
       </div>
     </aside>
@@ -59,6 +60,11 @@ const previewPages = computed(() => draft.activeLocalization.content)
 const previewCoverImage = computed(
   () => draft.book.contentCoverImage?.[draft.activeLocale] || draft.book.coverImage
 )
+const previewAchievementBadge = computed(() => {
+  const ab = draft.book.achievementBadge
+  if (!ab) return ''
+  return ab[draft.activeLocale] || ab.de || ab.en || ''
+})
 
 onMounted(async () => {
   try {

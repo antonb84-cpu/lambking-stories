@@ -25,15 +25,17 @@ export default defineConfig(({ mode }) => {
     console.log('--- 🛡️  Obfuscating Production Build ---')
     plugins.push(
       javascriptObfuscator({
-        compact: true,
-        controlFlowFlattening: true,
-        controlFlowFlatteningThreshold: 0.75,
-        numbersToExpressions: true,
-        simplify: true,
-        stringArray: true,
-        stringArrayThreshold: 0.75,
-        splitStrings: true,
-        unicodeEscapeSequence: true
+        options: {
+          compact: true,
+          controlFlowFlattening: true,
+          controlFlowFlatteningThreshold: 0.75,
+          numbersToExpressions: true,
+          simplify: true,
+          stringArray: true,
+          stringArrayThreshold: 0.75,
+          splitStrings: true,
+          unicodeEscapeSequence: true
+        }
       })
     )
   }

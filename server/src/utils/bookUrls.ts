@@ -47,7 +47,7 @@ function mapBook<T>(
     if (typeof v === 'string') out[k] = mapString(v)
   }
 
-  for (const k of ['contentCoverImage', 'audio']) {
+  for (const k of ['contentCoverImage', 'achievementBadge', 'audio']) {
     const v = out[k] as { de?: string; en?: string } | undefined
     if (v && typeof v === 'object') {
       out[k] = {

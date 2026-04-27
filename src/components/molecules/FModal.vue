@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import FTabs, { type TabOption } from '@/components/atoms/FTabs'
+import FTabs, { type TabOption } from '@/components/atoms/FTabs.vue'
 
 interface Props {
   modelValue: boolean | any

@@ -48,6 +48,7 @@ const BookSchema = new Schema(
     coverImage: { type: String, required: true },
     previewImage: { type: String, required: true },
     contentCoverImage: { type: AudioSchema, default: () => ({}) },
+    achievementBadge: { type: AudioSchema, default: () => ({}) },
     audio: { type: AudioSchema, default: () => ({}) },
     attachments: { type: [String], default: [] },
     localizations: {

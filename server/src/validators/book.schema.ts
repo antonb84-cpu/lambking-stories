@@ -45,6 +45,7 @@ export const createBookSchema = z.object({
       coverImage: z.string().min(1, 'coverImage is required'),
       previewImage: z.string().min(1, 'previewImage is required'),
       contentCoverImage: audioSchema.default({ de: '', en: '' }),
+      achievementBadge: audioSchema.default({ de: '', en: '' }),
       audio: audioSchema.default({ de: '', en: '' }),
       attachments: z.array(z.string()).default([]),
       localizations: z.object({

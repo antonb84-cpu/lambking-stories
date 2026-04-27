@@ -1,6 +1,6 @@
 # Render.com Deployment
 
-End-to-end guide for running Little Bible Stories (API + Admin UI) on a single Render Web Service with a persistent
+End-to-end guide for running Seedolino (API + Admin UI) on a single Render Web Service with a persistent
 disk for uploads and audiobooks, MongoDB Atlas for data, and (optionally) Upstash for Redis.
 
 The service is fully described by [`render.yaml`](../../render.yaml) at the repo root. Render's Blueprint feature

@@ -9,7 +9,7 @@ export const audioUploadQuery = z.object({
 
 export const imageUploadQuery = z.object({
   query: z.object({
-    kind: z.enum(['cover', 'preview', 'content']),
+    kind: z.enum(['cover', 'preview', 'content', 'achievement']),
     bookId: z.string().optional()
   })
 })

@@ -30,6 +30,7 @@ export interface BookDTO {
   coverImage: string
   previewImage: string
   contentCoverImage?: BookAudio
+  achievementBadge?: BookAudio
   audio: BookAudio
   attachments: string[]
   localizations: Record<Locale, BookLocalization>

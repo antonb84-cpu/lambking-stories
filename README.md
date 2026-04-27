@@ -1,6 +1,6 @@
-# Little Bible Stories
+# Seedolino
 
-Little Bible Stories is an audiobook and stories app
+Seedolino is an audiobook and stories app
 
 prototype: [WIP demo](https://konstantinsteinmiller.github.io/little-bible-stories/)
 

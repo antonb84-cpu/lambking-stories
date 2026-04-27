@@ -35,6 +35,7 @@ export interface ApiBook {
   coverImage: string
   previewImage: string
   contentCoverImage?: ApiLocalizedAsset
+  achievementBadge?: ApiLocalizedAsset
   audio?: ApiLocalizedAsset
   attachments?: string[]
   localizations: {

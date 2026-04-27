@@ -18,6 +18,7 @@ function emptyBook(): BookDTO {
     coverImage: '',
     previewImage: '',
     contentCoverImage: { de: '', en: '' },
+    achievementBadge: { de: '', en: '' },
     audio: { de: '', en: '' },
     attachments: [],
     localizations: { de: emptyLocalization() },
@@ -33,7 +34,9 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     audio: null,
     cover: null,
     preview: null,
-    contentCover: null
+    contentCover: null,
+    achievementBadgeDe: null,
+    achievementBadgeEn: null
   })
 
   const setLocale = (l: Locale) => {
@@ -60,7 +63,15 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     book.value = emptyBook()
     activeLocale.value = 'de'
     isEditingExisting.value = false
-    uploadStatus.value = { audio: null, cover: null, preview: null, contentCoverDe: null, contentCoverEn: null }
+    uploadStatus.value = {
+      audio: null,
+      cover: null,
+      preview: null,
+      contentCoverDe: null,
+      contentCoverEn: null,
+      achievementBadgeDe: null,
+      achievementBadgeEn: null
+    }
   }
 
   const load = (b: BookDTO) => {

@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 
-export type ImageKind = 'cover' | 'preview' | 'content'
+export type ImageKind = 'cover' | 'preview' | 'content' | 'achievement'
 type UploadResult = { url: string; path: string }
 
 export const uploadsApi = {

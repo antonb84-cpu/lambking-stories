@@ -1,5 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import ListView from '@/views/ListView.vue'
+import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import AppMainView from '@/views/app/AppMainView.vue'
 import useUser, { isWeb } from '@/use/useUser'
 
@@ -20,8 +19,8 @@ const AppReaderView = () => import('@/views/app/AppReaderView.vue')
 const AppAwardsView = () => import('@/views/app/AppAwardsView.vue')
 const AppProfileView = () => import('@/views/app/AppProfileView.vue')
 
-const routes = [
-  { path: '/', name: 'main-menu', component: ListView, redirect: '/app' },
+const routes: RouteRecordRaw[] = [
+  { path: '/', name: 'main-menu', redirect: '/app' },
   { path: '/design-system', name: 'design-system', component: DesignSystemView },
   { path: '/design-system-s', name: 'design-system-s', component: DesignSystemSView },
   { path: '/design-system-a', name: 'design-system-a', component: DesignSystemAView },

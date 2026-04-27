@@ -3,7 +3,6 @@ import type { Ref } from 'vue'
 import useUserDb from '@/use/useUserDb'
 import { type Difficulties, DIFFICULTY } from '@/utils/enums'
 import { mobileCheck } from '@/utils/function'
-import type { GameCard } from '@/types/app.ts'
 import useModels from '@/use/useModels.ts'
 
 export const windowWidth = ref(window.innerWidth)

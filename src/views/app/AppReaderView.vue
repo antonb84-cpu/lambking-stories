@@ -336,6 +336,18 @@ watch(isOnCelebration, (yes) => {
   }
 })
 
+// ----- Achievement badge -----
+
+const achievementBadge = computed<string>(() => {
+  const b = book.value
+  if (!b?.achievementBadge) return ''
+  return b.achievementBadge[lang.value] || b.achievementBadge.de || b.achievementBadge.en || ''
+})
+
+watch(achievementBadge, async (u) => {
+  if (u) await ensureBlob(u)
+})
+
 // ----- Next volume in series -----
 
 const nextBook = computed(() => (book.value ? apiBooks.nextBookInSeries(book.value) : null))
@@ -517,7 +529,15 @@ function goBack() {
           :style="{ transform: `translateX(${offset}px)` }"
         )
           div(class="celebration-inner")
-            div(class="celebration-burst" aria-hidden="true") 🎉
+            img(
+              v-if="achievementBadge"
+              :src="resolved(achievementBadge)"
+              alt=""
+              class="celebration-badge"
+              draggable="false"
+              @dragstart.prevent
+            )
+            div(v-else class="celebration-burst" aria-hidden="true") 🎉
             h1(class="celebration-title") {{ t('app.reader.congratsTitle') }}
             p(class="celebration-sub") {{ t('app.reader.congratsSub') }}
 
@@ -716,6 +736,17 @@ function goBack() {
   font-size: 72px
   line-height: 1
   filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35))
+
+
+.celebration-badge
+  width: 100%
+  max-width: 100%
+  aspect-ratio: 1 / 1
+  object-fit: contain
+  display: block
+  filter: drop-shadow(0 10px 22px rgba(255, 150, 60, 0.35))
+  user-select: none
+  -webkit-user-drag: none
 
 .celebration-title
   font-size: 32px

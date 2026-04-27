@@ -1,6 +1,6 @@
 export default {
   en: {
-    gameName: 'Little Bible Stories',
+    gameName: 'Seedolino',
     cancel: 'Cancel',
     close: 'Close',
     understood: 'Understood',
@@ -19,7 +19,7 @@ export default {
     clickToContinue: 'Click to continue'
   },
   de: {
-    gameName: 'Little Bible Stories',
+    gameName: 'Seedolino',
     cancel: 'Abbrechen',
     close: 'Schließen',
     understood: 'Verstanden',
@@ -38,7 +38,7 @@ export default {
     clickToContinue: 'Klicken zum Fortfahren'
   },
   fr: {
-    gameName: 'Little Bible Stories',
+    gameName: 'Seedolino',
     cancel: 'Annuler',
     close: 'Fermer',
     understood: 'Compris',
@@ -57,7 +57,7 @@ export default {
     clickToContinue: 'Cliquez pour continuer'
   },
   es: {
-    gameName: 'Little Bible Stories',
+    gameName: 'Seedolino',
     cancel: 'Cancelar',
     close: 'Cerrar',
     understood: 'Entendido',
@@ -133,7 +133,7 @@ export default {
     clickToContinue: '点击屏幕继续'
   },
   ru: {
-    gameName: 'Little Bible Stories',
+    gameName: 'Seedolino',
     cancel: 'Отмена',
     close: 'Закрыть',
     understood: 'Понятно',

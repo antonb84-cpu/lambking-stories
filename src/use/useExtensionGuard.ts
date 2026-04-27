@@ -16,6 +16,7 @@ export const useExtensionGuard = () => {
       for (let i = 0; i < sheets.length; i++) {
         try {
           const sheet = sheets[i]
+          if (!sheet) continue
           // Look for keywords extensions use in their generated IDs/Classes
           if (sheet.ownerNode instanceof HTMLElement) {
             const id = sheet.ownerNode.id || ''

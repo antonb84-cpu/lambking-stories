@@ -1,6 +1,6 @@
-# Little Bible Stories — Server
+# Seedolino — Server
 
-Production-grade Node.js + TypeScript + Express backend for the Little Bible Stories
+Production-grade Node.js + TypeScript + Express backend for the Seedolino
 Vue 3 app. Ships with:
 
 - Mongoose over MongoDB Atlas for metadata
