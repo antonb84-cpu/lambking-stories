@@ -33,10 +33,15 @@ async function refreshBookInBackground(bookId: string): Promise<void> {
     const cached = await cache.getCached(bookId)
     const cachedMs = cached ? Date.parse(cached.updatedDate) : 0
     const freshMs = Date.parse(fresh.updatedDate)
+    // Always write the freshest book to the in-memory store so consumers
+    // that key off `state.byId` (the BookDetail / Reader views) see new
+    // server-side fields the moment the network returns — even when the
+    // server didn't bump `updatedDate` (e.g. a schema migration that
+    // re-shapes attachments without touching the document timestamp).
+    state.byId[bookId] = fresh
     if (!cached || !Number.isFinite(cachedMs) || freshMs > cachedMs) {
       await cache.invalidateBookBlobs(bookId)
       await cache.saveBook(fresh)
-      state.byId[bookId] = fresh
     }
     void cache.prefetchBlobs(fresh)
   } catch {

@@ -10,12 +10,21 @@ export interface BookLocalization {
   title: string
   shortDescription: string
   description: string
+  contentNotes?: string
   content: BookPage[]
 }
 
 export interface BookAudio {
   de?: string
   en?: string
+}
+
+export type BookAttachmentType = 'coloring' | 'download'
+
+export interface BookAttachment {
+  previewImage?: string
+  data?: string
+  type: BookAttachmentType
 }
 
 export interface BookDTO {
@@ -33,7 +42,7 @@ export interface BookDTO {
   achievementBadge?: BookAudio
   etsyLink?: BookAudio
   audio: BookAudio
-  attachments: string[]
+  attachments: BookAttachment[]
   localizations: Record<Locale, BookLocalization>
   isPublished: boolean
 }

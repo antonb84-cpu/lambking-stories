@@ -15,12 +15,21 @@ export interface ApiLocalization {
   title: string
   shortDescription: string
   description: string
+  contentNotes?: string
   content: ApiLocalizedPage[]
 }
 
 export interface ApiLocalizedAsset {
   de?: string
   en?: string
+}
+
+export type ApiBookAttachmentType = 'coloring' | 'download'
+
+export interface ApiBookAttachment {
+  previewImage?: string
+  data?: string
+  type: ApiBookAttachmentType
 }
 
 export interface ApiBook {
@@ -37,7 +46,7 @@ export interface ApiBook {
   contentCoverImage?: ApiLocalizedAsset
   achievementBadge?: ApiLocalizedAsset
   audio?: ApiLocalizedAsset
-  attachments?: string[]
+  attachments?: ApiBookAttachment[]
   localizations: {
     de: ApiLocalization
     en?: ApiLocalization | null

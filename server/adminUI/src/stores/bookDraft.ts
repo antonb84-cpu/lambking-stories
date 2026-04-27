@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { BookDTO, BookLocalization, Locale } from '@/types'
+import { normalizeAttachment } from '@/types'
 
 function emptyLocalization(): BookLocalization {
-  return { title: '', shortDescription: '', description: '', content: [] }
+  return { title: '', shortDescription: '', description: '', contentNotes: '', content: [] }
 }
 
 function emptyBook(): BookDTO {
@@ -40,6 +41,19 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     achievementBadgeEn: null
   })
 
+  // Snapshot-based dirty tracking — every load/reset/save captures the
+  // current book payload as the canonical "clean" state, and `isDirty`
+  // checks the live book against it. Snapshot is JSON because the book
+  // graph is plain data (no class instances) and that's the cheapest deep
+  // equality check; the strings stay small relative to any base64 uploads.
+  const cleanSnapshot = ref<string>(JSON.stringify(book.value))
+
+  function snapshotClean() {
+    cleanSnapshot.value = JSON.stringify(book.value)
+  }
+
+  const isDirty = computed(() => JSON.stringify(book.value) !== cleanSnapshot.value)
+
   const setLocale = (l: Locale) => {
     if (!book.value.localizations[l]) book.value.localizations[l] = emptyLocalization()
     activeLocale.value = l
@@ -73,13 +87,23 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
       achievementBadgeDe: null,
       achievementBadgeEn: null
     }
+    snapshotClean()
   }
 
   const load = (b: BookDTO) => {
-    book.value = JSON.parse(JSON.stringify(b)) as BookDTO
-    if (!book.value.localizations.de) book.value.localizations.de = emptyLocalization()
+    const cloned = JSON.parse(JSON.stringify(b)) as BookDTO
+    if (!cloned.localizations.de) cloned.localizations.de = emptyLocalization()
+    // Defensive: legacy books still on disk store attachments as plain
+    // string URLs. Normalise on load so the editor only sees the new shape.
+    if (Array.isArray(cloned.attachments)) {
+      cloned.attachments = (cloned.attachments as unknown[]).map(normalizeAttachment)
+    } else {
+      cloned.attachments = []
+    }
+    book.value = cloned
     activeLocale.value = 'de'
     isEditingExisting.value = true
+    snapshotClean()
   }
 
   const missingFields = computed<{ label: string; anchor: string }[]>(() => {
@@ -93,7 +117,6 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     if (!b.releaseDate) m.push({ label: 'Erscheinungsdatum', anchor: 'field-releaseDate' })
     if (!b.coverImage) m.push({ label: 'Cover-Bild', anchor: 'field-cover' })
     if (!b.previewImage) m.push({ label: 'Preview-Bild', anchor: 'field-preview' })
-    if (!b.audio?.de) m.push({ label: 'Audio (DE)', anchor: 'field-audio' })
     if (!de?.title) m.push({ label: 'Titel (DE)', anchor: 'field-title' })
     if (!de?.shortDescription) m.push({ label: 'Kurzbeschreibung (DE)', anchor: 'field-shortDescription' })
     if (!de?.description) m.push({ label: 'Beschreibung (DE)', anchor: 'field-description' })
@@ -111,6 +134,8 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     activeLocalization,
     isEditingExisting,
     uploadStatus,
+    isDirty,
+    snapshotClean,
     isGermanComplete,
     missingFields,
     missingAnchors,

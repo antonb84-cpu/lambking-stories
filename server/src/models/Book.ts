@@ -15,6 +15,7 @@ const LocalizationSchema = new Schema(
     title: { type: String, required: true, trim: true, maxlength: 300 },
     shortDescription: { type: String, required: true, trim: true, maxlength: 1000 },
     description: { type: String, required: true, trim: true, maxlength: 8000 },
+    contentNotes: { type: String, default: '', maxlength: 4000 },
     content: { type: [PageSchema], default: [] }
   },
   { _id: false }
@@ -51,7 +52,11 @@ const BookSchema = new Schema(
     achievementBadge: { type: AudioSchema, default: () => ({}) },
     etsyLink: { type: AudioSchema, default: () => ({}) },
     audio: { type: AudioSchema, default: () => ({}) },
-    attachments: { type: [String], default: [] },
+    // Mixed because legacy rows store plain strings (the original PDF URL)
+    // while new rows store `{ previewImage, data, type }`. Normalisation to
+    // the new shape happens in `bookUrls.absolutizeBook` on the way out and
+    // in the Zod validator on the way in.
+    attachments: { type: [Schema.Types.Mixed], default: [] },
     localizations: {
       de: { type: LocalizationSchema, required: true },
       en: { type: LocalizationSchema, required: false, default: null }

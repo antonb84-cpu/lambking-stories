@@ -2,20 +2,30 @@
   <div class="glass card !p-1 overflow-hidden">
     <div class="editor-toolbar">
       <div class="tool-group">
-        <button class="toolbar-btn" :class="{ active: isBold }" @click="editor?.chain().focus().toggleBold().run()">B
+        <button type="button" class="toolbar-btn" :class="{ active: isBold }"
+                @click="editor?.chain().focus().toggleBold().run()">B
         </button>
-        <button class="toolbar-btn italic" :class="{ active: isItalic }"
+        <button type="button" class="toolbar-btn italic" :class="{ active: isItalic }"
                 @click="editor?.chain().focus().toggleItalic().run()">I
         </button>
-        <button class="toolbar-btn" :class="{ active: isH1 }"
+        <span class="tool-sep" />
+        <button type="button" class="toolbar-btn" title="Neuer Absatz" @click="insertParagraph">¶</button>
+        <button type="button" class="toolbar-btn" :class="{ active: isBulletList }"
+                @click="editor?.chain().focus().toggleBulletList().run()">• Liste
+        </button>
+        <button type="button" class="toolbar-btn" :class="{ active: isOrderedList }"
+                @click="editor?.chain().focus().toggleOrderedList().run()">1. Liste
+        </button>
+        <span class="tool-sep" />
+        <button type="button" class="toolbar-btn" :class="{ active: isH1 }"
                 @click="editor?.chain().focus().toggleHeading({ level: 1 }).run()">H1
         </button>
-        <button class="toolbar-btn" :class="{ active: isH2 }"
+        <button type="button" class="toolbar-btn" :class="{ active: isH2 }"
                 @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()">H2
         </button>
         <span class="tool-sep" />
-        <button class="toolbar-btn" @click="insertChapterBreak">📖 Kapitel</button>
-        <button class="toolbar-btn" @click="pickImage">🖼️ Bild</button>
+        <button type="button" class="toolbar-btn" @click="insertChapterBreak">📖 Kapitel</button>
+        <button type="button" class="toolbar-btn" @click="pickImage">🖼️ Bild</button>
         <input ref="imgInput" type="file" accept="image/webp,image/jpeg,image/png" class="editor-file-input"
                @change="onImage" />
       </div>
@@ -64,6 +74,7 @@ import { FileText, Type } from 'lucide-vue-next'
 import { detectChapters } from '@/composables/useChapterDetector'
 import { uploadsApi } from '@/api/uploads'
 import { useToastStore } from '@/stores/toast'
+import { cleanMarkdown } from '@/utils/markdownToHtml'
 import type { BookPage } from '@/types'
 
 const props = defineProps<{ modelValue: BookPage[] }>()
@@ -78,7 +89,11 @@ const editor = useEditor({
   extensions: [StarterKit, Image.configure({ inline: false }), CharacterCount, Markdown],
   content: pagesToHtml(props.modelValue),
   onUpdate: ({ editor }) => {
-    const md = editor.storage.markdown?.getMarkdown?.() ?? editor.getText()
+    // `tiptap-markdown` writes hard-break `\` at line ends (CommonMark).
+    // Normalising to plain newlines keeps the saved data clean and stops
+    // the literal backslash from leaking back into the editor on reload.
+    const raw = editor.storage.markdown?.getMarkdown?.() ?? editor.getText()
+    const md = cleanMarkdown(raw)
     markdown.value = md
     const pages = detectChapters(md)
     emit('update:modelValue', pages)
@@ -108,8 +123,15 @@ const isBold = computed(() => editor.value?.isActive('bold') ?? false)
 const isItalic = computed(() => editor.value?.isActive('italic') ?? false)
 const isH1 = computed(() => editor.value?.isActive('heading', { level: 1 }) ?? false)
 const isH2 = computed(() => editor.value?.isActive('heading', { level: 2 }) ?? false)
+const isBulletList = computed(() => editor.value?.isActive('bulletList') ?? false)
+const isOrderedList = computed(() => editor.value?.isActive('orderedList') ?? false)
 const characters = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
 const pageCount = computed(() => props.modelValue.length)
+
+// `splitBlock` ends the current paragraph and starts a new one — exposed as
+// a button so the toolbar offers "real-book paragraph" as a deliberate
+// action alongside lists and emphasis.
+const insertParagraph = () => editor.value?.chain().focus().setNode('paragraph').splitBlock().run()
 
 const onMarkdownInput = () => {
   const pages = detectChapters(markdown.value)
@@ -139,12 +161,15 @@ const onImage = async (e: Event) => {
 function pagesToHtml(pages: BookPage[]): string {
   if (!pages.length) return ''
   return pages
-    .map((p) => `<h2 data-page="${p.page}">${escapeHtml(p.title)}</h2><p>${escapeHtml(p.text).replace(/\n/g, '<br/>')}</p>`)
+    .map((p) => {
+      const text = cleanMarkdown(p.text)
+      return `<h2 data-page="${p.page}">${escapeHtml(p.title)}</h2><p>${escapeHtml(text).replace(/\n/g, '<br/>')}</p>`
+    })
     .join('')
 }
 
 function pagesToMarkdown(pages: BookPage[]): string {
-  return pages.map((p) => `## ${p.title}\n\n${p.text}`).join('\n\n')
+  return pages.map((p) => `## ${p.title}\n\n${cleanMarkdown(p.text)}`).join('\n\n')
 }
 
 function escapeHtml(s: string): string {
@@ -310,6 +335,28 @@ function escapeHtml(s: string): string {
 
 .prose-wrap :deep(.ProseMirror p) {
   margin: 0.25rem 0;
+}
+
+.prose-wrap :deep(.ProseMirror ul),
+.prose-wrap :deep(.ProseMirror ol) {
+  padding-left: 1.4em;
+  margin: 0.4em 0;
+}
+
+.prose-wrap :deep(.ProseMirror ul) {
+  list-style: disc;
+}
+
+.prose-wrap :deep(.ProseMirror ol) {
+  list-style: decimal;
+}
+
+.prose-wrap :deep(.ProseMirror li) {
+  margin: 0.15em 0;
+}
+
+.prose-wrap :deep(.ProseMirror li > p) {
+  margin: 0;
 }
 
 .prose-wrap :deep(.ProseMirror img) {

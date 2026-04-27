@@ -180,7 +180,10 @@ function collectBookUrls(book: ApiBook): string[] {
   push(book.contentCoverImage?.en)
   push(book.audio?.de)
   push(book.audio?.en)
-  for (const a of book.attachments ?? []) push(a)
+  for (const a of book.attachments ?? []) {
+    push(a?.previewImage)
+    push(a?.data)
+  }
   const IMG_RE = /!\[[^\]]*\]\(([^)\s]+)\)|<img[^>]+src=["']([^"']+)["']/gi
   for (const loc of [book.localizations?.de, book.localizations?.en]) {
     for (const page of loc?.content ?? []) {

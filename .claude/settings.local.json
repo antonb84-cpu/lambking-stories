@@ -28,7 +28,13 @@
       "Bash(pnpm --filter little-bible-stories-server add bson)",
       "Bash(pnpm --filter little-bible-stories-server add bson@6)",
       "Bash(pnpm --silent type-check)",
-      "Bash(curl -sS -m 30 \"https://lbs-be.onrender.com/api/book/fa-1-apple\")"
+      "Bash(curl -sS -m 30 \"https://lbs-be.onrender.com/api/book/fa-1-apple\")",
+      "Bash(python *)",
+      "Bash(pnpm view *)",
+      "Bash(awk \"/^  [a-zA-Z@][^:]*:$/{header=\\\\$0} /\\\\\"'?@exodus\\\\\\\\/bytes'?:/{print header; print \\\\$0}\" /c/Users/konst/kanaan-stories/pnpm-lock.yaml)",
+      "Bash(awk '/^  [a-zA-Z@][^:]*:$/{header=$0} /@exodus\\\\/bytes/{print header; print $0}' /c/Users/konst/kanaan-stories/pnpm-lock.yaml)",
+      "Bash(pnpm why *)",
+      "Bash(VITE_ENABLE_OBFUSCATION=false pnpm run build-only)"
     ]
   },
   "defaultMode": "auto",

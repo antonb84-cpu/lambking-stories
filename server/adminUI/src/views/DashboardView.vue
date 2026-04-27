@@ -33,16 +33,27 @@
         />
       </div>
     </aside>
+
+    <ConfirmDiscardModal
+      v-if="showDiscardConfirm"
+      title="Ungespeicherte Änderungen verwerfen?"
+      body="Du hast diesen Buch-Entwurf noch nicht gespeichert. Beim Wechsel gehen die Änderungen verloren."
+      stay-label="Weiter bearbeiten"
+      discard-label="Verwerfen"
+      @stay="cancelDiscard"
+      @discard="confirmDiscard"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import BookBrowser from '@/components/organisms/BookBrowser.vue'
 import BookForm from '@/components/organisms/BookForm.vue'
 import SeriesManager from '@/components/organisms/SeriesManager.vue'
 import CategoryManager from '@/components/organisms/CategoryManager.vue'
 import IPhonePreview from '@/components/organisms/IPhonePreview.vue'
+import ConfirmDiscardModal from '@/components/molecules/ConfirmDiscardModal.vue'
 import { useSeriesStore } from '@/stores/series'
 import { useCategoryStore } from '@/stores/categories'
 import { useBookDraftStore } from '@/stores/bookDraft'
@@ -82,14 +93,51 @@ async function refreshBooks() {
   }
 }
 
+// Pending switch — kept until the user resolves the dirty-draft modal.
+const showDiscardConfirm = ref(false)
+let pendingSelection: (() => void) | null = null
+
 async function onSelect(bookId: string) {
-  if (!bookId) {
-    draft.reset()
+  const action = () => {
+    if (!bookId) {
+      draft.reset()
+      return
+    }
+    const b = books.value.find((x) => x.bookId === bookId)
+    if (b) draft.load(b)
+  }
+  if (draft.isDirty) {
+    pendingSelection = action
+    showDiscardConfirm.value = true
     return
   }
-  const b = books.value.find((x) => x.bookId === bookId)
-  if (b) draft.load(b)
+  action()
 }
+
+function cancelDiscard() {
+  showDiscardConfirm.value = false
+  pendingSelection = null
+}
+
+function confirmDiscard() {
+  showDiscardConfirm.value = false
+  const proceed = pendingSelection
+  pendingSelection = null
+  proceed?.()
+}
+
+function onBeforeUnload(e: BeforeUnloadEvent) {
+  if (!draft.isDirty) return
+  e.preventDefault()
+  e.returnValue = ''
+}
+
+onMounted(() => {
+  window.addEventListener('beforeunload', onBeforeUnload)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', onBeforeUnload)
+})
 
 async function onSaved(saved: BookDTO) {
   const idx = books.value.findIndex((x) => x.bookId === saved.bookId)

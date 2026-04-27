@@ -38,13 +38,10 @@
         :class="{ 'swipe-hint': showHint }"
         :style="{ transform: `translateX(${offset}px)` }"
       >
-        <img
+        <AchievementBadge
           v-if="achievementBadge"
           :src="achievementBadge"
-          alt=""
-          class="celebration-badge"
-          draggable="false"
-          @dragstart.prevent
+          max-size="220px"
         />
         <div v-else class="celebration-burst" aria-hidden="true">🎉</div>
         <h3 class="celebration-title">Geschafft!</h3>
@@ -102,6 +99,8 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from 'vue'
 import type { BookPage } from '@/types'
+import { markdownToHtml } from '@/utils/markdownToHtml'
+import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
 
 const props = defineProps<{ pages: BookPage[]; coverImage?: string; achievementBadge?: string }>()
 const currentPageIndex = ref(0)
@@ -138,35 +137,8 @@ const currentDisplay = computed(() => displayPages.value[currentPageIndex.value]
 const renderedText = computed(() => {
   const current = currentDisplay.value
   if (!current || current.kind !== 'page') return ''
-  const raw = current.page.text ?? ''
-  const IMG_RE = /!\[([^\]]*)\]\(([^)\s]+)\)/g
-
-  const parts: string[] = []
-  let last = 0
-  for (const m of raw.matchAll(IMG_RE)) {
-    const idx = m.index ?? 0
-    if (idx > last) parts.push(escapeText(raw.slice(last, idx)))
-    const alt = escapeAttr(m[1] ?? '')
-    const src = escapeAttr(m[2] ?? '')
-    parts.push(`<img class="page-img" src="${src}" alt="${alt}" />`)
-    last = idx + m[0].length
-  }
-  if (last < raw.length) parts.push(escapeText(raw.slice(last)))
-  return parts.join('')
+  return markdownToHtml(current.page.text ?? '', { imgClass: 'page-img' })
 })
-
-function escapeText(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n{2,}/g, '</p><p>')
-    .replace(/\n/g, '<br/>')
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
-}
 
 const getX = (e: MouseEvent | TouchEvent): number => {
   if ('touches' in e) return e.touches[0]?.clientX ?? 0
@@ -300,8 +272,64 @@ onBeforeUnmount(() => {
 
 .page-body {
   font-size: 13px;
-  line-height: 1.05;
+  line-height: 1.35;
   color: #333;
+}
+
+.page-body :deep(p) {
+  margin: 0.4em 0 0;
+}
+
+.page-body :deep(p:first-child) {
+  margin-top: 0;
+}
+
+.page-body :deep(strong) {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.page-body :deep(em) {
+  font-style: italic;
+}
+
+.page-body :deep(h1),
+.page-body :deep(h2),
+.page-body :deep(h3) {
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0.5em 0 0.25em;
+  line-height: 1.2;
+}
+
+.page-body :deep(h1) {
+  font-size: 1.4em;
+}
+
+.page-body :deep(h2) {
+  font-size: 1.2em;
+}
+
+.page-body :deep(h3) {
+  font-size: 1.05em;
+}
+
+.page-body :deep(ul),
+.page-body :deep(ol) {
+  margin: 0.4em 0;
+  padding-left: 1.4em;
+}
+
+.page-body :deep(ul) {
+  list-style: disc;
+}
+
+.page-body :deep(ol) {
+  list-style: decimal;
+}
+
+.page-body :deep(li) {
+  margin: 0.15em 0;
 }
 
 .page-body :deep(img),
@@ -331,18 +359,6 @@ onBeforeUnmount(() => {
 
 .celebration.swipe-hint {
   animation: swipe-hint 1.6s ease-in-out infinite;
-}
-
-.celebration-badge {
-  width: 100%;
-  max-width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  display: block;
-  border-radius: 18px;
-  filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35));
-  user-select: none;
-  -webkit-user-drag: none;
 }
 
 .celebration-burst {

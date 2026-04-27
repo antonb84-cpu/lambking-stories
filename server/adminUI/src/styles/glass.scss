@@ -417,10 +417,13 @@ textarea.glass:focus,
   box-shadow: 0 0 0 2px rgba(225, 90, 90, 0.18);
 }
 
-/* Subtle red outline around any field-wrapper that is still missing a value. */
+/* Subtle red outline around any field-wrapper that is still missing a value.
+ * 3px padding keeps the inner content (label, input, drop-zone) from butting
+ * up against the red border or merging with adjacent field borders. */
 .is-missing {
   position: relative;
   border-radius: 12px;
+  padding: 3px;
   box-shadow: 0 0 0 1px rgba(225, 90, 90, 0.35);
 }
 

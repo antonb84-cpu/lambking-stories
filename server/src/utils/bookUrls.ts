@@ -59,7 +59,22 @@ function mapBook<T>(
   }
 
   if (Array.isArray(out.attachments)) {
-    out.attachments = (out.attachments as unknown[]).map((a) => (typeof a === 'string' ? mapString(a) : a))
+    out.attachments = (out.attachments as unknown[]).map((a) => {
+      // Legacy: plain URL string. Promote to the new download-attachment
+      // shape so consumers can render it uniformly.
+      if (typeof a === 'string') {
+        return { previewImage: '', data: mapString(a), type: 'download' }
+      }
+      if (a && typeof a === 'object') {
+        const o = a as { previewImage?: unknown; data?: unknown; type?: unknown }
+        return {
+          previewImage: typeof o.previewImage === 'string' ? mapString(o.previewImage) : '',
+          data: typeof o.data === 'string' ? mapString(o.data) : '',
+          type: o.type === 'coloring' ? 'coloring' : 'download'
+        }
+      }
+      return a
+    })
   }
 
   const loc = out.localizations as {

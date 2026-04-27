@@ -10,12 +10,36 @@ export interface BookLocalization {
   title: string
   shortDescription: string
   description: string
+  contentNotes?: string
   content: BookPage[]
 }
 
 export interface BookAudio {
   de?: string
   en?: string
+}
+
+export type BookAttachmentType = 'coloring' | 'download'
+
+export interface BookAttachment {
+  previewImage?: string
+  data?: string
+  type: BookAttachmentType
+}
+
+export function normalizeAttachment(value: unknown): BookAttachment {
+  if (typeof value === 'string') {
+    return { previewImage: '', data: value, type: 'download' }
+  }
+  if (value && typeof value === 'object') {
+    const v = value as { previewImage?: unknown; data?: unknown; type?: unknown }
+    return {
+      previewImage: typeof v.previewImage === 'string' ? v.previewImage : '',
+      data: typeof v.data === 'string' ? v.data : '',
+      type: v.type === 'coloring' ? 'coloring' : 'download'
+    }
+  }
+  return { previewImage: '', data: '', type: 'download' }
 }
 
 export interface BookDTO {
@@ -33,7 +57,7 @@ export interface BookDTO {
   achievementBadge?: BookAudio
   etsyLink?: BookAudio
   audio: BookAudio
-  attachments: string[]
+  attachments: BookAttachment[]
   localizations: Partial<Record<Locale, BookLocalization>>
   isPublished: boolean
 }

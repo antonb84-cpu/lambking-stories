@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => {
     console.log('--- 🛡️  Obfuscating Production Build ---')
     plugins.push(
       javascriptObfuscator({
+        // pdfjs-dist and its bundled worker are too large + too dynamically
+        // structured to obfuscate without breaking dynamic imports. Skipping
+        // them keeps the route-level chunking intact and lets PDFs load.
+        exclude: [/node_modules\/pdfjs-dist/, /pdf\.worker/],
         options: {
           compact: true,
           controlFlowFlattening: true,

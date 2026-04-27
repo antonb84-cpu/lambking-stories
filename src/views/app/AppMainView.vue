@@ -59,7 +59,7 @@ const activeNav = computed<string | number>(() => routeToNav(String(route.name |
 function routeToNav(name: string): string {
   if (name === 'app-main') return 'home'
   if (name === 'app-all-books' || name === 'app-book' || name === 'app-book-series') return 'series'
-  if (name === 'app-awards') return 'brush'
+  if (name === 'app-awards' || name === 'app-coloring') return 'brush'
   if (name === 'app-profile') return 'profile'
   return 'home'
 }
@@ -68,7 +68,7 @@ function onNav(id: string | number) {
   if (id === 'home') router.push({ name: 'app-main' })
   if (id === 'series') router.push({ name: 'app-all-books' })
   if (id === 'profile') router.push({ name: 'app-profile' })
-  if (id === 'brush') router.push({ name: 'app-awards' })
+  if (id === 'brush') router.push({ name: 'app-coloring' })
 }
 
 function openBook(bookId: string) {
@@ -93,6 +93,12 @@ const lastReadSeries = computed(() => {
 const continueProgress = computed(() =>
   lastReadBook.value ? progressPct(lastReadBook.value) : 0
 )
+
+const lastReadHasAudio = computed(() => {
+  const audio = lastReadBook.value?.audio
+  if (!audio) return false
+  return Boolean(audio[lang.value] || audio.de || audio.en)
+})
 
 const newReleases = computed<ApiBook[]>(() =>
   [...allBooks.value]
@@ -159,7 +165,7 @@ function tagsForBook(b: ApiBook) {
           div(class="flex items-center gap-2 mt-1.5 w-full")
             div(class="flex-1 min-w-0")
               APlayer(:progress="continueProgress" :seekable="false")
-            div(class="shrink-0" @click.stop)
+            div(v-if="lastReadHasAudio" class="shrink-0" @click.stop)
               APlayButton(size="sm" @click="openBook(lastReadBook.bookId)")
 
     //- New releases

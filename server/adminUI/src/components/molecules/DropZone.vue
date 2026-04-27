@@ -349,7 +349,7 @@ defineExpose({ reset: dd.reset })
   border-radius: 999px;
   margin-top: 2px;
   letter-spacing: 0.01em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: 'Nunito', serif;
 }
 
 @keyframes pulse {

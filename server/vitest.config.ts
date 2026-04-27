@@ -13,6 +13,9 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['adminUI/**', 'node_modules/**', 'dist/**'],
     setupFiles: ['./tests/setup.ts'],
+    // Warm the mongodb-memory-server binary cache once before any fork
+    // starts so concurrent test files don't race on the lockfile.
+    globalSetup: ['./tests/globalSetup.ts'],
     testTimeout: 60000,
     hookTimeout: 120000,
     pool: 'forks'

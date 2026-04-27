@@ -22,6 +22,52 @@ export function createApp(): Express {
   app.set('trust proxy', 1)
 
   app.use(helmetMiddleware())
+
+  // Static assets for streaming audio and serving uploads.
+  //
+  // These routes are mounted BEFORE the API CORS gate on purpose. They
+  // serve public, unauthenticated read-only assets that need permissive
+  // CORS so:
+  //   - the AdminUI iPhone preview & the in-app reader can use the badge
+  //     image as a CSS `mask-image` (which the browser treats as a canvas
+  //     pixel read and therefore requires CORS, unlike a plain `<img>`).
+  //   - audio playback can range-request the OGG files from any origin
+  //     hosting the player.
+  // No cookies / auth flow uses these paths, so `*` is safe and works with
+  // the `<audio>` / `<img>` / `<canvas>` "anonymous" credentials mode.
+  // Mounting after the strict API cors() would 500 the request for any
+  // origin not in CORS_ORIGIN before the static handler runs.
+  const audiobooksDir = path.resolve(env.AUDIOBOOKS_DIR)
+  const uploadsDir = path.resolve(env.UPLOADS_DIR)
+  if (!fs.existsSync(audiobooksDir)) fs.mkdirSync(audiobooksDir, { recursive: true })
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
+  const staticCors = (res: import('express').Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+  }
+  app.use(
+    '/audiobooks',
+    express.static(audiobooksDir, {
+      acceptRanges: true,
+      maxAge: '1h',
+      setHeaders: (res) => {
+        staticCors(res)
+        res.setHeader('Accept-Ranges', 'bytes')
+      }
+    })
+  )
+  app.use(
+    '/uploads',
+    express.static(uploadsDir, {
+      maxAge: '7d',
+      setHeaders: (res) => {
+        staticCors(res)
+      }
+    })
+  )
+
+  // Strict CORS for the JSON API only — credentialed requests must come
+  // from an allow-listed origin.
   app.use(
     cors({
       origin: (origin, cb) => {
@@ -37,23 +83,6 @@ export function createApp(): Express {
   app.use(express.urlencoded({ extended: true, limit: '1mb' }))
   app.use(mongoSanitize)
   app.use(requestLogger)
-
-  // Static assets for streaming audio and serving uploads.
-  const audiobooksDir = path.resolve(env.AUDIOBOOKS_DIR)
-  const uploadsDir = path.resolve(env.UPLOADS_DIR)
-  if (!fs.existsSync(audiobooksDir)) fs.mkdirSync(audiobooksDir, { recursive: true })
-  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true })
-  app.use(
-    '/audiobooks',
-    express.static(audiobooksDir, {
-      acceptRanges: true,
-      maxAge: '1h',
-      setHeaders: (res) => {
-        res.setHeader('Accept-Ranges', 'bytes')
-      }
-    })
-  )
-  app.use('/uploads', express.static(uploadsDir, { maxAge: '7d' }))
 
   // Health
   app.use(healthRouter)

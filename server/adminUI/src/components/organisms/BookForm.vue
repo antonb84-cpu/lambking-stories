@@ -101,7 +101,7 @@
 
         <div class="field col-12">
           <label class="field-label">
-            Etsy-Link ({{ activeLocale.toUpperCase() }})
+            Sales-Link ({{ activeLocale.toUpperCase() }})
             <span class="muted">Druckausgabe — andere Sprache wird automatisch befüllt, solange sie leer ist</span>
           </label>
           <XInput v-model="activeEtsyLink" placeholder="https://www.etsy.com/listing/…" />
@@ -208,6 +208,19 @@
       <div id="field-content" :class="activeLocale === 'de' ? fieldClass('field-content') : ''">
         <RichTextEditor v-model="draft.activeLocalization.content" />
       </div>
+
+      <div class="mt-6">
+        <header class="panel-header" style="padding: 0 0 8px">
+          <div>
+            <h3 class="panel-title" style="font-size: 16px">Das erwartet Dich · {{ activeLocale.toUpperCase() }}</h3>
+            <p class="panel-subtitle">
+              Kurze Hinweise zum Inhalt — Aufzählungen, fettgedruckte Highlights. Erscheint im Detail-Screen unter
+              „Selbst lesen".
+            </p>
+          </div>
+        </header>
+        <RichTextNotesEditor v-model="contentNotesValue" />
+      </div>
     </section>
 
     <!-- ATTACHMENTS PANEL -->
@@ -215,26 +228,13 @@
       <header class="panel-header">
         <div>
           <h2 class="panel-title">Anhänge</h2>
-          <p class="panel-subtitle">PDF-Dokumente, die das Buch begleiten.</p>
+          <p class="panel-subtitle">
+            Ausmal-Bilder &amp; PDF-Downloads. Jeder Anhang kann ein optionales Vorschau-Bild bekommen.
+          </p>
         </div>
       </header>
 
-      <div class="form-grid">
-        <div class="col-4">
-          <DropZone
-            label="PDF hinzufügen"
-            accept="application/pdf"
-            kind="pdf"
-            hint=".pdf · max 3 MB · shrink pls"
-            subhint="Mehrere Uploads möglich"
-            :auto-reset-ms="3000"
-            :on-file="uploadAttachment"
-          />
-        </div>
-        <div class="col-8">
-          <AttachmentsList :items="draft.book.attachments" @remove="removeAttachment" />
-        </div>
-      </div>
+      <AttachmentsEditor v-model="draft.book.attachments" />
     </section>
 
     <!-- SUBMIT BAR -->
@@ -262,7 +262,7 @@
         </template>
       </div>
       <div class="flex gap-4 px-3 py-1 items-center flex-shrink-0">
-        <XButton label="Zurücksetzen" @click="draft.reset" />
+        <XButton label="Zurücksetzen" @click="onResetClick" />
         <span
           class="inline-flex"
           :title="draft.isGermanComplete ? '' : `Fehlt noch: ${draft.missingFields.map((m) => m.label).join(', ')}`"
@@ -276,6 +276,16 @@
         </span>
       </div>
     </div>
+
+    <ConfirmDiscardModal
+      v-if="showResetConfirm"
+      title="Entwurf zurücksetzen?"
+      body="Du hast diesen Buch-Entwurf noch nicht gespeichert. Beim Zurücksetzen gehen die Änderungen verloren."
+      stay-label="Weiter bearbeiten"
+      discard-label="Zurücksetzen"
+      @stay="cancelReset"
+      @discard="confirmReset"
+    />
   </div>
 </template>
 
@@ -287,11 +297,13 @@ import SeriesPicker from '@/components/molecules/SeriesPicker.vue'
 import CategoryPicker from '@/components/molecules/CategoryPicker.vue'
 import DatePicker from '@/components/molecules/DatePicker.vue'
 import DropZone from '@/components/molecules/DropZone.vue'
-import AttachmentsList from '@/components/molecules/AttachmentsList.vue'
 import BadgeEditor from '@/components/molecules/BadgeEditor.vue'
 import XInput from '@/components/atoms/XInput.vue'
 import XButton from '@/components/atoms/XButton.vue'
 import RichTextEditor from './RichTextEditor.vue'
+import RichTextNotesEditor from './RichTextNotesEditor.vue'
+import AttachmentsEditor from './AttachmentsEditor.vue'
+import ConfirmDiscardModal from '@/components/molecules/ConfirmDiscardModal.vue'
 
 import { useBookDraftStore } from '@/stores/bookDraft'
 import { useSeriesStore } from '@/stores/series'
@@ -312,6 +324,27 @@ const toast = useToastStore()
 const { activeLocale } = storeToRefs(draft)
 const submitting = ref(false)
 const translating = ref(false)
+
+// Reset-confirm modal — only opens when the draft has uncommitted changes;
+// a clean draft resets immediately.
+const showResetConfirm = ref(false)
+
+function onResetClick() {
+  if (draft.isDirty) {
+    showResetConfirm.value = true
+    return
+  }
+  draft.reset()
+}
+
+function cancelReset() {
+  showResetConfirm.value = false
+}
+
+function confirmReset() {
+  showResetConfirm.value = false
+  draft.reset()
+}
 
 const prefix = computed(() => {
   const s = seriesStore.items.find((x) => x.seriesId === draft.book.bookSeriesId)
@@ -401,6 +434,15 @@ const achievementBadgePreview = computed(() => {
   return ab[activeLocale.value] || ab.de || ab.en || ''
 })
 
+const contentNotesValue = computed<string>({
+  get() {
+    return draft.activeLocalization.contentNotes ?? ''
+  },
+  set(value: string) {
+    draft.activeLocalization.contentNotes = value
+  }
+})
+
 const activeEtsyLink = computed<string>({
   get() {
     return draft.book.etsyLink?.[activeLocale.value] ?? ''
@@ -429,19 +471,6 @@ async function uploadAchievementBadge(file: File) {
   } catch (err) {
     throw new Error(explainApiError(err))
   }
-}
-
-async function uploadAttachment(file: File) {
-  try {
-    const res = await uploadsApi.attachment(file)
-    draft.book.attachments.push(res.url)
-  } catch (err) {
-    throw new Error(explainApiError(err))
-  }
-}
-
-function removeAttachment(i: number) {
-  draft.book.attachments.splice(i, 1)
 }
 
 async function onTranslateSwitch(from: 'de' | 'en', to: 'de' | 'en') {
@@ -557,6 +586,9 @@ async function submit() {
       : await booksApi.create(payload)
     toast.success(`Buch „${saved.localizations.de?.title}" gespeichert`)
     draft.isEditingExisting = true
+    // Successful save → the in-memory draft is now the canonical clean
+    // state, so further edits flip `isDirty` back on as expected.
+    draft.snapshotClean()
     emit('saved', saved)
   } catch (err) {
     if (err instanceof ApiClientError && err.details?.length) {

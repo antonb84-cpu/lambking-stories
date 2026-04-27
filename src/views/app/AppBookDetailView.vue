@@ -11,7 +11,10 @@ import AIconography from '@/components/atoms/AIconography.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
-import type { ApiBook, Locale } from '@/types/apiBook'
+import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
+import { markdownToHtml } from '@/utils/markdownToHtml'
+import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
+import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -24,7 +27,14 @@ const apiBooks = useApiBooks()
 const { getPct, isCompleted } = useReadingProgress()
 
 const bookId = computed(() => String(route.params.bookId))
-const book = ref<ApiBook | null>(null)
+// Derive `book` from the reactive store rather than a local ref so the
+// view picks up the post-refresh server payload as soon as
+// `refreshBookInBackground` writes it back into `state.byId` — without
+// this, the component clings to whatever was in IndexedDB when it
+// mounted (and misses fields like the new attachment shape).
+const book = computed<ApiBook | null>(
+  () => (apiBooks.state.byId[bookId.value] as ApiBook | undefined) ?? null
+)
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 const localization = computed(() => {
@@ -34,15 +44,22 @@ const localization = computed(() => {
 })
 const localizedTitle = computed(() => localization.value?.title || '')
 const localizedDescription = computed(() => localization.value?.description || '')
+const contentNotes = computed(() => localization.value?.contentNotes?.trim() || '')
+const contentNotesHtml = computed(() =>
+  contentNotes.value ? markdownToHtml(contentNotes.value) : ''
+)
 
 const series = computed(() => (book.value ? getSeriesOfBook(book.value.bookId) : undefined))
 const inWatchList = computed(() => (book.value ? isInWatchList(book.value.bookId) : false))
 
 async function fetchBook() {
-  book.value = await apiBooks.loadBook(bookId.value)
-  if (book.value) {
-    setLastRead(book.value.bookId)
-    const saved = getPlaybackState(book.value.bookId)
+  // `loadBook` populates `apiBooks.state.byId[bookId]`, which our `book`
+  // computed reacts to. We only need the return value for the one-shot
+  // side-effects below (last-read marker + playback resume).
+  const loaded = await apiBooks.loadBook(bookId.value)
+  if (loaded) {
+    setLastRead(loaded.bookId)
+    const saved = getPlaybackState(loaded.bookId)
     if (saved && typeof saved.time === 'number' && saved.time > 0) {
       pendingResumeTime = saved.time
     }
@@ -220,7 +237,7 @@ const activeNav = computed<string | number>(() => {
   const name = String(route.name || '')
   if (name === 'app-main') return 'home'
   if (name === 'app-all-books' || name === 'app-book' || name === 'app-book-series') return 'series'
-  if (name === 'app-awards') return 'brush'
+  if (name === 'app-awards' || name === 'app-coloring') return 'brush'
   if (name === 'app-profile') return 'profile'
   return 'home'
 })
@@ -229,7 +246,7 @@ function onNav(id: string | number) {
   if (id === 'home') router.push({ name: 'app-main' })
   if (id === 'series') router.push({ name: 'app-all-books' })
   if (id === 'profile') router.push({ name: 'app-profile' })
-  if (id === 'brush') router.push({ name: 'app-awards' })
+  if (id === 'brush') router.push({ name: 'app-coloring' })
 }
 
 function goBack() {
@@ -287,6 +304,97 @@ function onDownload() {
   a.click()
 }
 
+// ----- Attachments row -----
+// The row renders every attachment (coloring images + downloadable PDFs).
+// Tapping a tile opens a small menu anchored to the tile's bounding rect.
+// `useInColoring` is offered only for `type: 'coloring'`; `saveToPhone`
+// works for every attachment shape, per spec.
+// Defensive normalisation: a book that was IndexedDB-cached before the
+// attachment schema change still has `attachments: string[]`. The server
+// returns the new shape on the next background refresh, but the first
+// paint reads the stale cache — without this fallback the row would be
+// empty until the user navigates away and back.
+const attachments = computed<ApiBookAttachment[]>(() => {
+  const raw = book.value?.attachments
+  if (!Array.isArray(raw)) return []
+  const out: ApiBookAttachment[] = []
+  for (const a of raw as unknown[]) {
+    if (typeof a === 'string') {
+      if (a) out.push({ previewImage: '', data: a, type: 'download' })
+      continue
+    }
+    if (a && typeof a === 'object') {
+      const o = a as { previewImage?: unknown; data?: unknown; type?: unknown }
+      const previewImage = typeof o.previewImage === 'string' ? o.previewImage : ''
+      const data = typeof o.data === 'string' ? o.data : ''
+      const type: ApiBookAttachment['type'] = o.type === 'coloring' ? 'coloring' : 'download'
+      if (data || previewImage) out.push({ previewImage, data, type })
+    }
+  }
+  return out
+})
+
+const menuAnchor = ref<{ rect: DOMRect } | null>(null)
+const menuAttachment = ref<ApiBookAttachment | null>(null)
+
+function openAttachmentMenu(att: ApiBookAttachment, e: MouseEvent) {
+  const tile = (e.currentTarget as HTMLElement) ?? (e.target as HTMLElement)
+  if (!tile) return
+  menuAttachment.value = att
+  menuAnchor.value = { rect: tile.getBoundingClientRect() }
+}
+
+function closeAttachmentMenu() {
+  menuAnchor.value = null
+  menuAttachment.value = null
+}
+
+function attachmentDownloadName(att: ApiBookAttachment): string {
+  const url = att.data || ''
+  // Try the URL's basename; otherwise build a sensible default.
+  try {
+    const u = new URL(url, window.location.origin)
+    const last = u.pathname.split('/').filter(Boolean).pop()
+    if (last) return last
+  } catch {
+    // ignore — fall through to the manufactured name
+  }
+  const base = (localizedTitle.value || 'attachment').replace(/\s+/g, '-')
+  if (att.type === 'coloring') return `${base}.png`
+  return `${base}.pdf`
+}
+
+function saveAttachmentToPhone() {
+  const att = menuAttachment.value
+  if (!att?.data) {
+    closeAttachmentMenu()
+    return
+  }
+  const a = document.createElement('a')
+  a.href = att.data
+  a.download = attachmentDownloadName(att)
+  // Some browsers block the download attribute on cross-origin URLs and
+  // simply navigate; opening in a new tab is a graceful fallback.
+  a.target = '_blank'
+  a.rel = 'noopener'
+  a.click()
+  closeAttachmentMenu()
+}
+
+function useInColoringApp() {
+  const att = menuAttachment.value
+  if (!att?.data) {
+    closeAttachmentMenu()
+    return
+  }
+  const isPdf = att.type === 'coloring' && /\.pdf(?:\?.*)?$/i.test(att.data)
+  router.push({
+    name: 'app-coloring',
+    query: { source: att.data, type: isPdf ? 'pdf' : 'image' }
+  })
+  closeAttachmentMenu()
+}
+
 watch(currentTime, (v, prev) => {
   if (mode.value !== 'listen' || !isPlaying.value) return
   if (Math.floor(v / 3) !== Math.floor(prev / 3)) savePlayback()
@@ -342,14 +450,17 @@ watch(currentTime, (v, prev) => {
               AIconography(name="heart" :size="28")
 
         //- ===== Primary CTA =====
-        section(class="section-wrap mt-4")
+        //- Listen + download both depend on a saved audiobook file. When the
+        //- editor leaves audio empty in the AdminUI we promote "Read myself"
+        //- to the primary action and skip the audio-only controls.
+        section(v-if="audioSrc" class="section-wrap mt-4")
           AButton(type="primary" icon="volume" @click="onListen") {{ t('app.bookDetail.listen') }}
 
         //- ===== Secondary actions =====
-        section(class=" section-wrap mt-3")
-          div(class="grid grid-cols-2 gap-3")
-            AButton.self-read(type="secondary" icon="book" size="sm" @click="onRead") {{ t('app.bookDetail.readMyself') }}
-            AButton.download(type="secondary" icon="download" size="sm" @click="onDownload") {{ t('app.bookDetail.download') }}
+        section(class="section-wrap mt-3" :class="{ 'mt-4': !audioSrc }")
+          div(:class="audioSrc ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1'")
+            AButton.self-read(:type="audioSrc ? 'secondary' : 'primary'" icon="book" :size="audioSrc ? 'sm' : 'md'" @click="onRead") {{ t('app.bookDetail.readMyself') }}
+            AButton.download(v-if="audioSrc" type="secondary" icon="download" size="sm" @click="onDownload") {{ t('app.bookDetail.download') }}
 
           //- Reading progress (only once the user has actually started)
           div(
@@ -367,9 +478,40 @@ watch(currentTime, (v, prev) => {
                 :style="{ width: readingPctLabel }"
               )
 
+        //- ===== This awaits you =====
+        //- Admin-authored, locale-specific notes (markdown). Section is only
+        //- rendered when the editor actually filled it in.
+        section(
+          v-if="contentNotesHtml"
+          class="section-wrap mt-5"
+        )
+          h3(class="content-notes-title") {{ t('app.bookDetail.thisAwaitsYou') || 'Das erwartet Dich' }}
+          div(
+            class="content-notes prose-notes text-sm md:text-base"
+            v-html="contentNotesHtml"
+          )
+
         //- ===== Description =====
-        section(class="section-wrap mt-7 pb-6")
+        section(class="section-wrap mt-7")
           p(class="book-desc text-sm md:text-base") {{ localizedDescription }}
+
+        //- ===== Attachments row =====
+        //- Coloring images + downloadable PDFs the editor attached. Each
+        //- tile opens a tap-anchored menu with save / use-in-coloring /
+        //- close. Sits at the very bottom of the detail page; hidden
+        //- entirely when the book has no attachments.
+        section(
+          v-if="attachments.length"
+          class="section-wrap mt-6 pb-6"
+        )
+          h3(class="attachments-title") {{ t('app.bookDetail.attachmentsTitle') }}
+          div(class="attachments-row")
+            AttachmentTile(
+              v-for="(att, i) in attachments"
+              :key="`att-${i}`"
+              :attachment="att"
+              @select="(a, e) => openAttachmentMenu(a, e)"
+            )
 
       //- ===== Listen mode (audio player only — read-along is parked in
       //- ReadAlong.vue for later reuse) =====
@@ -396,6 +538,19 @@ watch(currentTime, (v, prev) => {
         :src="audioSrc"
         preload="auto"
         class="hidden"
+      )
+
+      //- ===== Attachment context menu =====
+      //- Sits OUTSIDE the v-if/v-else-if(mode) chain so it doesn't break the
+      //- conditional siblings the compiler expects. The menu itself is gated
+      //- on `menuAnchor` and Teleports to body anyway, so the placement here
+      //- is purely about template structure.
+      AttachmentContextMenu(
+        :anchor="menuAnchor"
+        :show-coloring-option="menuAttachment?.type === 'coloring'"
+        @close="closeAttachmentMenu"
+        @save-to-phone="saveAttachmentToPhone"
+        @use-in-coloring="useInColoringApp"
       )
 
     div(v-else class="section-wrap mt-10 text-center") {{ t('app.bookDetail.notFound') }}
@@ -451,6 +606,61 @@ watch(currentTime, (v, prev) => {
 .book-desc
   color: var(--color-text-primary)
   line-height: 1.5
+
+
+.attachments-title
+  font-size: 17px
+  font-weight: 900
+  color: var(--color-text-primary)
+  margin: 0 0 8px
+
+// ~30% per tile so up to three sit side-by-side; wraps on overflow. Tiles
+// are square and aspect-ratio constrained inside `AttachmentTile`.
+.attachments-row
+  display: flex
+  flex-wrap: wrap
+  gap: 12px
+
+.attachments-row > *
+  flex: 0 0 calc(33.3333% - 8px)
+  max-width: calc(33.3333% - 8px)
+
+
+.content-notes-title
+  font-size: 17px
+  font-weight: 900
+  color: var(--color-text-primary)
+  margin: 0 0 6px
+
+.content-notes
+  color: var(--color-text-primary)
+  line-height: 1.5
+
+.content-notes :deep(p)
+  margin: 0.45em 0 0
+
+.content-notes :deep(p:first-child)
+  margin-top: 0
+
+.content-notes :deep(strong)
+  font-weight: 800
+
+.content-notes :deep(em)
+  font-style: italic
+
+.content-notes :deep(ul),
+.content-notes :deep(ol)
+  margin: 0.45em 0
+  padding-left: 1.4em
+
+.content-notes :deep(ul)
+  list-style: disc
+
+.content-notes :deep(ol)
+  list-style: decimal
+
+.content-notes :deep(li)
+  margin: 0.2em 0
 
 .heart-btn
   background-color: var(--color-bg-active-pill)

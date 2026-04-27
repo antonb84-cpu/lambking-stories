@@ -63,7 +63,7 @@ const activeNav = computed<string | number>(() => {
   const name = String(route.name || '')
   if (name === 'app-main') return 'home'
   if (name === 'app-all-books' || name === 'app-book' || name === 'app-book-series') return 'series'
-  if (name === 'app-awards') return 'brush'
+  if (name === 'app-awards' || name === 'app-coloring') return 'brush'
   if (name === 'app-profile') return 'profile'
   return 'home'
 })
@@ -72,7 +72,7 @@ function onNav(id: string | number) {
   if (id === 'home') router.push({ name: 'app-main' })
   if (id === 'series') router.push({ name: 'app-all-books' })
   if (id === 'profile') router.push({ name: 'app-profile' })
-  if (id === 'brush') router.push({ name: 'app-awards' })
+  if (id === 'brush') router.push({ name: 'app-coloring' })
 }
 
 function openBook(bookId: string) {

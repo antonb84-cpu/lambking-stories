@@ -13,11 +13,13 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import ABookCard from '@/components/atoms/ABookCard.vue'
+import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
 import SwipeHintHand, { hasSeenSwipeHint } from '@/components/molecules/SwipeHintHand.vue'
 import useApiBooks from '@/use/useApiBooks'
 import useBookCache from '@/use/useBookCache'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiLocalizedPage, Locale } from '@/types/apiBook'
+import { markdownToHtml } from '@/utils/markdownToHtml'
 
 const route = useRoute()
 const router = useRouter()
@@ -139,39 +141,14 @@ function resolved(url: string): string {
   return blobUrlByOriginal.value[url] ?? url
 }
 
-// ----- Render markdown-light to safe HTML (matches IPhonePreview) -----
-// Only image markdown + line breaks are interpreted; everything else is
-// escaped. Images get swapped to their cached blob URL so the page renders
-// offline once cached.
-
-function escapeText(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n{2,}/g, '</p><p>')
-    .replace(/\n/g, '<br/>')
-}
-
-function escapeAttr(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
-}
+// ----- Render markdown to safe HTML (matches IPhonePreview) -----
+// Authoring is admin-only and the renderer escapes every literal `<`, `>`,
+// `&` before substituting markdown, so the result is safe for `v-html`.
+// Image URLs are routed through `resolved()` so cached https sources flip
+// to blob: URLs and the page renders instantly offline.
 
 function renderPageHtml(text: string): string {
-  const raw = text ?? ''
-  const IMG_RE = /!\[([^\]]*)\]\(([^)\s]+)\)/g
-  const parts: string[] = []
-  let last = 0
-  for (const m of raw.matchAll(IMG_RE)) {
-    const idx = m.index ?? 0
-    if (idx > last) parts.push(escapeText(raw.slice(last, idx)))
-    const alt = escapeAttr(m[1] ?? '')
-    const src = escapeAttr(resolved(m[2] ?? ''))
-    parts.push(`<img class="page-img" src="${src}" alt="${alt}" />`)
-    last = idx + m[0].length
-  }
-  if (last < raw.length) parts.push(escapeText(raw.slice(last)))
-  return `<p>${parts.join('')}</p>`
+  return markdownToHtml(text ?? '', { resolveSrc: resolved, imgClass: 'page-img' })
 }
 
 // ----- Page navigation + swipe -----
@@ -668,23 +645,18 @@ function goBack() {
               class="page-frame celebration-frame"
             )
               div(class="celebration-inner")
-                img(
+                AchievementBadge(
                   v-if="achievementBadge"
                   :src="resolved(achievementBadge)"
-                  alt=""
-                  class="celebration-badge"
-                  draggable="false"
-                  @dragstart.prevent
                 )
                 div(v-else class="celebration-burst" aria-hidden="true") 🎉
-                h1(class="celebration-title") {{ t('app.reader.congratsTitle') }}
-                p(class="celebration-sub") {{ t('app.reader.congratsSub') }}
+                h3(class="celebration-title") {{ t('app.reader.congratsTitle') }}
 
                 div(
                   v-if="nextBook"
                   class="next-volume"
                 )
-                  p(class="next-label") {{ t('app.reader.nextStoryWaiting') }}
+                  div(class="next-label") {{ t('app.reader.nextStoryWaiting') }}
                   ABookCard(
                     :title="nextBook.localizations?.[lang]?.title || nextBook.localizations?.de?.title || ''"
                     :subtitle="nextBook.author"
@@ -854,6 +826,45 @@ function goBack() {
 .page-body :deep(p:last-child)
   margin-bottom: 0
 
+
+.page-body :deep(strong)
+  font-weight: 800
+  color: #111
+
+.page-body :deep(em)
+  font-style: italic
+
+.page-body :deep(h1),
+.page-body :deep(h2),
+.page-body :deep(h3)
+  font-weight: 900
+  color: #1a1a1a
+  line-height: 1.2
+  margin: 0.4em 0 0.2em
+
+.page-body :deep(h1)
+  font-size: 1.4em
+
+.page-body :deep(h2)
+  font-size: 1.2em
+
+.page-body :deep(h3)
+  font-size: 1.05em
+
+.page-body :deep(ul),
+.page-body :deep(ol)
+  margin: 0.4em 0 0.55em
+  padding-left: 1.5em
+
+.page-body :deep(ul)
+  list-style: disc
+
+.page-body :deep(ol)
+  list-style: decimal
+
+.page-body :deep(li)
+  margin: 0.2em 0
+
 .page-body :deep(img),
 .page-body :deep(.page-img)
   display: block
@@ -873,7 +884,14 @@ function goBack() {
   display: flex
   align-items: center
   justify-content: center
-  padding: 90px 22px 100px
+  // p-5 on mobile, p-6 on tablets+ — only the vertical axis was oversized
+  // (90px / 100px). Side gutters stay at 22px so the badge + next-volume
+  // card keep their breathing room.
+  padding: 1.25rem 22px
+
+@media (min-width: 768px)
+  .celebration-frame
+    padding: 1.5rem 22px
 
 .celebration-inner
   width: 100%
@@ -890,15 +908,8 @@ function goBack() {
   filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35))
 
 
-.celebration-badge
-  width: 100%
-  max-width: 100%
-  aspect-ratio: 1 / 1
-  object-fit: contain
-  display: block
-  filter: drop-shadow(0 10px 22px rgba(255, 150, 60, 0.35))
-  user-select: none
-  -webkit-user-drag: none
+// Achievement badge presentation lives in `AchievementBadge.vue` — keeping
+// only the celebration-page emoji-fallback styles here.
 
 .celebration-title
   font-size: 32px

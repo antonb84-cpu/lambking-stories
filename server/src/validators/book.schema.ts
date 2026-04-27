@@ -19,6 +19,11 @@ const localizationSchema = z.object({
     .trim()
     .min(1, 'description must not be empty')
     .max(8000, 'description must be at most 8000 characters'),
+  contentNotes: z
+    .string()
+    .max(4000, 'contentNotes must be at most 4000 characters')
+    .optional()
+    .default(''),
   content: z.array(pageSchema).min(1, 'content must contain at least one page')
 })
 
@@ -26,6 +31,31 @@ const audioSchema = z.object({
   de: z.string().optional().default(''),
   en: z.string().optional().default('')
 })
+
+// Attachments can come in three shapes:
+//   - the new object form `{ previewImage?, data?, type }`
+//   - a legacy plain URL string (older books still in the DB)
+// The transform normalises everything to the new shape so the rest of the
+// stack only ever sees objects.
+const attachmentSchema = z
+  .union([
+    z
+      .object({
+        previewImage: z.string().optional().default(''),
+        data: z.string().optional().default(''),
+        type: z.enum(['coloring', 'download']).default('download')
+      })
+      .passthrough(),
+    z.string()
+  ])
+  .transform((v) => {
+    if (typeof v === 'string') return { previewImage: '', data: v, type: 'download' as const }
+    return {
+      previewImage: v.previewImage ?? '',
+      data: v.data ?? '',
+      type: v.type === 'coloring' ? ('coloring' as const) : ('download' as const)
+    }
+  })
 
 export const createBookSchema = z.object({
   body: z
@@ -48,7 +78,7 @@ export const createBookSchema = z.object({
       achievementBadge: audioSchema.default({ de: '', en: '' }),
       etsyLink: audioSchema.default({ de: '', en: '' }),
       audio: audioSchema.default({ de: '', en: '' }),
-      attachments: z.array(z.string()).default([]),
+      attachments: z.array(attachmentSchema).default([]),
       localizations: z.object({
         de: localizationSchema,
         en: localizationSchema.optional()
