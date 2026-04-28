@@ -6,4 +6,4 @@
 | 20.04.26 | 14h   | adminUI and server, render.com hosting                                      |
 | 21.04.26 | 8h    | logging, adminUI UX, db backup, book reader                                 |
 | 27.04.26 | 8h    | AdminUI attachments, coloring app, sales link, editor fixes, content editor |
-| 28.04.26 | 2h    | coloring app, attachment loading.                                           |
+| 28.04.26 | 8h    | coloring app, attachment loading.                                           |

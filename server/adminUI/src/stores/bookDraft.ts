@@ -15,6 +15,8 @@ function emptyBook(): BookDTO {
     bookSeriesId: '',
     releaseDate: new Date().toISOString().slice(0, 10),
     badges: [],
+    websiteTags: [],
+    websitePrice: '',
     cover: '',
     coverImage: '',
     previewImage: '',
@@ -93,6 +95,8 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
   const load = (b: BookDTO) => {
     const cloned = JSON.parse(JSON.stringify(b)) as BookDTO
     if (!cloned.localizations.de) cloned.localizations.de = emptyLocalization()
+    if (!Array.isArray(cloned.websiteTags)) cloned.websiteTags = []
+    if (typeof cloned.websitePrice !== 'string') cloned.websitePrice = ''
     // Defensive: legacy books still on disk store attachments as plain
     // string URLs. Normalise on load so the editor only sees the new shape.
     if (Array.isArray(cloned.attachments)) {

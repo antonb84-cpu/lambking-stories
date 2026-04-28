@@ -349,6 +349,49 @@ importers:
         specifier: ^3.2.5
         version: 3.2.5(typescript@5.9.3)
 
+  website:
+    dependencies:
+      vue:
+        specifier: ^3.5.29
+        version: 3.5.30(typescript@5.9.3)
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.2.1
+        version: 4.2.1(vite@7.3.1(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.98.0)(tsx@4.21.0)(yaml@2.8.2))
+      '@tsconfig/node24':
+        specifier: ^24.0.4
+        version: 24.0.4
+      '@types/node':
+        specifier: ^24.11.0
+        version: 24.12.0
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.4
+        version: 6.0.5(vite@7.3.1(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.98.0)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.30(typescript@5.9.3))
+      '@vue/language-plugin-pug':
+        specifier: ^3.2.5
+        version: 3.2.5
+      '@vue/tsconfig':
+        specifier: ^0.8.1
+        version: 0.8.1(typescript@5.9.3)(vue@3.5.30(typescript@5.9.3))
+      pug:
+        specifier: ^3.0.3
+        version: 3.0.3
+      sass:
+        specifier: ^1.97.3
+        version: 1.98.0
+      tailwindcss:
+        specifier: ^4.2.1
+        version: 4.2.1
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(@types/node@24.12.0)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.98.0)(tsx@4.21.0)(yaml@2.8.2)
+      vue-tsc:
+        specifier: ^3.2.5
+        version: 3.2.5(typescript@5.9.3)
+
 packages:
 
   7zip-bin@5.2.0:

@@ -50,6 +50,8 @@ export interface BookDTO {
   releaseDate: string
   updatedDate?: string
   badges: string[]
+  websiteTags: string[]
+  websitePrice: string
   cover?: string
   coverImage: string
   previewImage: string

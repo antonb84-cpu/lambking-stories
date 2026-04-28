@@ -34,7 +34,16 @@
       "Bash(awk \"/^  [a-zA-Z@][^:]*:$/{header=\\\\$0} /\\\\\"'?@exodus\\\\\\\\/bytes'?:/{print header; print \\\\$0}\" /c/Users/konst/kanaan-stories/pnpm-lock.yaml)",
       "Bash(awk '/^  [a-zA-Z@][^:]*:$/{header=$0} /@exodus\\\\/bytes/{print header; print $0}' /c/Users/konst/kanaan-stories/pnpm-lock.yaml)",
       "Bash(pnpm why *)",
-      "Bash(VITE_ENABLE_OBFUSCATION=false pnpm run build-only)"
+      "Bash(VITE_ENABLE_OBFUSCATION=false pnpm run build-only)",
+      "Bash(curl -s \"https://lbs-be.onrender.com/api/books\")",
+      "Bash(curl -s http://localhost:2099/)",
+      "Bash(curl -s -o /dev/null -w \"Status: %{http_code}\\\\n\" http://localhost:2099/src/main.ts)",
+      "Bash(curl -s -o /dev/null -w \"books proxy: %{http_code} \\(%{size_download} bytes\\)\\\\n\" \"http://localhost:2099/api/books\")",
+      "Bash(curl -s -o /dev/null -w \"favicon: %{http_code}\\\\n\" \"http://localhost:2099/favicon.svg\")",
+      "Bash(curl -s \"http://localhost:2099/api/books\")",
+      "Bash(curl -s -o /dev/null -w \"  %{http_code} \\(%{size_download} bytes, %{time_total}s\\)\\\\n\" \"http://localhost:2099/api/books\")",
+      "Bash(curl *)",
+      "Bash(awk NR>=64 && NR<=68 {printf \"L%d \\(%d bytes\\): \", NR, length\\($0\\); print} *)"
     ]
   },
   "defaultMode": "auto",

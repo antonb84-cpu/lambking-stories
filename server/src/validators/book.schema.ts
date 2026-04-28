@@ -71,6 +71,8 @@ export const createBookSchema = z.object({
         .datetime({ message: 'releaseDate must be an ISO 8601 datetime string' })
         .or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'releaseDate must be YYYY-MM-DD or ISO datetime')),
       badges: z.array(z.string()).default([]),
+      websiteTags: z.array(z.string()).default([]),
+      websitePrice: z.string().max(120).default(''),
       cover: z.string().optional(),
       coverImage: z.string().min(1, 'coverImage is required'),
       previewImage: z.string().min(1, 'previewImage is required'),

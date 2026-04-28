@@ -22,7 +22,12 @@ const schema = z.object({
   CORS_ORIGIN: z
     .string()
     .default('http://localhost:5173')
-    .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
+    // Trailing slashes get stripped because the browser's Origin header is
+    // bare (`https://example.com`, no `/`) — keeping a `/` in the env value
+    // would silently fail the exact-match check in the CORS middleware.
+    .transform((v) =>
+      v.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean)
+    ),
 
   AUDIOBOOKS_DIR: z.string().default('./audiobooks'),
   UPLOADS_DIR: z.string().default('./uploads'),

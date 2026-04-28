@@ -56,6 +56,16 @@
           <label class="field-label">Badges</label>
           <BadgeEditor v-model="draft.book.badges" />
         </div>
+
+        <div class="field col-12">
+          <label class="field-label">Website-Tags</label>
+          <BadgeEditor v-model="draft.book.websiteTags" />
+        </div>
+
+        <div class="field col-12">
+          <label class="field-label">Website-Preis</label>
+          <XInput v-model="draft.book.websitePrice" placeholder="inkl. MwSt. & Versand" />
+        </div>
       </div>
     </section>
 

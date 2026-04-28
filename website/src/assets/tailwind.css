@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@theme {
+    --color-cream: #faf4ea;
+    --color-cream-dark: #f3ecdc;
+    --color-paper: #ffffff;
+    --color-ink: #1a1f3a;
+    --color-ink-soft: #5c6077;
+    --color-ink-ghost: #9ea2b5;
+    --color-line: #e8e3d6;
+    --color-line-strong: #d6cfb8;
+    --color-navy: #2d3561;
+    --color-navy-deep: #1e2447;
+    --color-coral: #e8735a;
+    --color-coral-dark: #c85a44;
+    --color-coral-soft: #f5d5cb;
+    --color-gold: #d4a24c;
+    --color-gold-soft: #f3e4c3;
+    --color-sage: #7a9a6e;
+    --color-sage-soft: #d4e0cf;
+    --color-plum: #6b4e8a;
+    --color-series-fruchtagenten: #c4573e;
+    --color-series-petrus: #3e6ba8;
+    --color-series-geschichte: #b8862f;
+    --color-series-obstsalat: #8a4b6e;
+
+    --font-serif: 'Fraunces', serif;
+    --font-sans: 'DM Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Aliases so existing class-name based design code can keep using
+   `var(--ink)` etc. — Tailwind v4 generates `--color-*`; we mirror the
+   shorter names for the ported design partial below. */
+:root {
+    --cream: var(--color-cream);
+    --cream-dark: var(--color-cream-dark);
+    --paper: var(--color-paper);
+    --ink: var(--color-ink);
+    --ink-soft: var(--color-ink-soft);
+    --ink-ghost: var(--color-ink-ghost);
+    --line: var(--color-line);
+    --line-strong: var(--color-line-strong);
+    --navy: var(--color-navy);
+    --navy-deep: var(--color-navy-deep);
+    --coral: var(--color-coral);
+    --coral-dark: var(--color-coral-dark);
+    --coral-soft: var(--color-coral-soft);
+    --gold: var(--color-gold);
+    --gold-soft: var(--color-gold-soft);
+    --sage: var(--color-sage);
+    --sage-soft: var(--color-sage-soft);
+    --plum: var(--color-plum);
+    --s-fruchtagenten: var(--color-series-fruchtagenten);
+    --s-petrus: var(--color-series-petrus);
+    --s-geschichte: var(--color-series-geschichte);
+    --s-obstsalat: var(--color-series-obstsalat);
+}

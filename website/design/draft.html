@@ -1,0 +1,3128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>SenfkornGeschichten · Christliche Kinderbücher &amp; App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+        content="Christliche Abenteuer-Geschichten für Kinder von 6 bis 12 — als gedrucktes Buch und als App. Biblisch fundiert, altersgerecht, werbefrei.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+    rel="stylesheet">
+
+  <!--
+    ════════════════════════════════════════════════════════════════════
+    SENFKORNGESCHICHTEN · WEBSEITEN-ENTWURF
+    ════════════════════════════════════════════════════════════════════
+
+    Briefing für den Programmierer:
+    Diese Datei ist ein Design-Entwurf — HTML/CSS fertig gestaltet,
+    Inhalte an den markierten Stellen austauschen.
+
+    PLATZHALTER-MARKIERUNGEN:
+      [TEXT]      → Platzhalter-Text, ersetzen
+      href="#"    → Echte URL einsetzen
+      SHOPIFY_URL → Shopify-Produkt-URL für dieses Buch
+      BOOK_COVER  → Echtes Cover-Bild einsetzen
+      APP_STORE   → App-Store-URL (sobald App live)
+      PLAY_STORE  → Google-Play-URL (sobald App live)
+
+    WICHTIGE FEATURES:
+      • Alle Buch-Buttons öffnen Shopify im neuen Tab (target="_blank")
+      • Newsletter-Form muss an Brevo/Mailchimp angebunden werden
+      • FAQ nutzt native <details>-Elemente (kein JS nötig)
+      • DSGVO-Cookie-Banner + rechtliche Seiten fehlen noch
+    ════════════════════════════════════════════════════════════════════
+  -->
+
+  <style>
+      :root {
+          --cream: #FAF4EA;
+          --cream-dark: #F3ECDC;
+          --paper: #FFFFFF;
+          --ink: #1A1F3A;
+          --ink-soft: #5C6077;
+          --ink-ghost: #9EA2B5;
+          --line: #E8E3D6;
+          --line-strong: #D6CFB8;
+          --navy: #2D3561;
+          --navy-deep: #1E2447;
+          --coral: #E8735A;
+          --coral-dark: #C85A44;
+          --coral-soft: #F5D5CB;
+          --gold: #D4A24C;
+          --gold-soft: #F3E4C3;
+          --sage: #7A9A6E;
+          --sage-soft: #D4E0CF;
+          --plum: #6B4E8A;
+          --s-fruchtagenten: #C4573E;
+          --s-petrus: #3E6BA8;
+          --s-geschichte: #B8862F;
+          --s-obstsalat: #8A4B6E;
+      }
+
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+
+      html {
+          scroll-behavior: smooth;
+      }
+
+      body {
+          background: var(--cream);
+          color: var(--ink);
+          font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+          font-size: 16px;
+          line-height: 1.6;
+          -webkit-font-smoothing: antialiased;
+          overflow-x: hidden;
+      }
+
+      a {
+          color: inherit;
+          text-decoration: none;
+      }
+
+      img {
+          max-width: 100%;
+          display: block;
+      }
+
+      .wrap {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 28px;
+      }
+
+      /* ═══════════ NAV ═══════════ */
+      .nav {
+          position: sticky;
+          top: 0;
+          z-index: 100;
+          background: rgba(250, 244, 234, 0.88);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-bottom: 1px solid var(--line);
+      }
+
+      .nav-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 28px;
+          max-width: 1200px;
+          margin: 0 auto;
+      }
+
+      .logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+      }
+
+      .logo-mark {
+          width: 36px;
+          height: 36px;
+          background: var(--navy);
+          border-radius: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--gold);
+      }
+
+      .logo-mark svg {
+          width: 22px;
+          height: 22px;
+      }
+
+      .logo-text {
+          font-family: 'Fraunces', serif;
+          font-size: 19px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+      }
+
+      .nav-links {
+          display: flex;
+          gap: 28px;
+          align-items: center;
+      }
+
+      .nav-link {
+          font-size: 14px;
+          color: var(--ink-soft);
+          font-weight: 500;
+          transition: color 0.15s;
+      }
+
+      .nav-link:hover {
+          color: var(--ink);
+      }
+
+      .nav-cta {
+          background: var(--ink);
+          color: var(--cream);
+          padding: 9px 18px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 600;
+          transition: background 0.15s;
+      }
+
+      .nav-cta:hover {
+          background: var(--navy-deep);
+      }
+
+      @media (max-width: 820px) {
+          .nav-links .nav-link {
+              display: none;
+          }
+      }
+
+      /* ═══════════ HERO ═══════════ */
+      .hero {
+          position: relative;
+          padding: 72px 0 88px;
+          overflow: hidden;
+      }
+
+      .hero::before {
+          content: '';
+          position: absolute;
+          top: -100px;
+          right: -200px;
+          width: 600px;
+          height: 600px;
+          border-radius: 50%;
+          background: radial-gradient(circle, var(--gold-soft) 0%, transparent 70%);
+          opacity: 0.4;
+          pointer-events: none;
+      }
+
+      .hero::after {
+          content: '';
+          position: absolute;
+          bottom: -150px;
+          left: -180px;
+          width: 500px;
+          height: 500px;
+          border-radius: 50%;
+          background: radial-gradient(circle, var(--coral-soft) 0%, transparent 70%);
+          opacity: 0.3;
+          pointer-events: none;
+      }
+
+      .hero-inner {
+          position: relative;
+          z-index: 1;
+          text-align: center;
+          max-width: 860px;
+          margin: 0 auto;
+      }
+
+      .eyebrow {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 14px;
+          background: var(--paper);
+          border: 1px solid var(--line);
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--coral-dark);
+          letter-spacing: 0.02em;
+          margin-bottom: 28px;
+      }
+
+      .eyebrow-dot {
+          width: 6px;
+          height: 6px;
+          background: var(--coral);
+          border-radius: 50%;
+      }
+
+      .hero-title {
+          font-family: 'Fraunces', serif;
+          font-size: 72px;
+          line-height: 1.02;
+          font-weight: 500;
+          letter-spacing: -0.03em;
+          color: var(--ink);
+          margin-bottom: 28px;
+      }
+
+      .hero-title em {
+          font-style: italic;
+          color: var(--coral);
+      }
+
+      .hero-lead {
+          font-size: 19px;
+          line-height: 1.55;
+          color: var(--ink-soft);
+          margin-bottom: 40px;
+          max-width: 640px;
+          margin-left: auto;
+          margin-right: auto;
+      }
+
+      .hero-ctas {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-bottom: 32px;
+      }
+
+      .btn-primary {
+          background: var(--ink);
+          color: var(--cream);
+          padding: 14px 28px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 600;
+          transition: background 0.15s, transform 0.15s;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: inherit;
+      }
+
+      .btn-primary:hover {
+          background: var(--navy-deep);
+          transform: translateY(-1px);
+      }
+
+      .btn-primary svg {
+          width: 14px;
+          height: 14px;
+      }
+
+      .btn-secondary {
+          background: var(--paper);
+          color: var(--ink);
+          padding: 14px 28px;
+          border-radius: 999px;
+          font-size: 15px;
+          font-weight: 600;
+          transition: all 0.15s;
+          border: 1px solid var(--line-strong);
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          font-family: inherit;
+      }
+
+      .btn-secondary:hover {
+          background: var(--cream-dark);
+          transform: translateY(-1px);
+      }
+
+      .hero-meta {
+          display: flex;
+          gap: 28px;
+          flex-wrap: wrap;
+          justify-content: center;
+          font-size: 13px;
+          color: var(--ink-soft);
+          font-weight: 500;
+      }
+
+      .hero-meta-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+      }
+
+      .hero-meta-item svg {
+          width: 14px;
+          height: 14px;
+          stroke: var(--sage);
+          fill: none;
+          stroke-width: 2;
+      }
+
+      /* Visual row — Hero-Bilder/Bücher */
+      .hero-books {
+          display: flex;
+          justify-content: center;
+          gap: 14px;
+          margin-top: 64px;
+          flex-wrap: wrap;
+      }
+
+      .hero-book {
+          width: 120px;
+          aspect-ratio: 3 / 4;
+          border-radius: 6px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 2px 6px rgba(26, 31, 58, 0.1),
+          0 12px 32px rgba(26, 31, 58, 0.15);
+          transition: transform 0.3s;
+      }
+
+      .hero-book:hover {
+          transform: translateY(-6px);
+      }
+
+      .hero-book:nth-child(1) {
+          transform: rotate(-6deg);
+      }
+
+      .hero-book:nth-child(1):hover {
+          transform: rotate(-6deg) translateY(-6px);
+      }
+
+      .hero-book:nth-child(2) {
+          transform: rotate(-2deg) translateY(8px);
+      }
+
+      .hero-book:nth-child(2):hover {
+          transform: rotate(-2deg) translateY(2px);
+      }
+
+      .hero-book:nth-child(3) {
+          transform: rotate(2deg);
+      }
+
+      .hero-book:nth-child(3):hover {
+          transform: rotate(2deg) translateY(-6px);
+      }
+
+      .hero-book:nth-child(4) {
+          transform: rotate(6deg) translateY(12px);
+      }
+
+      .hero-book:nth-child(4):hover {
+          transform: rotate(6deg) translateY(6px);
+      }
+
+      @media (max-width: 760px) {
+          .hero {
+              padding: 48px 0 64px;
+          }
+
+          .hero-title {
+              font-size: 46px;
+          }
+
+          .hero-lead {
+              font-size: 17px;
+          }
+
+          .hero-book {
+              width: 95px;
+          }
+      }
+
+      /* ═══════════ BOOK COVER COMPONENT ═══════════ */
+      .book-cover {
+          width: 100%;
+          height: 100%;
+          padding: 14px 14px 18px 18px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          color: #fff;
+          position: relative;
+          overflow: hidden;
+          border-left: 3px solid rgba(0, 0, 0, 0.2);
+      }
+
+      .book-cover::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at 85% 12%, rgba(255, 255, 255, 0.22), transparent 60%);
+          pointer-events: none;
+      }
+
+      .book-cover.c-fruchtagenten {
+          background: linear-gradient(145deg, var(--s-fruchtagenten), #8E3A28);
+      }
+
+      .book-cover.c-petrus {
+          background: linear-gradient(145deg, var(--s-petrus), #264872);
+      }
+
+      .book-cover.c-geschichte {
+          background: linear-gradient(145deg, var(--s-geschichte), #8A631E);
+      }
+
+      .book-cover.c-obstsalat {
+          background: linear-gradient(145deg, var(--s-obstsalat), #5E3149);
+      }
+
+      .book-cover.c-navy {
+          background: linear-gradient(145deg, var(--navy), var(--navy-deep));
+      }
+
+      .bc-top {
+          position: relative;
+          z-index: 1;
+      }
+
+      .bc-series {
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          opacity: 0.8;
+      }
+
+      .bc-number {
+          font-family: 'Fraunces', serif;
+          font-size: 42px;
+          font-style: italic;
+          font-weight: 500;
+          line-height: 1;
+          margin-top: 6px;
+          position: relative;
+          z-index: 1;
+      }
+
+      .bc-title {
+          font-family: 'Fraunces', serif;
+          font-size: 17px;
+          font-weight: 500;
+          line-height: 1.1;
+          letter-spacing: -0.01em;
+          position: relative;
+          z-index: 1;
+          margin-bottom: 10px;
+      }
+
+      .bc-author {
+          font-size: 10px;
+          opacity: 0.7;
+          font-weight: 500;
+          position: relative;
+          z-index: 1;
+      }
+
+      /* Kleinere Cover-Variante für Listen/Hero */
+      .book-cover.small {
+          padding: 8px 8px 10px 10px;
+      }
+
+      .book-cover.small .bc-series {
+          font-size: 7px;
+      }
+
+      .book-cover.small .bc-number {
+          font-size: 26px;
+          margin-top: 3px;
+      }
+
+      .book-cover.small .bc-title {
+          font-size: 10px;
+          margin-bottom: 5px;
+      }
+
+      .book-cover.small .bc-author {
+          font-size: 7px;
+      }
+
+      /* ═══════════ SECTIONS ═══════════ */
+      .section {
+          padding: 96px 0;
+          position: relative;
+      }
+
+      .section-head {
+          max-width: 720px;
+          margin-bottom: 56px;
+      }
+
+      .section-head.centered {
+          margin-left: auto;
+          margin-right: auto;
+          text-align: center;
+      }
+
+      .section-eyebrow {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--coral);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+      }
+
+      .section-head.centered .section-eyebrow {
+          justify-content: center;
+      }
+
+      .section-eyebrow::before {
+          content: '';
+          width: 24px;
+          height: 1.5px;
+          background: var(--coral);
+          display: inline-block;
+      }
+
+      .section-head.centered .section-eyebrow::after {
+          content: '';
+          width: 24px;
+          height: 1.5px;
+          background: var(--coral);
+          display: inline-block;
+      }
+
+      .section-title {
+          font-family: 'Fraunces', serif;
+          font-size: 48px;
+          line-height: 1.05;
+          font-weight: 500;
+          letter-spacing: -0.025em;
+          margin-bottom: 20px;
+      }
+
+      .section-title em {
+          font-style: italic;
+          color: var(--coral);
+      }
+
+      .section-lead {
+          font-size: 18px;
+          line-height: 1.6;
+          color: var(--ink-soft);
+      }
+
+      @media (max-width: 760px) {
+          .section {
+              padding: 64px 0;
+          }
+
+          .section-title {
+              font-size: 34px;
+          }
+
+          .section-lead {
+              font-size: 16px;
+          }
+
+          .section-head {
+              margin-bottom: 40px;
+          }
+      }
+
+      /* ═══════════ BÜCHER (Hauptverkaufs-Sektion) ═══════════ */
+      .books-section {
+          background: var(--paper);
+          border-top: 1px solid var(--line);
+          border-bottom: 1px solid var(--line);
+      }
+
+      .books-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 24px;
+      }
+
+      @media (max-width: 960px) {
+          .books-grid {
+              grid-template-columns: repeat(2, 1fr);
+          }
+      }
+
+      @media (max-width: 600px) {
+          .books-grid {
+              grid-template-columns: 1fr;
+              max-width: 360px;
+              margin: 0 auto;
+          }
+      }
+
+      .book-card {
+          background: var(--cream);
+          border: 1px solid var(--line);
+          border-radius: 20px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .book-card:hover {
+          transform: translateY(-3px);
+          border-color: var(--line-strong);
+          box-shadow: 0 12px 32px rgba(26, 31, 58, 0.06);
+      }
+
+      .book-card.coming-soon {
+          background: transparent;
+          border-style: dashed;
+          opacity: 0.85;
+      }
+
+      .book-image-wrap {
+          aspect-ratio: 5 / 4;
+          background: var(--cream-dark);
+          padding: 32px 24px 0;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+      }
+
+      .book-image-wrap::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at center bottom, rgba(0, 0, 0, 0.08), transparent 70%);
+          pointer-events: none;
+      }
+
+      .book-image {
+          width: 55%;
+          aspect-ratio: 3 / 4;
+          border-radius: 4px;
+          box-shadow: 0 3px 8px rgba(26, 31, 58, 0.15),
+          0 15px 40px rgba(26, 31, 58, 0.12);
+          position: relative;
+          z-index: 1;
+          transform: rotate(-2deg);
+      }
+
+      .book-card:nth-child(even) .book-image {
+          transform: rotate(2deg);
+      }
+
+      .book-card:nth-child(3n) .book-image {
+          transform: rotate(-3deg);
+      }
+
+      /* Fixes the book cover rendering in the wrapper */
+      .book-image .book-cover {
+          border-radius: 4px;
+      }
+
+      .book-status-flag {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: var(--sage);
+          color: #fff;
+          padding: 5px 11px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          z-index: 2;
+      }
+
+      .book-status-flag.soon {
+          background: var(--gold);
+          color: var(--navy-deep);
+      }
+
+      .book-content {
+          padding: 24px 24px 28px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+      }
+
+      .book-series-tag {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--coral);
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 6px;
+      }
+
+      .book-series-tag.s-petrus {
+          color: var(--s-petrus);
+      }
+
+      .book-series-tag.s-geschichte {
+          color: var(--s-geschichte);
+      }
+
+      .book-series-tag.s-obstsalat {
+          color: var(--s-obstsalat);
+      }
+
+      .book-title {
+          font-family: 'Fraunces', serif;
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: -0.015em;
+          line-height: 1.15;
+          margin-bottom: 10px;
+      }
+
+      .book-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px 10px;
+          font-size: 12px;
+          color: var(--ink-soft);
+          margin-bottom: 14px;
+      }
+
+      .book-meta-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+      }
+
+      .book-meta-item svg {
+          width: 11px;
+          height: 11px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 1.8;
+      }
+
+      .book-desc {
+          font-size: 14.5px;
+          line-height: 1.55;
+          color: var(--ink-soft);
+          margin-bottom: 20px;
+          flex: 1;
+      }
+
+      .book-bottom {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding-top: 18px;
+          border-top: 1px solid var(--line);
+      }
+
+      .book-price {
+          font-family: 'Fraunces', serif;
+          font-size: 22px;
+          font-weight: 500;
+          color: var(--ink);
+          line-height: 1;
+      }
+
+      .book-price small {
+          font-family: 'DM Sans', sans-serif;
+          font-size: 11px;
+          color: var(--ink-soft);
+          font-weight: 500;
+          display: block;
+          margin-top: 3px;
+      }
+
+      .book-buy {
+          background: var(--ink);
+          color: var(--cream);
+          padding: 11px 18px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 600;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: background 0.15s;
+      }
+
+      .book-buy:hover {
+          background: var(--navy-deep);
+      }
+
+      .book-buy svg {
+          width: 11px;
+          height: 11px;
+      }
+
+      .book-also {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: var(--gold-soft);
+          color: #7A5F1F;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 600;
+          margin-top: 10px;
+          align-self: flex-start;
+      }
+
+      .book-also svg {
+          width: 11px;
+          height: 11px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+      }
+
+      .book-coming-text {
+          text-align: center;
+          padding: 40px 20px;
+          color: var(--ink-soft);
+      }
+
+      .book-coming-text .book-title {
+          color: var(--ink);
+          margin-bottom: 8px;
+      }
+
+      .book-notify {
+          display: inline-block;
+          margin-top: 14px;
+          padding: 9px 18px;
+          background: var(--paper);
+          border: 1px solid var(--line-strong);
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--ink);
+      }
+
+      /* ═══════════ APP-SEKTION ═══════════ */
+      .app-section {
+          padding: 120px 0;
+      }
+
+      .app-inner {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 80px;
+          align-items: center;
+      }
+
+      @media (max-width: 900px) {
+          .app-inner {
+              grid-template-columns: 1fr;
+              gap: 48px;
+          }
+
+          .app-visual {
+              order: -1;
+          }
+      }
+
+      .app-feature-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin: 32px 0;
+      }
+
+      .app-feature {
+          display: flex;
+          gap: 14px;
+          align-items: flex-start;
+      }
+
+      .app-feature-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          background: var(--coral-soft);
+          color: var(--coral-dark);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          margin-top: 2px;
+      }
+
+      .app-feature-icon svg {
+          width: 18px;
+          height: 18px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 1.8;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+      }
+
+      .app-feature-text strong {
+          font-family: 'Fraunces', serif;
+          font-size: 17px;
+          font-weight: 500;
+          color: var(--ink);
+          display: block;
+          margin-bottom: 2px;
+      }
+
+      .app-feature-text span {
+          font-size: 14.5px;
+          color: var(--ink-soft);
+          line-height: 1.5;
+      }
+
+      .app-store-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+      }
+
+      .store-btn {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          background: var(--ink);
+          color: var(--cream);
+          padding: 10px 18px 10px 16px;
+          border-radius: 12px;
+          transition: background 0.15s;
+      }
+
+      .store-btn:hover {
+          background: var(--navy-deep);
+      }
+
+      .store-btn svg {
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+      }
+
+      .store-btn-text {
+          text-align: left;
+      }
+
+      .store-btn-top {
+          font-size: 9.5px;
+          opacity: 0.7;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          font-weight: 500;
+      }
+
+      .store-btn-bottom {
+          font-family: 'Fraunces', serif;
+          font-size: 16px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          margin-top: 1px;
+      }
+
+      /* Phone-Visual */
+      .app-visual {
+          display: flex;
+          justify-content: center;
+      }
+
+      .phone-frame {
+          width: 280px;
+          aspect-ratio: 280 / 580;
+          background: var(--ink);
+          border-radius: 38px;
+          padding: 10px;
+          box-shadow: 0 2px 6px rgba(26, 31, 58, 0.1),
+          0 20px 48px rgba(26, 31, 58, 0.15);
+          transform: rotate(-3deg);
+      }
+
+      .phone-screen {
+          width: 100%;
+          height: 100%;
+          background: var(--cream);
+          border-radius: 29px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          font-size: 12px;
+      }
+
+      /* Phone innere Elemente (aus App-Design wiederverwendet) */
+      .status-bar {
+          height: 22px;
+          padding: 6px 16px 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 10px;
+          font-weight: 600;
+          color: var(--ink);
+          flex-shrink: 0;
+      }
+
+      .app-header-row {
+          padding: 10px 16px 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+
+      .app-greeting {
+          font-size: 11px;
+          color: var(--ink-soft);
+      }
+
+      .app-greeting strong {
+          color: var(--ink);
+          font-weight: 600;
+          font-size: 13px;
+          display: block;
+          margin-top: 1px;
+      }
+
+      .streak-pill {
+          background: var(--coral-soft);
+          color: var(--coral-dark);
+          font-size: 10px;
+          font-weight: 600;
+          padding: 4px 8px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+      }
+
+      .streak-pill svg {
+          width: 8px;
+          height: 9px;
+          fill: currentColor;
+      }
+
+      .app-body {
+          flex: 1;
+          overflow: hidden;
+          padding: 4px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+      }
+
+      .section-mini {
+          font-family: 'Fraunces', serif;
+          font-size: 14px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+      }
+
+      .hero-card-mini {
+          background: var(--paper);
+          border-radius: 14px;
+          padding: 10px;
+          display: flex;
+          gap: 10px;
+          border: 1px solid var(--line);
+      }
+
+      .hero-cover-mini {
+          width: 52px;
+          height: 70px;
+          border-radius: 6px;
+          flex-shrink: 0;
+          overflow: hidden;
+      }
+
+      .hero-text-mini {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+      }
+
+      .hero-label-mini {
+          font-size: 8.5px;
+          color: var(--s-fruchtagenten);
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+      }
+
+      .hero-title-mini {
+          font-family: 'Fraunces', serif;
+          font-size: 13px;
+          font-weight: 500;
+          margin: 2px 0 5px;
+          letter-spacing: -0.01em;
+      }
+
+      .progress-bar {
+          height: 3px;
+          background: var(--line);
+          border-radius: 999px;
+          overflow: hidden;
+          flex: 1;
+      }
+
+      .progress-fill {
+          height: 100%;
+          background: var(--s-fruchtagenten);
+      }
+
+      .btn-mini {
+          background: var(--navy);
+          color: var(--cream);
+          font-size: 9.5px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 7px;
+          border: none;
+          margin-top: 5px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          align-self: flex-start;
+      }
+
+      .btn-mini svg {
+          width: 7px;
+          height: 7px;
+          fill: currentColor;
+      }
+
+      .series-row {
+          display: flex;
+          gap: 8px;
+          margin: 4px 0;
+      }
+
+      .series-mini {
+          flex: 1;
+          aspect-ratio: 1;
+          border-radius: 10px;
+          padding: 8px;
+          color: #fff;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+      }
+
+      .bottom-nav {
+          flex-shrink: 0;
+          height: 50px;
+          background: var(--paper);
+          border-top: 1px solid var(--line);
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          padding: 6px 8px 8px;
+      }
+
+      .nav-item-sm {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
+          font-size: 8.5px;
+          font-weight: 500;
+          color: var(--ink-ghost);
+      }
+
+      .nav-item-sm svg {
+          width: 16px;
+          height: 16px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 1.5;
+      }
+
+      .nav-item-sm.active {
+          color: var(--navy);
+      }
+
+      .nav-item-sm.active svg {
+          stroke-width: 2;
+          fill: var(--navy);
+          fill-opacity: 0.08;
+      }
+
+      /* ═══════════ ÜBER ANTON ═══════════ */
+      .about-section {
+          background: var(--paper);
+          border-top: 1px solid var(--line);
+          border-bottom: 1px solid var(--line);
+      }
+
+      .about-inner {
+          display: grid;
+          grid-template-columns: 1fr 1.4fr;
+          gap: 72px;
+          align-items: center;
+      }
+
+      @media (max-width: 900px) {
+          .about-inner {
+              grid-template-columns: 1fr;
+              gap: 40px;
+              text-align: center;
+          }
+
+          .about-portrait {
+              margin: 0 auto;
+          }
+      }
+
+      .about-portrait {
+          width: 100%;
+          max-width: 380px;
+          aspect-ratio: 4 / 5;
+          background: var(--cream-dark);
+          border-radius: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--ink-ghost);
+          position: relative;
+          overflow: hidden;
+      }
+
+      .about-portrait::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at 30% 30%, var(--coral-soft), transparent 60%),
+          radial-gradient(circle at 70% 70%, var(--gold-soft), transparent 60%);
+          opacity: 0.5;
+      }
+
+      .about-portrait-placeholder {
+          position: relative;
+          z-index: 1;
+          text-align: center;
+          font-size: 13px;
+          font-weight: 500;
+          padding: 20px;
+      }
+
+      .about-portrait-placeholder svg {
+          width: 56px;
+          height: 56px;
+          stroke: var(--ink-ghost);
+          fill: none;
+          stroke-width: 1.5;
+          margin: 0 auto 12px;
+          display: block;
+      }
+
+      .about-quote {
+          font-family: 'Fraunces', serif;
+          font-size: 30px;
+          font-style: italic;
+          line-height: 1.25;
+          letter-spacing: -0.015em;
+          margin-bottom: 28px;
+          color: var(--ink);
+      }
+
+      .about-quote::before {
+          content: '„';
+          color: var(--coral);
+          font-weight: 500;
+          margin-right: 2px;
+      }
+
+      .about-quote::after {
+          content: '"';
+          color: var(--coral);
+          font-weight: 500;
+      }
+
+      .about-text p {
+          font-size: 16px;
+          line-height: 1.65;
+          color: var(--ink-soft);
+          margin-bottom: 16px;
+      }
+
+      .about-signature {
+          margin-top: 24px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+      }
+
+      .signature-mark {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: var(--navy);
+          color: var(--gold);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Fraunces', serif;
+          font-size: 18px;
+          font-style: italic;
+          font-weight: 500;
+      }
+
+      .about-signature-text {
+          font-size: 14px;
+      }
+
+      .about-signature-text strong {
+          font-family: 'Fraunces', serif;
+          font-size: 17px;
+          font-weight: 500;
+          color: var(--ink);
+          display: block;
+      }
+
+      .about-signature-text span {
+          color: var(--ink-soft);
+          font-size: 13px;
+      }
+
+      /* ═══════════ TRUST / FÜR ELTERN ═══════════ */
+      .trust {
+          background: var(--navy);
+          color: var(--cream);
+          position: relative;
+          overflow: hidden;
+      }
+
+      .trust::before {
+          content: '';
+          position: absolute;
+          top: -200px;
+          right: -200px;
+          width: 500px;
+          height: 500px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(212, 162, 76, 0.2), transparent 70%);
+      }
+
+      .trust-inner {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: 1fr 1.2fr;
+          gap: 72px;
+          align-items: center;
+      }
+
+      @media (max-width: 900px) {
+          .trust-inner {
+              grid-template-columns: 1fr;
+              gap: 40px;
+          }
+      }
+
+      .trust .section-eyebrow {
+          color: var(--gold);
+      }
+
+      .trust .section-eyebrow::before {
+          background: var(--gold);
+      }
+
+      .trust h2 {
+          font-family: 'Fraunces', serif;
+          font-size: 44px;
+          line-height: 1.1;
+          font-weight: 500;
+          letter-spacing: -0.025em;
+          margin-bottom: 24px;
+      }
+
+      .trust h2 em {
+          font-style: italic;
+          color: var(--gold);
+      }
+
+      .trust-lead {
+          font-size: 17px;
+          line-height: 1.6;
+          opacity: 0.85;
+      }
+
+      .trust-list {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+      }
+
+      .trust-item {
+          display: flex;
+          gap: 18px;
+          padding: 20px 22px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 16px;
+          backdrop-filter: blur(8px);
+      }
+
+      .trust-icon {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: var(--gold);
+          color: var(--navy-deep);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+      }
+
+      .trust-icon svg {
+          width: 20px;
+          height: 20px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+      }
+
+      .trust-title {
+          font-family: 'Fraunces', serif;
+          font-size: 18px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          margin-bottom: 4px;
+      }
+
+      .trust-text {
+          font-size: 14px;
+          line-height: 1.55;
+          opacity: 0.8;
+      }
+
+      /* ═══════════ NEWSLETTER ═══════════ */
+      .newsletter {
+          padding: 96px 0;
+          background: var(--cream-dark);
+          border-top: 1px solid var(--line);
+          border-bottom: 1px solid var(--line);
+          text-align: center;
+      }
+
+      .newsletter-inner {
+          max-width: 580px;
+          margin: 0 auto;
+      }
+
+      .newsletter-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          background: var(--ink);
+          color: var(--gold);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 24px;
+      }
+
+      .newsletter-icon svg {
+          width: 28px;
+          height: 28px;
+      }
+
+      .newsletter h2 {
+          font-family: 'Fraunces', serif;
+          font-size: 38px;
+          font-weight: 500;
+          letter-spacing: -0.02em;
+          line-height: 1.1;
+          margin-bottom: 14px;
+      }
+
+      .newsletter h2 em {
+          font-style: italic;
+          color: var(--coral);
+      }
+
+      .newsletter p {
+          font-size: 16px;
+          line-height: 1.55;
+          color: var(--ink-soft);
+          margin-bottom: 28px;
+          max-width: 480px;
+          margin-left: auto;
+          margin-right: auto;
+      }
+
+      .newsletter-form {
+          display: flex;
+          gap: 8px;
+          max-width: 480px;
+          margin: 0 auto 16px;
+      }
+
+      .newsletter-input {
+          flex: 1;
+          background: var(--paper);
+          border: 1px solid var(--line-strong);
+          border-radius: 999px;
+          padding: 14px 22px;
+          font-size: 15px;
+          font-family: inherit;
+          color: var(--ink);
+          transition: border-color 0.15s;
+      }
+
+      .newsletter-input:focus {
+          outline: none;
+          border-color: var(--coral);
+          box-shadow: 0 0 0 3px var(--coral-soft);
+      }
+
+      .newsletter-btn {
+          background: var(--ink);
+          color: var(--cream);
+          border: none;
+          padding: 14px 26px;
+          border-radius: 999px;
+          font-size: 14px;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          transition: background 0.15s;
+      }
+
+      .newsletter-btn:hover {
+          background: var(--navy-deep);
+      }
+
+      .newsletter-mini {
+          font-size: 12px;
+          color: var(--ink-ghost);
+      }
+
+      @media (max-width: 540px) {
+          .newsletter-form {
+              flex-direction: column;
+          }
+
+          .newsletter h2 {
+              font-size: 30px;
+          }
+      }
+
+      /* ═══════════ FAQ ═══════════ */
+      .faq-list {
+          max-width: 760px;
+          margin: 0 auto;
+      }
+
+      .faq-item {
+          border-bottom: 1px solid var(--line);
+      }
+
+      .faq-item:first-child {
+          border-top: 1px solid var(--line);
+      }
+
+      .faq-question {
+          font-family: 'Fraunces', serif;
+          font-size: 20px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          padding: 22px 0;
+          cursor: pointer;
+          list-style: none;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          color: var(--ink);
+          transition: color 0.15s;
+      }
+
+      .faq-question::-webkit-details-marker {
+          display: none;
+      }
+
+      .faq-question:hover {
+          color: var(--coral);
+      }
+
+      .faq-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          border: 1px solid var(--line-strong);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: transform 0.2s, background 0.15s;
+      }
+
+      .faq-icon svg {
+          width: 12px;
+          height: 12px;
+          stroke: var(--ink);
+          fill: none;
+          stroke-width: 2;
+          stroke-linecap: round;
+      }
+
+      details[open] .faq-icon {
+          transform: rotate(45deg);
+          background: var(--coral);
+          border-color: var(--coral);
+      }
+
+      details[open] .faq-icon svg {
+          stroke: #fff;
+      }
+
+      .faq-answer {
+          padding: 0 48px 24px 0;
+          font-size: 15px;
+          line-height: 1.7;
+          color: var(--ink-soft);
+      }
+
+      .faq-answer p {
+          margin-bottom: 10px;
+      }
+
+      .faq-answer p:last-child {
+          margin-bottom: 0;
+      }
+
+      /* ═══════════ FINAL CTA ═══════════ */
+      .final-cta {
+          padding: 120px 0;
+          text-align: center;
+          position: relative;
+      }
+
+      .final-cta::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at 30% 50%, var(--coral-soft) 0%, transparent 50%),
+          radial-gradient(ellipse at 70% 50%, var(--gold-soft) 0%, transparent 50%);
+          opacity: 0.5;
+          pointer-events: none;
+      }
+
+      .final-cta-inner {
+          position: relative;
+          z-index: 1;
+          max-width: 760px;
+          margin: 0 auto;
+      }
+
+      .final-cta h2 {
+          font-family: 'Fraunces', serif;
+          font-size: 56px;
+          line-height: 1.02;
+          font-weight: 500;
+          letter-spacing: -0.028em;
+          margin-bottom: 24px;
+      }
+
+      .final-cta h2 em {
+          font-style: italic;
+          color: var(--coral);
+      }
+
+      .final-cta > .wrap > .final-cta-inner > p {
+          font-size: 18px;
+          line-height: 1.6;
+          color: var(--ink-soft);
+          margin-bottom: 36px;
+      }
+
+      .final-cta-options {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          max-width: 640px;
+          margin: 0 auto;
+      }
+
+      @media (max-width: 600px) {
+          .final-cta-options {
+              grid-template-columns: 1fr;
+          }
+
+          .final-cta h2 {
+              font-size: 36px;
+          }
+
+          .final-cta {
+              padding: 72px 0;
+          }
+      }
+
+      .final-option {
+          background: var(--paper);
+          border: 1px solid var(--line);
+          border-radius: 20px;
+          padding: 28px 24px;
+          text-align: left;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          transition: transform 0.2s, border-color 0.2s;
+      }
+
+      .final-option:hover {
+          transform: translateY(-2px);
+          border-color: var(--line-strong);
+      }
+
+      .final-option-icon {
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
+          background: var(--coral);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+
+      .final-option-icon.navy {
+          background: var(--navy);
+          color: var(--gold);
+      }
+
+      .final-option-icon svg {
+          width: 20px;
+          height: 20px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+      }
+
+      .final-option h3 {
+          font-family: 'Fraunces', serif;
+          font-size: 20px;
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          margin: 0;
+      }
+
+      .final-option p {
+          font-size: 14px;
+          color: var(--ink-soft);
+          line-height: 1.5;
+          margin: 0 0 6px;
+      }
+
+      .final-option-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--coral);
+          margin-top: auto;
+      }
+
+      .final-option-link svg {
+          width: 11px;
+          height: 11px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 2;
+      }
+
+      /* ═══════════ FOOTER ═══════════ */
+      .footer {
+          background: var(--ink);
+          color: var(--cream);
+          padding: 72px 0 36px;
+      }
+
+      .footer-inner {
+          display: grid;
+          grid-template-columns: 1.5fr 1fr 1fr 1fr;
+          gap: 48px;
+          margin-bottom: 56px;
+      }
+
+      @media (max-width: 760px) {
+          .footer-inner {
+              grid-template-columns: 1fr 1fr;
+              gap: 32px;
+          }
+      }
+
+      .footer-brand .logo-text {
+          color: var(--cream);
+      }
+
+      .footer-brand .logo-mark {
+          background: var(--gold);
+          color: var(--navy-deep);
+      }
+
+      .footer-desc {
+          font-size: 14px;
+          line-height: 1.6;
+          color: rgba(250, 244, 234, 0.6);
+          margin-top: 16px;
+          max-width: 280px;
+      }
+
+      .footer-col h4 {
+          font-family: 'Fraunces', serif;
+          font-size: 15px;
+          font-weight: 500;
+          margin-bottom: 16px;
+          color: var(--cream);
+      }
+
+      .footer-col ul {
+          list-style: none;
+      }
+
+      .footer-col li {
+          margin-bottom: 10px;
+      }
+
+      .footer-col a {
+          font-size: 14px;
+          color: rgba(250, 244, 234, 0.7);
+          transition: color 0.15s;
+      }
+
+      .footer-col a:hover {
+          color: var(--gold);
+      }
+
+      .footer-bottom {
+          padding-top: 32px;
+          border-top: 1px solid rgba(250, 244, 234, 0.1);
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 16px;
+          font-size: 13px;
+          color: rgba(250, 244, 234, 0.5);
+      }
+
+      .footer-bottom-links {
+          display: flex;
+          gap: 24px;
+          flex-wrap: wrap;
+      }
+
+      .footer-bottom-links a {
+          color: rgba(250, 244, 234, 0.5);
+      }
+
+      .footer-bottom-links a:hover {
+          color: var(--gold);
+      }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     NAVIGATION
+     ═══════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M12 22 V11" />
+          <path d="M12 11 C8 11 6 8 6 5 C9 5 12 7 12 11" />
+          <path d="M12 11 C16 11 18 8 18 5 C15 5 12 7 12 11" />
+          <circle cx="12" cy="22" r="1.2" fill="currentColor" />
+        </svg>
+      </div>
+      <div class="logo-text">SenfkornGeschichten</div>
+    </a>
+    <div class="nav-links">
+      <a href="#books" class="nav-link">Bücher</a>
+      <a href="#app" class="nav-link">App</a>
+      <a href="#about" class="nav-link">Über Anton</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+      <a href="#newsletter" class="nav-cta">Newsletter</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      Christliche Geschichten · Buch &amp; App
+    </div>
+    <h1 class="hero-title">
+      Geschichten, die <em>Glauben pflanzen</em> — in jedem Kinderherz.
+    </h1>
+    <p class="hero-lead">
+      Biblisch fundierte Abenteuer für Kinder von 6 bis 12. Als gedrucktes Hardcover-Buch bei dir zu Hause — und als
+      werbefreie App zum Lesen, Hören und Ausmalen.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#books" class="btn-primary">
+        Alle Bücher ansehen
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M3 7 H11 M8 4 L11 7 L8 10" />
+        </svg>
+      </a>
+      <a href="#app" class="btn-secondary">
+        App entdecken
+      </a>
+    </div>
+
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 16 16">
+          <path d="M3 8.5 L6 11.5 L13 4.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Biblisch geprüft
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 16 16">
+          <path d="M3 8.5 L6 11.5 L13 4.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Klimaneutral gedruckt &amp; geliefert
+      </div>
+      <div class="hero-meta-item">
+        <svg viewBox="0 0 16 16">
+          <path d="M3 8.5 L6 11.5 L13 4.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Werbefrei
+      </div>
+    </div>
+
+    <!-- Vier Buchcover im Fächer-Layout -->
+    <div class="hero-books">
+      <div class="hero-book">
+        <div class="book-cover small c-fruchtagenten">
+          <div class="bc-top">
+            <div class="bc-series">Fruchtagenten</div>
+            <div class="bc-number">01</div>
+          </div>
+          <div>
+            <div class="bc-title">Mission<br>Friede</div>
+            <div class="bc-author">Anton Müller</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-book">
+        <div class="book-cover small c-petrus">
+          <div class="bc-top">
+            <div class="bc-series">Petrus &amp; Paulus</div>
+            <div class="bc-number">01</div>
+          </div>
+          <div>
+            <div class="bc-title">Der Ruf<br>am See</div>
+            <div class="bc-author">Anton Müller</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-book">
+        <div class="book-cover small c-geschichte">
+          <div class="bc-top">
+            <div class="bc-series">Gottes gr. Geschichte</div>
+            <div class="bc-number">01</div>
+          </div>
+          <div>
+            <div class="bc-title">Am<br>Anfang</div>
+            <div class="bc-author">Anton Müller</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-book">
+        <div class="book-cover small c-obstsalat">
+          <div class="bc-top">
+            <div class="bc-series">Obstsalat-Agenten</div>
+            <div class="bc-number">01</div>
+          </div>
+          <div>
+            <div class="bc-title">Das erste<br>Rätsel</div>
+            <div class="bc-author">Anton Müller</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     BÜCHER · HAUPTVERKAUFS-SEKTION
+     Alle Bücher hier auflisten — jedes verlinkt zu Shopify
+     ═══════════════════════════════════════════════ -->
+<section class="section books-section" id="books">
+  <div class="wrap">
+    <div class="section-head centered">
+      <div class="section-eyebrow">Die Bücher</div>
+      <h2 class="section-title">Gedruckt, gebunden, <em>für dein Kinderzimmer.</em></h2>
+      <p class="section-lead">
+        Hochwertige Hardcover, klimaneutral bei Gelato gedruckt und direkt zu dir geliefert. Jedes Buch auch digital in
+        unserer App verfügbar.
+      </p>
+    </div>
+
+    <div class="books-grid">
+
+      <!-- ─── BUCH 1 · Fruchtagenten Band 1 ─── -->
+      <div class="book-card">
+        <div class="book-image-wrap">
+          <span class="book-status-flag">Verfügbar</span>
+          <!-- BOOK_COVER: Echtes Cover-Bild einsetzen (ersetze die book-cover-div) -->
+          <div class="book-image">
+            <div class="book-cover c-fruchtagenten">
+              <div class="bc-top">
+                <div class="bc-series">Fruchtagenten</div>
+                <div class="bc-number">01</div>
+              </div>
+              <div>
+                <div class="bc-title">Mission Friede</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Band 1</div>
+          <h3 class="book-title">Mission Friede</h3>
+          <div class="book-meta">
+            <span class="book-meta-item">
+              <svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path d="M7 4 V7 L9 8" /></svg>
+              9–11 Jahre
+            </span>
+            <span class="book-meta-item">
+              <svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path d="M3 5 H11" /></svg>
+              48 Seiten
+            </span>
+            <span class="book-meta-item">
+              <svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8" rx="1" /></svg>
+              Hardcover
+            </span>
+          </div>
+          <p class="book-desc">
+            Sam und sein Team entdecken, wie die Frucht des Geistes in jeder Mission zum Schlüssel wird. Ein Abenteuer
+            über Freundschaft, Mut und echten Frieden.
+          </p>
+          <a href="#" class="book-also">
+            <svg viewBox="0 0 11 11">
+              <rect x="2" y="1" width="7" height="9" rx="1" />
+              <circle cx="5.5" cy="8" r="0.5" fill="currentColor" />
+            </svg>
+            Auch in der App verfügbar
+          </a>
+          <div class="book-bottom">
+            <div class="book-price">
+              14,90&nbsp;€
+              <small>inkl. MwSt. &amp; Versand</small>
+            </div>
+            <!-- SHOPIFY_URL: Echte Produkt-URL einsetzen -->
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 2 · Fruchtagenten Band 2 ─── -->
+      <div class="book-card">
+        <div class="book-image-wrap">
+          <span class="book-status-flag">Verfügbar</span>
+          <div class="book-image">
+            <div class="book-cover c-fruchtagenten">
+              <div class="bc-top">
+                <div class="bc-series">Fruchtagenten</div>
+                <div class="bc-number">02</div>
+              </div>
+              <div>
+                <div class="bc-title">Der Limonadenstand</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Band 2</div>
+          <h3 class="book-title">Der Limonadenstand</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>9–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>52 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Geduld will gelernt sein — besonders wenn nach der dritten Stunde am Limonadenstand noch kein einziger Kunde
+            vorbeigekommen ist.
+          </p>
+          <a href="#" class="book-also">
+            <svg viewBox="0 0 11 11">
+              <rect x="2" y="1" width="7" height="9" rx="1" />
+              <circle cx="5.5" cy="8" r="0.5" fill="currentColor" />
+            </svg>
+            Auch in der App verfügbar
+          </a>
+          <div class="book-bottom">
+            <div class="book-price">
+              14,90&nbsp;€
+              <small>inkl. MwSt. &amp; Versand</small>
+            </div>
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 3 · Fruchtagenten Band 3 ─── -->
+      <div class="book-card">
+        <div class="book-image-wrap">
+          <span class="book-status-flag">Verfügbar</span>
+          <div class="book-image">
+            <div class="book-cover c-fruchtagenten">
+              <div class="bc-top">
+                <div class="bc-series">Fruchtagenten</div>
+                <div class="bc-number">03</div>
+              </div>
+              <div>
+                <div class="bc-title">Die große Flucht</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Band 3</div>
+          <h3 class="book-title">Die große Flucht</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>9–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>56 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Als Benno spurlos verschwindet, müssen die Agenten herausfinden, was Freundlichkeit wirklich bedeutet —
+            selbst wenn es weh tut.
+          </p>
+          <a href="#" class="book-also">
+            <svg viewBox="0 0 11 11">
+              <rect x="2" y="1" width="7" height="9" rx="1" />
+              <circle cx="5.5" cy="8" r="0.5" fill="currentColor" />
+            </svg>
+            Auch in der App verfügbar
+          </a>
+          <div class="book-bottom">
+            <div class="book-price">
+              14,90&nbsp;€
+              <small>inkl. MwSt. &amp; Versand</small>
+            </div>
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 4 · Fruchtagenten Band 4 ─── -->
+      <div class="book-card">
+        <div class="book-image-wrap">
+          <span class="book-status-flag">Verfügbar</span>
+          <div class="book-image">
+            <div class="book-cover c-fruchtagenten">
+              <div class="bc-top">
+                <div class="bc-series">Fruchtagenten</div>
+                <div class="bc-number">04</div>
+              </div>
+              <div>
+                <div class="bc-title">Der Granatapfelpakt</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Band 4</div>
+          <h3 class="book-title">Der Granatapfelpakt</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>9–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>52 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Ein Versprechen zwischen zwei Freunden — und die Frage, was Treue kostet, wenn niemand mehr hinsieht.
+          </p>
+          <a href="#" class="book-also">
+            <svg viewBox="0 0 11 11">
+              <rect x="2" y="1" width="7" height="9" rx="1" />
+              <circle cx="5.5" cy="8" r="0.5" fill="currentColor" />
+            </svg>
+            Auch in der App verfügbar
+          </a>
+          <div class="book-bottom">
+            <div class="book-price">
+              14,90&nbsp;€
+              <small>inkl. MwSt. &amp; Versand</small>
+            </div>
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 5 · Fruchtagenten Band 5 ─── -->
+      <div class="book-card">
+        <div class="book-image-wrap">
+          <span class="book-status-flag">Verfügbar</span>
+          <div class="book-image">
+            <div class="book-cover c-fruchtagenten">
+              <div class="bc-top">
+                <div class="bc-series">Fruchtagenten</div>
+                <div class="bc-number">05</div>
+              </div>
+              <div>
+                <div class="bc-title">Der Olivenzweig</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Band 5</div>
+          <h3 class="book-title">Der Olivenzweig</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>9–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>60 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Nach dem größten Streit ihrer Freundschaft suchen die Agenten nach einem Weg zurück — und finden ihn an
+            einer unerwarteten Stelle.
+          </p>
+          <a href="#" class="book-also">
+            <svg viewBox="0 0 11 11">
+              <rect x="2" y="1" width="7" height="9" rx="1" />
+              <circle cx="5.5" cy="8" r="0.5" fill="currentColor" />
+            </svg>
+            Auch in der App verfügbar
+          </a>
+          <div class="book-bottom">
+            <div class="book-price">
+              14,90&nbsp;€
+              <small>inkl. MwSt. &amp; Versand</small>
+            </div>
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 6 · Komplett-Set (Upsell) ─── -->
+      <div class="book-card"
+           style="background: linear-gradient(145deg, var(--coral-soft), var(--gold-soft)); border-color: var(--coral);">
+        <div class="book-image-wrap" style="background: transparent;">
+          <span class="book-status-flag" style="background: var(--coral);">Spar-Set</span>
+          <div style="display: flex; gap: 4px; transform: rotate(-2deg);">
+            <div class="book-image" style="width: 65px; transform: rotate(-4deg);">
+              <div class="book-cover small c-fruchtagenten">
+                <div class="bc-top">
+                  <div class="bc-series">FA</div>
+                  <div class="bc-number">01</div>
+                </div>
+                <div>
+                  <div class="bc-title">Mission Friede</div>
+                </div>
+              </div>
+            </div>
+            <div class="book-image" style="width: 65px; transform: rotate(2deg) translateY(6px);">
+              <div class="book-cover small c-fruchtagenten">
+                <div class="bc-top">
+                  <div class="bc-series">FA</div>
+                  <div class="bc-number">03</div>
+                </div>
+                <div>
+                  <div class="bc-title">Die große Flucht</div>
+                </div>
+              </div>
+            </div>
+            <div class="book-image" style="width: 65px; transform: rotate(5deg);">
+              <div class="book-cover small c-fruchtagenten">
+                <div class="bc-top">
+                  <div class="bc-series">FA</div>
+                  <div class="bc-number">05</div>
+                </div>
+                <div>
+                  <div class="bc-title">Der Olivenzweig</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag">Fruchtagenten · Komplett-Set</div>
+          <h3 class="book-title">Alle fünf Bände</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>9–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>5 Bände</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Die komplette Abenteuer-Reihe als Geschenk-Set. Perfekt für Geburtstag, Kommunion oder einfach für einen
+            langen Sommer voller Geschichten.
+          </p>
+          <div class="book-bottom">
+            <div class="book-price">
+              64,90&nbsp;€
+              <small>statt 74,50 € · spare 9,60 €</small>
+            </div>
+            <a href="#" target="_blank" rel="noopener" class="book-buy">
+              Bestellen
+              <svg viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 7 · Gottes große Geschichte Band 1 (Coming Soon) ─── -->
+      <div class="book-card coming-soon">
+        <div class="book-image-wrap">
+          <span class="book-status-flag soon">Bald</span>
+          <div class="book-image">
+            <div class="book-cover c-geschichte">
+              <div class="bc-top">
+                <div class="bc-series">Gottes gr. Geschichte</div>
+                <div class="bc-number">01</div>
+              </div>
+              <div>
+                <div class="bc-title">Am Anfang</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag s-geschichte">Gottes große Geschichte · Wimmelbuch</div>
+          <h3 class="book-title">Am Anfang</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>6–9 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>14 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover 21×28</span>
+          </div>
+          <p class="book-desc">
+            Vom ersten Tag der Schöpfung bis zu Abrahams Ruf — ein Wimmelbuch zum Entdecken, Suchen und Staunen. Mit Leo
+            dem Löwen auf jeder Seite.
+          </p>
+          <div class="book-bottom">
+            <div class="book-price">
+              19,90&nbsp;€
+              <small>voraussichtlich · Erscheinung Q3 2026</small>
+            </div>
+            <a href="#newsletter" class="book-notify">Benachrichtigen</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 8 · Petrus & Paulus (Coming Soon) ─── -->
+      <div class="book-card coming-soon">
+        <div class="book-image-wrap">
+          <span class="book-status-flag soon">Bald</span>
+          <div class="book-image">
+            <div class="book-cover c-petrus">
+              <div class="bc-top">
+                <div class="bc-series">Petrus &amp; Paulus</div>
+                <div class="bc-number">01</div>
+              </div>
+              <div>
+                <div class="bc-title">Der Ruf am See</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag s-petrus">Petrus &amp; Paulus · Band 1</div>
+          <h3 class="book-title">Der Ruf am See</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>10–12 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>72 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Hardcover</span>
+          </div>
+          <p class="book-desc">
+            Die Geschichte des Apostels Petrus, in Ich-Form erzählt — vom Fischerboot bis zur schwierigsten Nacht seines
+            Lebens.
+          </p>
+          <div class="book-bottom">
+            <div class="book-price">
+              16,90&nbsp;€
+              <small>voraussichtlich · Erscheinung Q4 2026</small>
+            </div>
+            <a href="#newsletter" class="book-notify">Benachrichtigen</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── BUCH 9 · Obstsalat-Agenten (Coming Soon) ─── -->
+      <div class="book-card coming-soon">
+        <div class="book-image-wrap">
+          <span class="book-status-flag soon">Bald</span>
+          <div class="book-image">
+            <div class="book-cover c-obstsalat">
+              <div class="bc-top">
+                <div class="bc-series">Obstsalat-Agenten</div>
+                <div class="bc-number">01</div>
+              </div>
+              <div>
+                <div class="bc-title">Das erste Rätsel</div>
+                <div class="bc-author">Anton Müller</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="book-content">
+          <div class="book-series-tag s-obstsalat">Obstsalat-Agenten · Band 1</div>
+          <h3 class="book-title">Das erste Rätsel</h3>
+          <div class="book-meta">
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" /><path
+              d="M7 4 V7 L9 8" /></svg>8–11 Jahre</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="3" y="2" width="8" height="10" /><path
+              d="M3 5 H11" /></svg>88 Seiten</span>
+            <span class="book-meta-item"><svg viewBox="0 0 14 14"><rect x="2" y="3" width="10" height="8"
+                                                                        rx="1" /></svg>Softcover</span>
+          </div>
+          <p class="book-desc">
+            Fünf Detektiv-Freunde, neun Früchte des Geistes — und ein Rätsel, das nur Teamarbeit lösen kann. Der Auftakt
+            einer neuen Reihe.
+          </p>
+          <div class="book-bottom">
+            <div class="book-price">
+              12,90&nbsp;€
+              <small>voraussichtlich · Erscheinung 2027</small>
+            </div>
+            <a href="#newsletter" class="book-notify">Benachrichtigen</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     APP-SEKTION
+     ═══════════════════════════════════════════════ -->
+<section class="section app-section" id="app">
+  <div class="wrap app-inner">
+    <div class="app-text">
+      <div class="section-eyebrow">Die App</div>
+      <h2 class="section-title">
+        Dieselben Geschichten — <em>digital erlebbar.</em>
+      </h2>
+      <p class="section-lead">
+        Für unterwegs, zum Vorlesen-Lassen oder zum Ausmalen während Papa das Abendessen kocht. Alle Bücher stehen dir
+        auch in der SenfkornGeschichten-App zur Verfügung.
+      </p>
+
+      <div class="app-feature-list">
+        <div class="app-feature">
+          <div class="app-feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 4 h16 v16 h-16 z M4 8 h16 M8 12 h8 M8 16 h5" />
+            </svg>
+          </div>
+          <div class="app-feature-text">
+            <strong>Lesen und Hören</strong>
+            <span>Jede Geschichte als Text und als professionell vertontes Hörbuch.</span>
+          </div>
+        </div>
+        <div class="app-feature">
+          <div class="app-feature-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8" />
+              <circle cx="8" cy="10" r="1.5" fill="currentColor" />
+              <circle cx="16" cy="10" r="1.5" fill="currentColor" />
+              <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+            </svg>
+          </div>
+          <div class="app-feature-text">
+            <strong>Direkt ausmalen</strong>
+            <span>Figuren aus den Büchern ausmalen — ohne Drucker, ohne Bastelei.</span>
+          </div>
+        </div>
+        <div class="app-feature">
+          <div class="app-feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 L14 9 L20 9 L15 13 L17 19 L12 15 L7 19 L9 13 L4 9 L10 9 Z" />
+            </svg>
+          </div>
+          <div class="app-feature-text">
+            <strong>Quiz und Belohnungen</strong>
+            <span>Nach jedem Buch ein kurzes Verständnis-Quiz. Mit Abzeichen, Streaks und Levels.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-store-row">
+        <!-- APP_STORE: echte URL einsetzen -->
+        <a href="#" class="store-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+          </svg>
+          <div class="store-btn-text">
+            <div class="store-btn-top">Download im</div>
+            <div class="store-btn-bottom">App Store</div>
+          </div>
+        </a>
+        <!-- PLAY_STORE: echte URL einsetzen -->
+        <a href="#" class="store-btn">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 20.5V3.5a1 1 0 0 1 1.5-.87L20 11.13a1 1 0 0 1 0 1.74L4.5 21.37A1 1 0 0 1 3 20.5z"
+                  fill="#D4A24C" />
+            <path d="M3 3.5v17l8.5-8.5L3 3.5z" fill="#E8735A" />
+            <path d="M3 3.5l8.5 8.5 3-3L4.5 2.63A1 1 0 0 0 3 3.5z" fill="#7A9A6E" />
+            <path d="M3 20.5l8.5-8.5 3 3L4.5 21.37a1 1 0 0 1-1.5-.87z" fill="#3E6BA8" />
+          </svg>
+          <div class="store-btn-text">
+            <div class="store-btn-top">Jetzt bei</div>
+            <div class="store-btn-bottom">Google Play</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="app-visual">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="status-bar">
+            <span>9:41</span>
+            <div>
+              <svg viewBox="0 0 20 12" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="9">
+                <rect x="1" y="1" width="16" height="10" rx="2" />
+                <rect x="3" y="3" width="11" height="6" fill="currentColor" />
+              </svg>
+            </div>
+          </div>
+          <div class="app-header-row">
+            <div class="app-greeting">
+              Willkommen zurück,
+              <strong>Jonas</strong>
+            </div>
+            <div class="streak-pill">
+              <svg viewBox="0 0 10 12">
+                <path d="M5 0 C6 3 9 4 8 8 C8 10 6 12 5 12 C4 12 2 10 2 8 C1 5 3 4 4 1 Z" />
+              </svg>
+              3
+            </div>
+          </div>
+          <div class="app-body">
+            <div class="hero-card-mini">
+              <div class="hero-cover-mini">
+                <div class="book-cover c-fruchtagenten" style="padding: 5px;">
+                  <div class="bc-top">
+                    <div class="bc-series" style="font-size: 6px;">FA</div>
+                    <div class="bc-number" style="font-size: 18px;">01</div>
+                  </div>
+                  <div class="bc-title" style="font-size: 7.5px;">Mission<br>Friede</div>
+                </div>
+              </div>
+              <div class="hero-text-mini">
+                <div class="hero-label-mini">Weiterlesen</div>
+                <div class="hero-title-mini">Mission Friede</div>
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: auto;">
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: 42%"></div>
+                  </div>
+                  <span style="font-size: 9px; color: var(--ink-soft); font-weight: 500;">42%</span>
+                </div>
+                <button class="btn-mini">
+                  <svg viewBox="0 0 8 8">
+                    <path d="M1 0 L7 4 L1 8 Z" />
+                  </svg>
+                  Weiter
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-mini" style="margin-bottom: 6px;">Deine Reihen</div>
+              <div class="series-row">
+                <div class="series-mini" style="background: linear-gradient(145deg, var(--s-fruchtagenten), #8E3A28);">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.5"
+                       opacity="0.85">
+                    <circle cx="10" cy="12" r="6" />
+                    <path d="M10 6 V3 M10 3 Q13 3 13 5" stroke-linecap="round" />
+                  </svg>
+                  <div style="font-family: 'Fraunces', serif; font-size: 14px; font-style: italic; line-height: 1;">
+                    5<span
+                    style="font-size: 8px; opacity: 0.7; font-style: normal; font-family: 'DM Sans', sans-serif; margin-left: 2px;">Bände</span>
+                  </div>
+                </div>
+                <div class="series-mini" style="background: linear-gradient(145deg, var(--s-petrus), #264872);">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.5"
+                       opacity="0.85">
+                    <path d="M3 12 Q10 8 17 12" stroke-linecap="round" />
+                    <path d="M10 5 V13 M7 9 H13" stroke-linecap="round" />
+                  </svg>
+                  <div style="font-family: 'Fraunces', serif; font-size: 14px; font-style: italic; line-height: 1;">
+                    2<span
+                    style="font-size: 8px; opacity: 0.7; font-style: normal; font-family: 'DM Sans', sans-serif; margin-left: 2px;">Bände</span>
+                  </div>
+                </div>
+                <div class="series-mini" style="background: linear-gradient(145deg, var(--s-geschichte), #8A631E);">
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="1.5"
+                       opacity="0.85">
+                    <circle cx="10" cy="10" r="4" />
+                    <path d="M10 2 V4 M10 16 V18 M2 10 H4 M16 10 H18" stroke-linecap="round" />
+                  </svg>
+                  <div style="font-family: 'Fraunces', serif; font-size: 14px; font-style: italic; line-height: 1;">
+                    4<span
+                    style="font-size: 8px; opacity: 0.7; font-style: normal; font-family: 'DM Sans', sans-serif; margin-left: 2px;">Bände</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bottom-nav">
+            <div class="nav-item-sm active">
+              <svg viewBox="0 0 20 20">
+                <path d="M3 9 L10 3 L17 9 V17 H3 Z" />
+              </svg>
+              Start
+            </div>
+            <div class="nav-item-sm">
+              <svg viewBox="0 0 20 20">
+                <rect x="4" y="3" width="4" height="14" />
+                <rect x="9" y="3" width="4" height="14" />
+                <rect x="14" y="6" width="3" height="11" />
+              </svg>
+              Bibliothek
+            </div>
+            <div class="nav-item-sm">
+              <svg viewBox="0 0 20 20">
+                <path
+                  d="M10 3 A7 7 0 1 0 10 17 C12 17 12 15 11 14 C10 13 12 12 14 12 A3 3 0 0 0 17 9 A7 7 0 0 0 10 3 Z" />
+              </svg>
+              Ausmalen
+            </div>
+            <div class="nav-item-sm">
+              <svg viewBox="0 0 20 20">
+                <path d="M5 8 A5 5 0 1 0 15 8 A5 5 0 0 0 5 8 Z" />
+                <path d="M7 12 L5 19 L10 16 L15 19 L13 12" />
+              </svg>
+              Belohnung
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     ÜBER ANTON
+     ═══════════════════════════════════════════════ -->
+<section class="section about-section" id="about">
+  <div class="wrap about-inner">
+    <div class="about-portrait">
+      <!-- FOTO-PLATZHALTER: Echtes Autoren-Foto ersetzt diesen Block -->
+      <div class="about-portrait-placeholder">
+        <svg viewBox="0 0 56 56" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="28" cy="22" r="8" />
+          <path d="M12 48 C12 38 20 34 28 34 C36 34 44 38 44 48" />
+        </svg>
+        [Foto von Anton]
+      </div>
+    </div>
+
+    <div class="about-text">
+      <div class="section-eyebrow">Über den Autor</div>
+      <p class="about-quote">
+        Kinder verdienen Geschichten, die ihnen nicht nur gefallen — sondern sie auch tragen.
+      </p>
+      <p>
+        Mein Name ist Anton. Ich bin Vater, Christ und seit über zehn Jahren Autor von christlichen Kinderbüchern und
+        Liedern. SenfkornGeschichten ist das Projekt, das alles vereint: biblisch fundierte Inhalte, liebevoll erzählt,
+        für Kinder in einem Alter, in dem sie langsam beginnen, ihren eigenen Glauben zu formen.
+      </p>
+      <p>
+        Jede Geschichte, jedes Lied, jede Ausmalseite entsteht in enger Abstimmung mit Theolog:innen und Pädagog:innen —
+        und wird dann an meinen eigenen Kindern getestet, bevor sie zu euch kommt.
+      </p>
+      <div class="about-signature">
+        <div class="signature-mark">A</div>
+        <div class="about-signature-text">
+          <strong>Anton Müller</strong>
+          <span>Gründer · Autor · Vater</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     TRUST / FÜR ELTERN
+     ═══════════════════════════════════════════════ -->
+<section class="section trust">
+  <div class="wrap trust-inner">
+    <div class="trust-text">
+      <div class="section-eyebrow">Für Eltern</div>
+      <h2>Geschenke, die du mit <em>gutem Gewissen</em> überreichen kannst.</h2>
+      <p class="trust-lead">
+        Von christlichen Autor:innen, Pädagog:innen und Eltern für Familien gemacht, denen es nicht egal ist, was ihre
+        Kinder lesen, hören und anschauen.
+      </p>
+    </div>
+
+    <div class="trust-list">
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6 L12 3 L20 6 V12 C20 16 16 19 12 21 C8 19 4 16 4 12 Z" />
+            <path d="M9 12 L11 14 L15 10" />
+          </svg>
+        </div>
+        <div>
+          <div class="trust-title">Biblisch geprüft</div>
+          <div class="trust-text">Jede Geschichte von christlichen Autor:innen verfasst und theologisch gegengelesen —
+            ökumenisch verträglich.
+          </div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3 C 8 3 5 6 5 10 C 5 16 12 21 12 21 C 12 21 19 16 19 10 C 19 6 16 3 12 3 Z" />
+          </svg>
+        </div>
+        <div>
+          <div class="trust-title">Klimaneutral gedruckt</div>
+          <div class="trust-text">Alle Bücher werden Print-on-Demand bei Gelato gedruckt — nur was bestellt wird, wird
+            auch produziert. Kein Lagerüberschuss, kein Müll.
+          </div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M6 6 L18 18" />
+          </svg>
+        </div>
+        <div>
+          <div class="trust-title">Null Werbung in der App</div>
+          <div class="trust-text">Kein Tracking, keine Bannerwerbung, keine In-App-Käufe für Kinder.</div>
+        </div>
+      </div>
+
+      <div class="trust-item">
+        <div class="trust-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <path d="M4 10 H20 M10 4 V10" />
+          </svg>
+        </div>
+        <div>
+          <div class="trust-title">14 Tage Widerrufsrecht</div>
+          <div class="trust-text">Gefällt euch das Buch nicht, einfach zurücksenden. Keine Diskussion, keine
+            Extra-Gebühren.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     NEWSLETTER
+     Muss an Brevo / Mailchimp / Klaviyo angebunden werden
+     ═══════════════════════════════════════════════ -->
+<section class="newsletter" id="newsletter">
+  <div class="wrap newsletter-inner">
+    <div class="newsletter-icon">
+      <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+           stroke-linejoin="round">
+        <rect x="4" y="7" width="20" height="14" rx="2" />
+        <path d="M4 9 L14 16 L24 9" />
+      </svg>
+    </div>
+    <h2>Sei der Erste bei <em>neuen Geschichten.</em></h2>
+    <p>
+      Alle paar Wochen eine Mail mit neuen Buch-Veröffentlichungen, App-Updates, kostenlosen Ausmalseiten und einem
+      kleinen Impuls aus meinem Familien-Alltag.
+    </p>
+    <!-- Formular muss an Newsletter-Dienst angebunden werden (z.B. Brevo, Mailchimp) -->
+    <form class="newsletter-form" action="#" method="post">
+      <input type="email" name="email" class="newsletter-input" placeholder="deine@email.de" required>
+      <button type="submit" class="newsletter-btn">Anmelden</button>
+    </form>
+    <p class="newsletter-mini">Kein Spam, jederzeit abbestellbar. Mehr in der <a href="#"
+                                                                                 style="color: var(--ink-soft); text-decoration: underline;">Datenschutzerklärung</a>.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FAQ
+     Nutzt native <details> — kein JS nötig
+     ═══════════════════════════════════════════════ -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head centered">
+      <div class="section-eyebrow">Häufige Fragen</div>
+      <h2 class="section-title">Was du <em>wissen möchtest.</em></h2>
+    </div>
+
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-question">
+          Wo werden die Bücher gedruckt?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Alle Bücher werden bei Gelato gedruckt — einem Print-on-Demand-Partner mit Druckstandorten in über 30
+            Ländern. Dein Buch wird erst gedruckt, wenn du bestellst, und kommt vom nächstgelegenen Standort zu dir. Das
+            spart Transportwege und ist deutlich klimafreundlicher als zentrale Lagerhaltung.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Wie lange dauert der Versand?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Druck &amp; Versand zusammen dauern in der Regel 5–8 Werktage innerhalb Deutschlands. Das Buch wird erst
+            nach deiner Bestellung gedruckt — darum etwas länger als im Lagerversand.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Versendet ihr auch ins Ausland?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Ja — in die gesamte EU, die Schweiz, Großbritannien und viele weitere Länder. Die Bücher werden vom
+            nächstgelegenen Gelato-Druckzentrum versendet, das spart Zeit und CO₂. Versandkosten werden im Checkout
+            berechnet.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Was ist der Unterschied zwischen Buch und App?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Die gedruckten Bücher sind hochwertige Hardcover zum Lesen und Verschenken. Die App bietet dieselben
+            Geschichten zusätzlich zum Hören, Ausmalen und mit interaktiven Quiz-Fragen — plus Belohnungen und
+            Lese-Streaks.</p>
+          <p>Viele Familien nutzen beides: Buch für die Abend-Routine, App für unterwegs.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Ist der Inhalt an eine bestimmte Konfession gebunden?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Nein. SenfkornGeschichten ist bewusst ökumenisch und nicht konfessionsgebunden. Die Geschichten stützen
+            sich auf das gemeinsame Zeugnis der Bibel und sind sowohl für katholische als auch evangelische und
+            freikirchliche Familien geeignet.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Für welches Alter sind die Bücher geeignet?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Das hängt von der Reihe ab. Die <em>Fruchtagenten</em> sind für Kinder von 9 bis 11 Jahren geschrieben —
+            zum Selber-Lesen oder Vorlesen-Lassen. <em>Gottes große Geschichte</em> als Wimmelbuch eignet sich ab 6
+            Jahren, <em>Petrus &amp; Paulus</em> für 10 bis 12. Die empfohlene Altersgruppe steht bei jedem Buch oben.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Gibt es ein Widerrufsrecht?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Ja, wie gesetzlich vorgeschrieben: 14 Tage Widerrufsrecht ab Erhalt der Ware. Details zur Rücksendung
+            findest du in unseren AGB und der Widerrufsbelehrung.</p>
+        </div>
+      </details>
+
+      <details class="faq-item">
+        <summary class="faq-question">
+          Kann ich Bücher als Geschenk direkt an eine andere Adresse versenden?
+          <span class="faq-icon"><svg viewBox="0 0 12 12"><path d="M6 2 V10 M2 6 H10" /></svg></span>
+        </summary>
+        <div class="faq-answer">
+          <p>Ja — im Checkout kannst du eine abweichende Lieferadresse angeben. Auf Wunsch auch mit Geschenkverpackung
+            und persönlicher Karte (gegen kleinen Aufpreis).</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FINAL CTA · Zwei Wege
+     ═══════════════════════════════════════════════ -->
+<section class="final-cta">
+  <div class="wrap final-cta-inner">
+    <h2>Womit möchtest du <em>anfangen?</em></h2>
+    <p>Zwei Wege in die Welt der SenfkornGeschichten — wähl den, der zu eurer Familie passt.</p>
+
+    <div class="final-cta-options">
+      <a href="#books" class="final-option">
+        <div class="final-option-icon">
+          <svg viewBox="0 0 20 20">
+            <rect x="4" y="3" width="12" height="14" rx="1" />
+            <path d="M4 7 H16 M8 11 H12 M8 14 H11" />
+          </svg>
+        </div>
+        <h3>Ein Buch bestellen</h3>
+        <p>Hardcover, klimaneutral gedruckt, in 5–8 Tagen bei dir zu Hause.</p>
+        <span class="final-option-link">
+          Zu den Büchern
+          <svg viewBox="0 0 11 11"><path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" /></svg>
+        </span>
+      </a>
+
+      <a href="#app" class="final-option">
+        <div class="final-option-icon navy">
+          <svg viewBox="0 0 20 20">
+            <rect x="6" y="2" width="8" height="16" rx="1.5" />
+            <circle cx="10" cy="15" r="0.8" fill="currentColor" stroke="none" />
+          </svg>
+        </div>
+        <h3>App herunterladen</h3>
+        <p>Lesen, Hören, Ausmalen und Belohnungen — alles in einer App.</p>
+        <span class="final-option-link">
+          Zur App
+          <svg viewBox="0 0 11 11"><path d="M2 5.5 H9 M6.5 3 L9 5.5 L6.5 8" stroke-linecap="round" /></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+               stroke-linejoin="round">
+            <path d="M12 22 V11" />
+            <path d="M12 11 C8 11 6 8 6 5 C9 5 12 7 12 11" />
+            <path d="M12 11 C16 11 18 8 18 5 C15 5 12 7 12 11" />
+            <circle cx="12" cy="22" r="1.2" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="logo-text">SenfkornGeschichten</div>
+      </a>
+      <p class="footer-desc">
+        Christliche Kinderbücher und eine werbefreie App — für Familien, denen die Geschichten ihrer Kinder wichtig
+        sind.
+      </p>
+    </div>
+
+    <div class="footer-col">
+      <h4>Bücher</h4>
+      <ul>
+        <li><a href="#books">Alle Bücher</a></li>
+        <li><a href="#">Fruchtagenten</a></li>
+        <li><a href="#">Gottes große Geschichte</a></li>
+        <li><a href="#">Petrus &amp; Paulus</a></li>
+        <li><a href="#">Geschenk-Sets</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>App</h4>
+      <ul>
+        <li><a href="#app">Funktionen</a></li>
+        <li><a href="#">App Store</a></li>
+        <li><a href="#">Google Play</a></li>
+        <li><a href="#">Updates</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Service</h4>
+      <ul>
+        <li><a href="#about">Über Anton</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#newsletter">Newsletter</a></li>
+        <li><a href="#">Kontakt</a></li>
+        <li><a href="#">Presse</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="wrap footer-bottom">
+    <div>© 2026 SenfkornGeschichten · Made with ♥ in Deutschland</div>
+    <!-- Diese Links MÜSSEN mit echten rechtlichen Seiten verlinkt werden -->
+    <div class="footer-bottom-links">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+      <a href="#">AGB</a>
+      <a href="#">Widerrufsbelehrung</a>
+      <a href="#">Versand</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

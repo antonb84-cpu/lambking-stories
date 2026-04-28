@@ -45,6 +45,8 @@ const BookSchema = new Schema(
     releaseDate: { type: Date, required: true },
     updatedDate: { type: Date, required: true, default: () => new Date() },
     badges: { type: [String], default: [] },
+    websiteTags: { type: [String], default: [] },
+    websitePrice: { type: String, default: '' },
     cover: { type: String, default: '' },
     coverImage: { type: String, required: true },
     previewImage: { type: String, required: true },

@@ -2,6 +2,7 @@ packages:
   - '.'
   - 'server'
   - 'server/adminUI'
+  - 'website'
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - electron
