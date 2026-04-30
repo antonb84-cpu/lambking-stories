@@ -15,6 +15,14 @@
         a.nav-link(href="#about") Über Anton
         a.nav-link(href="#faq") FAQ
         a.nav-cta(v-if="newsletterEnabled", href="#newsletter") Newsletter
+        a.kofi-button(
+          href="https://ko-fi.com/U6U21YO0Z5",
+          target="_blank",
+          rel="noopener noreferrer",
+          title="Unterstütze mich auf hier"
+        )
+          img.kofi-img(src="https://storage.ko-fi.com/cdn/cup-border.png", alt="Ko-fi")
+          span.kofi-text Unterstütze mich auf hier
 </template>
 
 <script setup lang="ts">
@@ -103,9 +111,43 @@ const newsletterEnabled = runtime.newsletterEnabled
   }
 }
 
+.kofi-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #60daf0;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: filter 0.15s, transform 0.15s;
+
+  &:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+  }
+}
+
+.kofi-img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 @media (max-width: 820px) {
   .nav-links .nav-link {
     display: none;
+  }
+
+  .kofi-text {
+    display: none;
+  }
+
+  .kofi-button {
+    padding: 8px;
   }
 }
 </style>

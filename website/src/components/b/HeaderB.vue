@@ -10,7 +10,16 @@
             circle(cx="12", cy="22", r="1.2", fill="currentColor")
         span.b-logo-text SenfkornGeschichten
 
-      a.b-cta(v-if="buyUrl", :href="buyUrl", target="_blank", rel="noopener") buy
+      .b-header-actions
+        a.b-kofi(
+          href="https://ko-fi.com/U6U21YO0Z5",
+          target="_blank",
+          rel="noopener noreferrer",
+          title="Unterstütze mich auf hier"
+        )
+          img.b-kofi-img(src="https://storage.ko-fi.com/cdn/cup-border.png", alt="Ko-fi")
+          span.b-kofi-text Unterstütze mich auf hier
+        a.b-cta(v-if="buyUrl", :href="buyUrl", target="_blank", rel="noopener") buy
 </template>
 
 <script setup lang="ts">
@@ -83,9 +92,49 @@ defineProps<{ buyUrl: string }>()
   }
 }
 
+.b-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.b-kofi {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #60daf0;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: filter 0.15s, transform 0.15s;
+
+  &:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+  }
+}
+
+.b-kofi-img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 @media (max-width: 540px) {
   .b-logo-text {
     font-size: 15px;
+  }
+
+  .b-kofi-text {
+    display: none;
+  }
+
+  .b-kofi {
+    padding: 8px;
   }
 }
 </style>

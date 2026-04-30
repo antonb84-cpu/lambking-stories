@@ -18,7 +18,7 @@
         .about-signature
           .signature-mark A
           .about-signature-text
-            strong Anton Müller
+            strong Anton Bernt
             span Gründer · Autor · Vater
 </template>
 

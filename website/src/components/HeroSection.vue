@@ -52,28 +52,28 @@ const books = [
     series: 'Fruchtagenten',
     number: '01',
     title: 'Mission<br>Friede',
-    author: 'Anton Müller',
+    author: 'Anton Bernt',
     seriesClass: 'c-fruchtagenten'
   },
   {
     series: 'Petrus &amp; Paulus',
     number: '01',
     title: 'Der Ruf<br>am See',
-    author: 'Anton Müller',
+    author: 'Anton Bernt',
     seriesClass: 'c-petrus'
   },
   {
     series: 'Gottes gr. Geschichte',
     number: '01',
     title: 'Am<br>Anfang',
-    author: 'Anton Müller',
+    author: 'Anton Bernt',
     seriesClass: 'c-geschichte'
   },
   {
     series: 'Obstsalat-Agenten',
     number: '01',
     title: 'Das erste<br>Rätsel',
-    author: 'Anton Müller',
+    author: 'Anton Bernt',
     seriesClass: 'c-obstsalat'
   }
 ]

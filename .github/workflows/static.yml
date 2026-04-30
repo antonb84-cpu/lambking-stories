@@ -81,6 +81,10 @@ jobs:
         run: npm run build-github-demo
         working-directory: demo
 
+      - name: Build LambKing Website Production
+        run: npm run build-github-lamb-king
+        working-directory: main/website
+
       - name: Create Dist Folder
         run: mkdir dist
 
@@ -92,6 +96,9 @@ jobs:
 
       - name: Copy Demo Build
         run: cp -r demo/dist/* dist/demo/
+
+      - name: Copy LambKing Website Build
+        run: cp -r main/website/dist/* dist/lamb-king/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

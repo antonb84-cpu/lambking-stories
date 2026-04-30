@@ -66,6 +66,15 @@
           <label class="field-label">Website-Preis</label>
           <XInput v-model="draft.book.websitePrice" placeholder="inkl. MwSt. & Versand" />
         </div>
+
+        <div class="field col-12">
+          <label class="field-label">
+            Sales-Link ({{ activeLocale.toUpperCase() }})
+            <span class="muted">Wenn Sales-Link angegeben, webseite Buch verlinkt auf die Sale Seite</span>
+            <span class="muted">Druckausgabe — andere Sprache wird automatisch befüllt, solange sie leer ist</span>
+          </label>
+          <XInput v-model="activeEtsyLink" placeholder="https://www.etsy.com/listing/…" />
+        </div>
       </div>
     </section>
 
@@ -109,13 +118,6 @@
           />
         </div>
 
-        <div class="field col-12">
-          <label class="field-label">
-            Sales-Link ({{ activeLocale.toUpperCase() }})
-            <span class="muted">Druckausgabe — andere Sprache wird automatisch befüllt, solange sie leer ist</span>
-          </label>
-          <XInput v-model="activeEtsyLink" placeholder="https://www.etsy.com/listing/…" />
-        </div>
       </div>
     </section>
 
