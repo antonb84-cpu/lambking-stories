@@ -343,6 +343,14 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   margin: 0.5em auto;
   background: #f1f1f1;
+  /* Belt-and-braces protection alongside `draggable="false"` on the
+   * rendered tag: without these the browser starts an HTML5 image drag on
+   * mousedown, which steals the horizontal drag the swipe handlers above
+   * are listening for. `pointer-events: none` makes mouse/touch events
+   * pass straight through to the surrounding swipe surface. */
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .celebration {

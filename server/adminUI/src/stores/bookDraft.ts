@@ -3,6 +3,47 @@ import { computed, ref } from 'vue'
 import type { BookDTO, BookLocalization, Locale } from '@/types'
 import { normalizeAttachment } from '@/types'
 
+const AUTOSAVE_KEY_PREFIX = 'bookDraft:'
+const AUTOSAVE_INTERVAL_MS = 5000
+
+function storageKey(bookId: string): string {
+  return `${AUTOSAVE_KEY_PREFIX}${bookId || '_new'}`
+}
+
+interface StoredDraft {
+  savedAt: number
+  book: BookDTO
+  isEditingExisting: boolean
+}
+
+function readLocalDraft(bookId: string): StoredDraft | null {
+  try {
+    const raw = localStorage.getItem(storageKey(bookId))
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as StoredDraft
+    if (!parsed?.book) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function writeLocalDraft(bookId: string, payload: StoredDraft): void {
+  try {
+    localStorage.setItem(storageKey(bookId), JSON.stringify(payload))
+  } catch {
+    /* quota / disabled — autosave is best-effort */
+  }
+}
+
+function clearLocalDraft(bookId: string): void {
+  try {
+    localStorage.removeItem(storageKey(bookId))
+  } catch {
+    /* ignore */
+  }
+}
+
 function emptyLocalization(): BookLocalization {
   return { title: '', shortDescription: '', description: '', contentNotes: '', content: [] }
 }
@@ -50,11 +91,59 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
   // equality check; the strings stay small relative to any base64 uploads.
   const cleanSnapshot = ref<string>(JSON.stringify(book.value))
 
+  // Sticky banner flag — flips true when a `load(b)` or `restoreNewDraft()`
+  // pulls a localStorage backup back into the in-memory draft. The user has
+  // to dismiss the warning explicitly so they don't mistake a restored-but-
+  // unsaved state for a freshly saved one and walk away from the page.
+  const restoredDraftPending = ref(false)
+
   function snapshotClean() {
     cleanSnapshot.value = JSON.stringify(book.value)
+    // After a successful save the server-persisted state and the in-memory
+    // draft agree, so the local backup must be discarded — otherwise an F5
+    // would resurrect old "dirty" state and silently overwrite the saved
+    // version on the next autosave tick.
+    clearLocalDraft(book.value.bookId || '_new')
+    // The "you have unsaved restored changes" warning is no longer truthful
+    // once the server confirms the save, so retire it automatically.
+    restoredDraftPending.value = false
   }
 
   const isDirty = computed(() => JSON.stringify(book.value) !== cleanSnapshot.value)
+
+  // 5-second autosave: dump the current draft to localStorage so a hard
+  // reload (F5) or an unexpected error doesn't lose unsaved work. We only
+  // write when dirty so we don't churn storage with redundant copies of the
+  // server's clean state.
+  let autosaveTimer: ReturnType<typeof setInterval> | null = null
+  let lastAutosaveBookId = ''
+
+  function startAutosave() {
+    if (autosaveTimer) return
+    autosaveTimer = setInterval(() => {
+      const id = book.value.bookId || '_new'
+      // If the bookId changed (user just filled in the slug for a brand-new
+      // book) clean up the prior `_new` slot so we don't accumulate stale
+      // recovery rows.
+      if (lastAutosaveBookId && lastAutosaveBookId !== id) {
+        clearLocalDraft(lastAutosaveBookId)
+      }
+      lastAutosaveBookId = id
+      if (!isDirty.value) return
+      writeLocalDraft(id, {
+        savedAt: Date.now(),
+        book: JSON.parse(JSON.stringify(book.value)) as BookDTO,
+        isEditingExisting: isEditingExisting.value
+      })
+    }, AUTOSAVE_INTERVAL_MS)
+  }
+
+  function stopAutosave() {
+    if (autosaveTimer) {
+      clearInterval(autosaveTimer)
+      autosaveTimer = null
+    }
+  }
 
   const setLocale = (l: Locale) => {
     if (!book.value.localizations[l]) book.value.localizations[l] = emptyLocalization()
@@ -77,6 +166,9 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
   })
 
   const reset = () => {
+    // Drop both the in-memory and persisted draft for whatever was being
+    // edited so a "Zurücksetzen" can't be undone by an F5 + autosave race.
+    clearLocalDraft(book.value.bookId || '_new')
     book.value = emptyBook()
     activeLocale.value = 'de'
     isEditingExisting.value = false
@@ -89,7 +181,9 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
       achievementBadgeDe: null,
       achievementBadgeEn: null
     }
-    snapshotClean()
+    cleanSnapshot.value = JSON.stringify(book.value)
+    lastAutosaveBookId = ''
+    restoredDraftPending.value = false
   }
 
   const load = (b: BookDTO) => {
@@ -104,10 +198,41 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     } else {
       cloned.attachments = []
     }
-    book.value = cloned
+    // The server snapshot is always treated as the canonical "clean" state
+    // for dirty-tracking. When a localStorage draft exists for the same
+    // bookId we restore those unsaved edits on top, so isDirty correctly
+    // reflects "you have changes that haven't been pushed yet" after F5.
+    cleanSnapshot.value = JSON.stringify(cloned)
+    const local = readLocalDraft(b.bookId)
+    if (local && local.book) {
+      book.value = local.book
+      isEditingExisting.value = local.isEditingExisting ?? true
+      restoredDraftPending.value = true
+    } else {
+      book.value = cloned
+      isEditingExisting.value = true
+    }
     activeLocale.value = 'de'
-    isEditingExisting.value = true
-    snapshotClean()
+    lastAutosaveBookId = book.value.bookId || '_new'
+  }
+
+  // Restore an in-progress new-book draft (the `_new` slot) on dashboard
+  // mount when the user hasn't selected anything yet. Returns true if a
+  // draft was actually restored.
+  function restoreNewDraft(): boolean {
+    const local = readLocalDraft('_new')
+    if (!local || !local.book) return false
+    book.value = local.book
+    isEditingExisting.value = local.isEditingExisting ?? false
+    activeLocale.value = 'de'
+    cleanSnapshot.value = JSON.stringify(emptyBook())
+    lastAutosaveBookId = '_new'
+    restoredDraftPending.value = true
+    return true
+  }
+
+  function dismissRestoredDraftBanner() {
+    restoredDraftPending.value = false
   }
 
   const missingFields = computed<{ label: string; anchor: string }[]>(() => {
@@ -119,8 +244,10 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     if (!b.category) m.push({ label: 'Kategorie', anchor: 'field-category' })
     if (!b.bookSeriesId) m.push({ label: 'Buchreihe', anchor: 'field-bookSeries' })
     if (!b.releaseDate) m.push({ label: 'Erscheinungsdatum', anchor: 'field-releaseDate' })
-    if (!b.coverImage) m.push({ label: 'Cover-Bild', anchor: 'field-cover' })
-    if (!b.previewImage) m.push({ label: 'Preview-Bild', anchor: 'field-preview' })
+    // Cover/Preview are intentionally NOT in this list — BookForm.submit()
+    // auto-uploads the bundled placeholder for whichever slot is empty so
+    // a hasty "save" still passes the API's required-image check. The user
+    // can replace the placeholder upload later without any blocking gate.
     if (!de?.title) m.push({ label: 'Titel (DE)', anchor: 'field-title' })
     if (!de?.shortDescription) m.push({ label: 'Kurzbeschreibung (DE)', anchor: 'field-shortDescription' })
     if (!de?.description) m.push({ label: 'Beschreibung (DE)', anchor: 'field-description' })
@@ -145,6 +272,11 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     missingAnchors,
     setLocale,
     reset,
-    load
+    load,
+    restoreNewDraft,
+    startAutosave,
+    stopAutosave,
+    restoredDraftPending,
+    dismissRestoredDraftBanner
   }
 })

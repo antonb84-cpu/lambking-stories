@@ -23,7 +23,51 @@
     </template>
 
     <template v-else>
-      <header class="sticky top-0 z-20 app-header">
+      <div
+        v-if="draft.restoredDraftPending"
+        class="server-banner is-warn"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div class="server-banner-inner">
+          <strong>
+            Achtung: Wir haben deine letzten, ungespeicherten Änderungen aus dem lokalen Speicher
+            wiederhergestellt. Sie wurden noch NICHT zum Server geschickt — bitte speichern, bevor
+            du die Seite verlässt, sonst gehen sie verloren.
+          </strong>
+          <button
+            type="button"
+            class="server-banner-action"
+            @click="draft.dismissRestoredDraftBanner"
+          >Okay
+          </button>
+        </div>
+      </div>
+      <div
+        v-if="serverStatus.state === 'down'"
+        class="server-banner is-down"
+        role="alert"
+        aria-live="assertive"
+      >
+        <div class="server-banner-inner">
+          <strong>Die Webseite kann den Server nicht erreichen. Der Server ist vermutlich in Wartung.</strong>
+          <span class="server-banner-warning">
+            WICHTIG: Speichern ist gerade nicht möglich, weil der Server nicht reagiert. Du könntest Daten verlieren, wenn du nicht wartest.
+          </span>
+        </div>
+      </div>
+      <div
+        v-else-if="serverStatus.state === 'recovering'"
+        class="server-banner is-up"
+        role="status"
+        aria-live="polite"
+      >
+        <div class="server-banner-inner">
+          <strong>Server is up again, continue</strong>
+        </div>
+      </div>
+
+      <header class="app-header">
         <div class="app-header-inner">
           <span class="app-header-logo">
             <img src="/images/logo/logo_256x256.webp" alt="logo">
@@ -48,9 +92,13 @@
 import { onMounted, ref } from 'vue'
 import DashboardView from '@/views/DashboardView.vue'
 import XToaster from '@/components/atoms/XToaster.vue'
+import { useServerStatusStore } from '@/stores/serverStatus'
+import { useBookDraftStore } from '@/stores/bookDraft'
 
 type AuthState = 'loading' | 'authorized' | 'denied'
 const authState = ref<AuthState>('loading')
+const serverStatus = useServerStatusStore()
+const draft = useBookDraftStore()
 
 async function checkAuth() {
   authState.value = 'loading'
@@ -75,6 +123,76 @@ onMounted(checkAuth)
   radial-gradient(1000px 500px at 100% 10%, #cde5f5 0%, transparent 60%),
   radial-gradient(900px 500px at 50% 110%, #e4f1fb 0%, transparent 55%),
   linear-gradient(135deg, #eaf3fb 0%, #d8e8f5 100%);
+}
+
+.server-banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  padding: 10px 18px;
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.45);
+}
+
+.server-banner.is-down {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 60%, #ef4444 100%);
+  color: #fff7f7;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.server-banner.is-up {
+  background: linear-gradient(135deg, #15803d 0%, #16a34a 60%, #22c55e 100%);
+  color: #f0fdf4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.server-banner.is-warn {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 55%, #f59e0b 100%);
+  color: #fff8eb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.server-banner-action {
+  align-self: center;
+  margin-top: 4px;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: background 140ms ease, transform 80ms ease;
+}
+
+.server-banner-action:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.server-banner-action:active {
+  transform: scale(0.97);
+}
+
+.server-banner-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.server-banner-warning {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 4px 10px;
+  border-radius: 8px;
 }
 
 .app-header {

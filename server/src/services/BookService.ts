@@ -79,6 +79,32 @@ export const BookService = {
     return absolutizeBook(toDTO(doc as unknown as { toJSON: () => unknown }))
   },
 
+  // Returns true if any book's page text in any locale still references the
+  // image URL. Strips scheme+host so absolutized callers (admin UI) match
+  // the relative form stored in MongoDB.
+  async isContentImageReferenced(rawUrl: string): Promise<boolean> {
+    if (!rawUrl) return false
+    const rel = rawUrl
+      .replace(/^https?:\/\/[^/]+/i, '')
+      .replace(/^\/+/, '/')
+    if (!rel.includes('/uploads/')) return false
+    // Match either the relative path or any absolutized variant — a page
+    // text might hold either, depending on whether the absolutizer ran on
+    // its way through the read pipeline.
+    const escaped = rel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const filenameOnly = rel.split('/').pop() ?? ''
+    const filenameEscaped = filenameOnly.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const pattern = `(${escaped}|${filenameEscaped})`
+    const regex = new RegExp(pattern)
+    const hit = await Book.findOne({
+      $or: [
+        { 'localizations.de.content.text': { $regex: regex } },
+        { 'localizations.en.content.text': { $regex: regex } }
+      ]
+    }).select({ bookId: 1 }).lean().exec()
+    return Boolean(hit)
+  },
+
   async remove(bookId: string) {
     const doc = await Book.findOneAndDelete({ bookId }).exec()
     if (!doc) throw HttpError.notFound(`Book with id "${bookId}" not found`)

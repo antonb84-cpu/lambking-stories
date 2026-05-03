@@ -2,7 +2,11 @@
   <div class="taxonomy-section">
     <div class="tax-head">
       <h3 class="tax-title">Buchreihen</h3>
-      <span class="count-badge">{{ store.items.length }}</span>
+      <span
+        class="count-badge has-tooltip"
+        :data-tooltip="`Anzahl angelegter Buchreihen — derzeit ${store.items.length}`"
+        tabindex="0"
+      >{{ store.items.length }}</span>
     </div>
     <div class="flex items-stretch gap-1">
       <input
@@ -28,6 +32,11 @@
       >
         <span class="chip-prefix">{{ s.prefix }}</span>
         <span class="chip-name">{{ s.name }}</span>
+        <span
+          class="chip-count has-tooltip"
+          :data-tooltip="`${countFor(s.seriesId)} Buch/Bücher in dieser Reihe`"
+          tabindex="0"
+        >{{ countFor(s.seriesId) }}</span>
         <button
           class="chip-remove has-tooltip"
           data-tooltip="ALT + Rechtsklick zum PERMANENTEN Löschen (ich hoffe du weißt was du tust!!!)"
@@ -41,11 +50,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { useSeriesStore } from '@/stores/series'
 import { useToastStore } from '@/stores/toast'
 import { ApiClientError } from '@/api/client'
+import type { BookDTO } from '@/types'
+
+const props = defineProps<{ books?: BookDTO[] }>()
 
 const store = useSeriesStore()
 const toast = useToastStore()
@@ -53,6 +65,22 @@ const toast = useToastStore()
 const name = ref('')
 const prefix = ref('')
 const busy = ref(false)
+
+// Pre-bucket the book list by seriesId once per books-array change so the
+// per-chip count lookup stays O(1) even with hundreds of books.
+const countBySeries = computed<Record<string, number>>(() => {
+  const out: Record<string, number> = {}
+  for (const b of props.books ?? []) {
+    const id = b.bookSeriesId
+    if (!id) continue
+    out[id] = (out[id] ?? 0) + 1
+  }
+  return out
+})
+
+function countFor(seriesId: string): number {
+  return countBySeries.value[seriesId] ?? 0
+}
 
 const add = async () => {
   if (!name.value.trim()) return

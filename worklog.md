@@ -7,3 +7,4 @@
 | 21.04.26 | 8h    | logging, adminUI UX, db backup, book reader                                 |
 | 27.04.26 | 8h    | AdminUI attachments, coloring app, sales link, editor fixes, content editor |
 | 28.04.26 | 8h    | coloring app, attachment loading.                                           |
+| 03.05.26 | 6h    | image fixes, tooltips, qol adminUI                                          |

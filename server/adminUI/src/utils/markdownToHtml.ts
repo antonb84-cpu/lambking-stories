@@ -47,9 +47,13 @@ function applyInline(text: string, opts: MarkdownToHtmlOptions): string {
   let out = escapeHtml(text)
 
   // Images. We escape attrs after resolving so blob:/https: URLs survive.
+  // `draggable="false"` keeps the browser from initiating a native HTML5
+  // drag on the `<img>`, which would otherwise eat horizontal mouse drags
+  // inside the iPhone preview's swipe area (and any other consumer of this
+  // renderer that wraps images in a draggable surface).
   out = out.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_m, alt: string, url: string) => {
     const src = escapeAttr(resolveSrc(url))
-    return `<img class="${imgClass}" src="${src}" alt="${escapeAttr(alt)}" />`
+    return `<img class="${imgClass}" src="${src}" alt="${escapeAttr(alt)}" draggable="false" />`
   })
 
   // Bold first so `**foo**` doesn't get partially eaten by the italic pass.

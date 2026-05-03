@@ -1,3 +1,5 @@
+import { useServerStatusStore } from '@/stores/serverStatus'
+
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 export interface ApiError {
@@ -19,7 +21,21 @@ export class ApiClientError extends Error {
   }
 }
 
-async function request<T>(method: HttpMethod, path: string, body?: unknown, init?: RequestInit): Promise<T> {
+// 502/503/504 (and a TypeError thrown by fetch on a broken connection) are
+// the signatures of an unreachable backend. We treat all of them as "server
+// down" and let the serverStatus store surface the banner + queue retries.
+const OFFLINE_STATUSES = new Set([502, 503, 504])
+
+function isOfflineFetchError(err: unknown): boolean {
+  return err instanceof TypeError
+}
+
+async function performRequest<T>(
+  method: HttpMethod,
+  path: string,
+  body?: unknown,
+  init?: RequestInit
+): Promise<T> {
   const res = await fetch(path, {
     method,
     credentials: 'include',
@@ -27,6 +43,11 @@ async function request<T>(method: HttpMethod, path: string, body?: unknown, init
     body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     ...init
   })
+  if (OFFLINE_STATUSES.has(res.status)) {
+    const err = new ApiClientError(res.status, { code: 'OFFLINE', message: res.statusText })
+    ;(err as ApiClientError & { __offline: true }).__offline = true
+    throw err
+  }
   if (res.status === 204) return undefined as T
   const text = await res.text()
   const parsed = text ? JSON.parse(text) : {}
@@ -35,6 +56,31 @@ async function request<T>(method: HttpMethod, path: string, body?: unknown, init
     throw new ApiClientError(res.status, err)
   }
   return parsed as T
+}
+
+async function request<T>(method: HttpMethod, path: string, body?: unknown, init?: RequestInit): Promise<T> {
+  try {
+    return await performRequest<T>(method, path, body, init)
+  } catch (err) {
+    const isOffline =
+      isOfflineFetchError(err) || (err as ApiClientError & { __offline?: true })?.__offline === true
+    if (!isOffline) throw err
+    // Mark the server down and park this request until /healthz comes back.
+    // The promise we return here only resolves when the queued retry
+    // succeeds (or the retry itself errors out for an unrelated reason),
+    // so callers transparently keep their async-await flow.
+    const status = useServerStatusStore()
+    status.markDown()
+    return new Promise<T>((resolve, reject) => {
+      status.enqueueRetry(async () => {
+        try {
+          resolve(await performRequest<T>(method, path, body, init))
+        } catch (retryErr) {
+          reject(retryErr)
+        }
+      })
+    })
+  }
 }
 
 export const apiClient = {

@@ -11,9 +11,9 @@
           </div>
         </header>
         <div class="taxonomy-split">
-          <SeriesManager />
+          <SeriesManager :books="books" />
           <div class="taxonomy-divider" />
-          <CategoryManager />
+          <CategoryManager :books="books" />
         </div>
       </section>
 
@@ -78,11 +78,21 @@ const previewAchievementBadge = computed(() => {
 })
 
 onMounted(async () => {
+  // Recover an unsaved new-book draft *before* fetching the catalogue —
+  // doing it after gives the user a flash of "empty form" while the
+  // request is in flight, which is exactly the data-loss anxiety this
+  // restore is meant to prevent.
+  draft.restoreNewDraft()
+  draft.startAutosave()
   try {
     await Promise.all([series.load(), categories.load(), refreshBooks()])
   } catch (err) {
     toast.error((err as Error).message, 'Laden fehlgeschlagen')
   }
+})
+
+onBeforeUnmount(() => {
+  draft.stopAutosave()
 })
 
 async function refreshBooks() {

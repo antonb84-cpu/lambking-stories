@@ -10,6 +10,7 @@ import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
 import ABottomNav from '@/components/atoms/ABottomNav.vue'
 import APager from '@/components/atoms/APager.vue'
 import useModels from '@/use/useModels'
+import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -161,11 +162,11 @@ watch(bookId, () => {
               :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
             )
             img(
-              v-if="book.coverImage || book.previewImage"
-              :src="book.coverImage || book.previewImage"
+              :src="withPlaceholder(book.coverImage, book.previewImage)"
               :alt="t(book.title)"
               class="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
+              @error="onImgFallback"
             )
 
           div(class="flex items-center gap-2 flex-wrap")

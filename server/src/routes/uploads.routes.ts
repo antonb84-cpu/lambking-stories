@@ -28,4 +28,6 @@ router.post(
 
 router.post('/attachments', writeLimiter, basicAuthGuard, pdfUpload.single('file'), c.uploadAttachment)
 
+router.delete('/images', writeLimiter, basicAuthGuard, c.deleteImage)
+
 export default router

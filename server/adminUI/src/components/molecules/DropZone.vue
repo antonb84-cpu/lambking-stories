@@ -250,9 +250,21 @@ defineExpose({ reset: dd.reset })
 }
 
 .icon-tile.has-preview {
+  width: 78px;
+  height: 78px;
+  border-radius: 24px;
   padding: 0;
   overflow: hidden;
   background: #f4f4f4;
+}
+
+/* PDFs have no inline preview thumbnail (DropZone keeps showing the file
+ * glyph), so size up by the success state instead — covers both image+audio
+ * with a previewUrl and PDF after a successful upload. */
+.drop-zone.is-success .icon-tile {
+  width: 78px;
+  height: 78px;
+  border-radius: 24px;
 }
 
 .icon-tile.is-audio-preview {

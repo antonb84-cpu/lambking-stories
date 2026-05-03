@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
 interface Props {
   title?: string
@@ -54,10 +55,10 @@ const onPointerDown = (e: PointerEvent) => {
     )
       slot(name="image")
         img(
-          v-if="image"
-          :src="image"
+          :src="image || PLACEHOLDER_IMAGE"
           :alt="imageAlt || title"
           class="absolute inset-0 w-full h-full object-cover"
+          @error="onImgFallback"
         )
       span(class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/10")
       slot(name="badge")

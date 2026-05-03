@@ -279,6 +279,30 @@ textarea.glass:focus,
   max-width: 180px;
 }
 
+.tax-chip .chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: #2471a3;
+  background: rgba(52, 152, 219, 0.14);
+  border: 1px solid rgba(52, 152, 219, 0.28);
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  cursor: help;
+}
+
+.tax-chip.is-reserved .chip-count {
+  color: #7a3f10;
+  background: rgba(220, 130, 70, 0.18);
+  border-color: rgba(220, 130, 70, 0.4);
+}
+
 .tax-chip .chip-remove {
   width: 16px;
   height: 16px;
@@ -336,7 +360,7 @@ textarea.glass:focus,
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  padding: 5px 9px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 10.5px;
   font-weight: 600;
@@ -344,7 +368,14 @@ textarea.glass:focus,
   color: #fff;
   background: rgba(36, 113, 163, 0.95);
   box-shadow: 0 8px 20px -8px rgba(20, 60, 100, 0.5);
-  white-space: nowrap;
+  /* Wrap longer messages so multi-sentence tooltips (editor shortcuts,
+   * dangerous-action warnings) don't disappear off the right edge of the
+   * panel; the max-width keeps them from spanning the whole page. */
+  white-space: normal;
+  text-align: center;
+  max-width: 320px;
+  width: max-content;
+  line-height: 1.35;
   opacity: 0;
   pointer-events: none;
   transition: opacity 140ms ease, transform 140ms ease;
@@ -375,6 +406,21 @@ textarea.glass:focus,
 .has-tooltip:focus-visible::before {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* `tooltip-below` flips placement so the bubble sits under the trigger.
+ * Used on the editor toolbar buttons whose default upward tooltip would
+ * be clipped by the editor card's overflow:hidden. */
+.has-tooltip.tooltip-below::after {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+.has-tooltip.tooltip-below::before {
+  bottom: auto;
+  top: calc(100% + 2px);
+  border-top-color: transparent;
+  border-bottom-color: rgba(36, 113, 163, 0.95);
 }
 
 /* Pill that names a required field the admin still needs to fill in.

@@ -63,7 +63,10 @@
         </div>
 
         <div class="field col-12">
-          <label class="field-label">Website-Preis</label>
+          <label class="field-label">
+            Website-Preis
+            <span class="muted">optional — wird nur auf der Webseite angezeigt, wenn ein Wert eingetragen ist</span>
+          </label>
           <XInput v-model="draft.book.websitePrice" placeholder="inkl. MwSt. & Versand" />
         </div>
 
@@ -139,7 +142,7 @@
             hint="16:9 · 800x450, 1280×720 · max 3 MB"
             subhint=".webp bevorzugt · ziehen oder klicken"
             :status="draft.uploadStatus.cover"
-            :preview-url="draft.book.coverImage || undefined"
+            :preview-url="draft.book.coverImage || PLACEHOLDER_IMAGE"
             :on-file="uploadCover"
           />
         </div>
@@ -151,7 +154,7 @@
             hint="1:1 · 512×512 or larger · max 2 MB"
             subhint=".webp bevorzugt · ziehen oder klicken"
             :status="draft.uploadStatus.preview"
-            :preview-url="draft.book.previewImage || undefined"
+            :preview-url="draft.book.previewImage || PLACEHOLDER_IMAGE"
             :on-file="uploadPreview"
           />
         </div>
@@ -218,7 +221,10 @@
         </div>
       </header>
       <div id="field-content" :class="activeLocale === 'de' ? fieldClass('field-content') : ''">
-        <RichTextEditor v-model="draft.activeLocalization.content" />
+        <RichTextEditor
+          v-model="draft.activeLocalization.content"
+          @image-removed="onImageRemoved"
+        />
       </div>
 
       <div class="mt-6">
@@ -316,6 +322,7 @@ import RichTextEditor from './RichTextEditor.vue'
 import RichTextNotesEditor from './RichTextNotesEditor.vue'
 import AttachmentsEditor from './AttachmentsEditor.vue'
 import ConfirmDiscardModal from '@/components/molecules/ConfirmDiscardModal.vue'
+import { PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
 import { useBookDraftStore } from '@/stores/bookDraft'
 import { useSeriesStore } from '@/stores/series'
@@ -571,9 +578,56 @@ async function onTranslateSwitch(from: 'de' | 'en', to: 'de' | 'en') {
   }
 }
 
+// URLs the user removed from the editor since the last save. Cleaned up on
+// the server only after the save itself succeeds — that way we never delete
+// an image that's still referenced by the persisted version of the book.
+const pendingImageDeletes = ref<Set<string>>(new Set())
+
+function onImageRemoved(url: string) {
+  if (!url) return
+  pendingImageDeletes.value.add(url)
+}
+
+async function flushImageDeletes(urls: string[]) {
+  if (!urls.length) return
+  await Promise.allSettled(urls.map((u) => uploadsApi.deleteImage(u)))
+}
+
+// Promotes the bundled placeholder.webp into a real server-side upload so
+// the book record passes the API's `coverImage`/`previewImage` required
+// checks. Used when the admin saves a brand-new book before they've had
+// time to attach proper artwork — they get a valid placeholder URL on the
+// server filesystem and can replace it later.
+async function uploadPlaceholderAs(kind: 'cover' | 'preview'): Promise<string> {
+  const res = await fetch(PLACEHOLDER_IMAGE, { cache: 'force-cache' })
+  if (!res.ok) throw new Error(`Placeholder konnte nicht geladen werden (${res.status})`)
+  const blob = await res.blob()
+  const file = new File([blob], 'placeholder.webp', { type: blob.type || 'image/webp' })
+  const out = await uploadsApi.image(file, kind)
+  return out.url
+}
+
+async function ensureRequiredImages() {
+  if (!draft.book.coverImage) {
+    const url = await uploadPlaceholderAs('cover')
+    draft.book.coverImage = url
+    draft.uploadStatus.cover = { ok: true, filename: 'placeholder.webp' }
+  }
+  if (!draft.book.previewImage) {
+    const url = await uploadPlaceholderAs('preview')
+    draft.book.previewImage = url
+    draft.uploadStatus.preview = { ok: true, filename: 'placeholder.webp' }
+  }
+}
+
 async function submit() {
   submitting.value = true
   try {
+    // Auto-fill missing artwork with a real upload of the bundled
+    // placeholder image so a hasty "save" doesn't fail the server-side
+    // required check on coverImage/previewImage.
+    await ensureRequiredImages()
+
     const ab = draft.book.achievementBadge
     if (ab) {
       const de = ab.de || ''
@@ -601,6 +655,12 @@ async function submit() {
     // Successful save → the in-memory draft is now the canonical clean
     // state, so further edits flip `isDirty` back on as expected.
     draft.snapshotClean()
+    // Drain queued image deletions only after the save persisted, so the
+    // server can safely confirm "no book references this URL" before
+    // unlinking the file. The check is centralized server-side.
+    const toDelete = Array.from(pendingImageDeletes.value)
+    pendingImageDeletes.value = new Set()
+    void flushImageDeletes(toDelete)
     emit('saved', saved)
   } catch (err) {
     if (err instanceof ApiClientError && err.details?.length) {

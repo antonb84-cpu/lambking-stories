@@ -27,6 +27,24 @@ describe('useBookDraftStore', () => {
     expect(s.isGermanComplete).toBe(true)
   })
 
+  it('treats cover/preview as optional in the gating check (auto-uploaded on submit)', () => {
+    const s = useBookDraftStore()
+    s.book.bookId = 'fa-1-apple'
+    s.book.author = 'Author'
+    s.book.category = 'Früchte'
+    s.book.bookSeriesId = 'fruit-agents'
+    s.book.releaseDate = '2026-01-15'
+    // coverImage + previewImage intentionally left blank
+    s.activeLocalization.title = 'Der Apfel'
+    s.activeLocalization.shortDescription = 'kurz'
+    s.activeLocalization.description = 'lang'
+    s.activeLocalization.content = [{ page: 1, title: 'S1', text: 'text' }]
+    expect(s.isGermanComplete).toBe(true)
+    const labels = s.missingFields.map((m) => m.label)
+    expect(labels).not.toContain('Cover-Bild')
+    expect(labels).not.toContain('Preview-Bild')
+  })
+
   it('switches locale and creates an empty EN localization', () => {
     const s = useBookDraftStore()
     s.setLocale('en')

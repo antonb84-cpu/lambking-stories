@@ -1,5 +1,5 @@
 <template>
-  <div class="glass card !p-1 overflow-hidden">
+  <div class="glass card !p-1 overflow-hidden" :class="{ 'is-drop-active': isDropActive }">
     <div class="editor-toolbar">
       <div class="tool-group">
         <button type="button" class="toolbar-btn" :class="{ active: isBold }"
@@ -24,8 +24,20 @@
                 @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()">H2
         </button>
         <span class="tool-sep" />
-        <button type="button" class="toolbar-btn" @click="insertChapterBreak">📖 Kapitel</button>
-        <button type="button" class="toolbar-btn" @click="pickImage">🖼️ Bild</button>
+        <button
+          type="button"
+          class="toolbar-btn has-tooltip tooltip-below"
+          data-tooltip='Neue Seite einfügen — oder im Text "## Titel" (Seite mit Titel) bzw. "##" (leere neue Seite) am Zeilenanfang schreiben'
+          @click="insertChapterBreak"
+        >📖 Kapitel
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn has-tooltip tooltip-below"
+          data-tooltip="Bild einfügen — oder Shift+Strg+Rechtsklick im Editor (Bild landet an der Cursorposition) · Drag&Drop vom Datei-Explorer in den Editor funktioniert auch"
+          @click="pickImage"
+        >🖼️ Bild
+        </button>
         <input ref="imgInput" type="file" accept="image/webp,image/jpeg,image/png" class="editor-file-input"
                @change="onImage" />
       </div>
@@ -43,7 +55,15 @@
         @input="onMarkdownInput"
       />
     </div>
-    <div v-else class="p-3">
+    <div
+      v-else
+      class="p-3 editor-dropzone"
+      @dragenter.prevent="onEditorDragEnter"
+      @dragover.prevent="onEditorDragOver"
+      @dragleave.prevent="onEditorDragLeave"
+      @drop.prevent="onEditorDrop"
+      @contextmenu="onEditorContextMenu"
+    >
       <editor-content :editor="editor" class="prose-wrap" />
     </div>
 
@@ -64,7 +84,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import CharacterCount from '@tiptap/extension-character-count'
@@ -76,18 +96,80 @@ import { uploadsApi } from '@/api/uploads'
 import { useToastStore } from '@/stores/toast'
 import { cleanMarkdown } from '@/utils/markdownToHtml'
 import type { BookPage } from '@/types'
+import EditorImageNode from './EditorImageNode.vue'
 
 const props = defineProps<{ modelValue: BookPage[] }>()
-const emit = defineEmits<{ 'update:modelValue': [pages: BookPage[]] }>()
+const emit = defineEmits<{
+  'update:modelValue': [pages: BookPage[]]
+  'image-removed': [url: string]
+}>()
 
 const toast = useToastStore()
 const markdownMode = ref(false)
 const markdown = ref('')
 const imgInput = ref<HTMLInputElement | null>(null)
+const isDropActive = ref(false)
+
+// `pendingDeleteAtCaret` toggles the next file-pick between insert-at-cursor
+// (Shift+Ctrl+right-click) vs the toolbar button's normal "insert wherever
+// the editor currently has focus" behaviour. The position is captured from
+// the `contextmenu` event so a long upload doesn't lose the original click
+// location even if the user moves the mouse.
+const insertAtPos = ref<number | null>(null)
+
+// Custom image NodeView with a 300px-capped preview and a hover-trash button
+// that records the URL for server-side cleanup on save.
+//
+// IMPORTANT: tiptap-markdown's MarkdownSerializer reads `extensionStorage.image
+// .markdown.serialize` to know how to write an image as `![alt](url)`. By
+// extending Image we replace the storage entirely, so we must put the
+// serializer back on or every save round-trip would re-escape `[` and `]`
+// (one extra `\` per cycle, compounding across inserts).
+//
+// `draggable: false` on the schema (combined with `draggable="false"` on the
+// NodeView wrapper) disables ProseMirror's drag plugin for this node, which
+// previously raced with the browser's native HTML5 drag of `<img>` and
+// produced spurious duplicate inserts on internal reordering attempts.
+const ImagePreview = Image.extend({
+  name: 'image',
+  draggable: false,
+  addStorage() {
+    return {
+      pendingDeletes: new Set<string>(),
+      markdown: {
+        serialize(state: any, node: any) {
+          const alt = String(node.attrs.alt ?? '')
+          const src = String(node.attrs.src ?? '')
+          // `state.esc` is correct for the alt/src text — escapes only what
+          // markdown-it requires inside `![...](...)`. Block images need a
+          // `closeBlock` so the next paragraph starts on its own line.
+          state.write(`![${state.esc(alt)}](${state.esc(src)})`)
+          state.closeBlock(node)
+        },
+        parse: {}
+      }
+    }
+  },
+  addNodeView() {
+    return VueNodeViewRenderer(EditorImageNode)
+  }
+}).configure({ inline: false })
 
 const editor = useEditor({
-  extensions: [StarterKit, Image.configure({ inline: false }), CharacterCount, Markdown],
-  content: pagesToHtml(props.modelValue),
+  extensions: [StarterKit, ImagePreview, CharacterCount, Markdown],
+  // Seed the editor with markdown, not HTML — tiptap-markdown's setContent
+  // override parses string input through markdown-it so `![alt](url)` lands
+  // as a real Image node. The previous HTML-wrapped form turned every
+  // image into a literal text node on reload.
+  content: pagesToMarkdown(props.modelValue),
+  editorProps: {
+    handleDrop: () => {
+      // Files are handled by the wrapper's @drop listener (which has access
+      // to the upload API + caret position). Returning true here prevents
+      // ProseMirror from treating an image file drop as a no-op insertion.
+      return false
+    }
+  },
   onUpdate: ({ editor }) => {
     // `tiptap-markdown` writes hard-break `\` at line ends (CommonMark).
     // Normalising to plain newlines keeps the saved data clean and stops
@@ -97,6 +179,14 @@ const editor = useEditor({
     markdown.value = md
     const pages = detectChapters(md)
     emit('update:modelValue', pages)
+    // Drain any pending image deletions captured by EditorImageNode and
+    // bubble them up so the BookForm can dispatch server-side cleanups
+    // after a successful save.
+    const storage = editor.storage.image as { pendingDeletes?: Set<string> } | undefined
+    if (storage?.pendingDeletes && storage.pendingDeletes.size) {
+      for (const url of storage.pendingDeletes) emit('image-removed', url)
+      storage.pendingDeletes.clear()
+    }
   }
 })
 
@@ -114,8 +204,13 @@ watch(
       markdown.value = ''
       return
     }
-    editor.value.commands.setContent(pagesToHtml(next))
-    markdown.value = pagesToMarkdown(next)
+    // Use the markdown form for the round-trip so images stay as real Image
+    // nodes. Wrapping in HTML (`<p>![alt](url)</p>`) re-enters the editor as
+    // a plain text node and the next serialize escapes the brackets, causing
+    // each save cycle to add another backslash to every prior image.
+    const nextMd = pagesToMarkdown(next)
+    editor.value.commands.setContent(nextMd)
+    markdown.value = nextMd
   }
 )
 
@@ -143,37 +238,126 @@ const insertChapterBreak = () => {
   editor.value?.chain().focus().insertContent(`\n\n## Kapitel ${pageNumber}\n\n`).run()
 }
 
-const pickImage = () => imgInput.value?.click()
-const onImage = async (e: Event) => {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+const pickImage = () => {
+  insertAtPos.value = null
+  imgInput.value?.click()
+}
+
+// Insert position helper — `setImage` would replace the block under the
+// caret (chapter heading, prior image, etc.), so we always anchor the new
+// image to the position immediately *after* whichever top-level block the
+// caret/drop landed in. That way the image lands on its own fresh line and
+// we never destroy existing content.
+function insertAfterBlock(targetPos: number): number {
+  const e = editor.value
+  if (!e) return 0
+  const docSize = e.state.doc.content.size
+  const safePos = Math.min(Math.max(0, targetPos), docSize)
+  const $pos = e.state.doc.resolve(safePos)
+  if ($pos.depth < 1) return docSize
+  return $pos.after(1)
+}
+
+async function uploadAndInsert(file: File, posOverride: number | null) {
   try {
     const { url } = await uploadsApi.image(file, 'content')
-    editor.value?.chain().focus().setImage({ src: url, alt: file.name }).run()
+    const e = editor.value
+    if (!e) return
+    const targetPos = posOverride != null ? posOverride : e.state.selection.from
+    const insertPos = insertAfterBlock(targetPos)
+    e.chain()
+      .focus()
+      .insertContentAt(insertPos, [
+        { type: 'image', attrs: { src: url, alt: file.name } }
+      ])
+      .run()
     toast.success('Bild hochgeladen')
   } catch (err) {
     toast.error((err as Error).message)
-  } finally {
-    ;(e.target as HTMLInputElement).value = ''
   }
 }
 
-function pagesToHtml(pages: BookPage[]): string {
-  if (!pages.length) return ''
-  return pages
-    .map((p) => {
-      const text = cleanMarkdown(p.text)
-      return `<h2 data-page="${p.page}">${escapeHtml(p.title)}</h2><p>${escapeHtml(text).replace(/\n/g, '<br/>')}</p>`
-    })
-    .join('')
+const onImage = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  const pos = insertAtPos.value
+  insertAtPos.value = null
+  input.value = ''
+  if (!file) return
+  await uploadAndInsert(file, pos)
+}
+
+function posFromEvent(e: { clientX: number; clientY: number }): number | null {
+  const view = editor.value?.view
+  if (!view) return null
+  // posAtCoords relies on document.elementFromPoint which is missing under
+  // some test environments (jsdom). Defensive try/catch keeps the shortcut
+  // and drop handlers usable even when coordinate lookup fails — we just
+  // fall through to the editor's current selection.
+  try {
+    const coords = view.posAtCoords({ left: e.clientX, top: e.clientY })
+    return coords?.pos ?? null
+  } catch {
+    return null
+  }
+}
+
+function onEditorContextMenu(e: MouseEvent) {
+  // Shift+Ctrl+right-click → insert image at the click point.
+  if (!(e.shiftKey && e.ctrlKey)) return
+  e.preventDefault()
+  insertAtPos.value = posFromEvent(e)
+  imgInput.value?.click()
+}
+
+let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null
+
+function hasFiles(e: DragEvent): boolean {
+  const types = e.dataTransfer?.types
+  if (!types) return false
+  for (let i = 0; i < types.length; i++) if (types[i] === 'Files') return true
+  return false
+}
+
+function onEditorDragEnter(e: DragEvent) {
+  if (!hasFiles(e)) return
+  if (dragLeaveTimer) {
+    clearTimeout(dragLeaveTimer)
+    dragLeaveTimer = null
+  }
+  isDropActive.value = true
+}
+
+function onEditorDragOver(e: DragEvent) {
+  if (!hasFiles(e)) return
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
+  isDropActive.value = true
+}
+
+function onEditorDragLeave() {
+  // Leaves fire when crossing internal boundaries — debounce so the glow
+  // doesn't flicker as the cursor moves between child nodes.
+  if (dragLeaveTimer) clearTimeout(dragLeaveTimer)
+  dragLeaveTimer = setTimeout(() => {
+    isDropActive.value = false
+    dragLeaveTimer = null
+  }, 80)
+}
+
+async function onEditorDrop(e: DragEvent) {
+  isDropActive.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    toast.error('Nur Bilder können in den Editor gezogen werden.')
+    return
+  }
+  const pos = posFromEvent(e)
+  await uploadAndInsert(file, pos)
 }
 
 function pagesToMarkdown(pages: BookPage[]): string {
   return pages.map((p) => `## ${p.title}\n\n${cleanMarkdown(p.text)}`).join('\n\n')
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!)
 }
 </script>
 
@@ -360,8 +544,42 @@ function escapeHtml(s: string): string {
 }
 
 .prose-wrap :deep(.ProseMirror img) {
-  max-width: 100%;
+  max-width: 200px;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
   border-radius: 12px;
   margin: 0.5rem 0;
+}
+
+/* Highlight the editor body when a file is dragged over it so the user
+ * knows the entire editor is a valid drop zone. The glow scales with the
+ * editor border-radius so it matches the glass card chrome. */
+.editor-dropzone {
+  position: relative;
+  transition: box-shadow 160ms ease, background 160ms ease;
+  border-radius: 14px;
+}
+
+.is-drop-active .editor-dropzone {
+  background: rgba(214, 234, 248, 0.55);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.55) inset,
+  0 0 18px 4px rgba(93, 173, 226, 0.45),
+  0 0 32px 6px rgba(52, 152, 219, 0.35);
+  animation: editor-drop-glow 1.6s ease-in-out infinite;
+}
+
+@keyframes editor-drop-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.55) inset,
+    0 0 18px 4px rgba(93, 173, 226, 0.45),
+    0 0 32px 6px rgba(52, 152, 219, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.75) inset,
+    0 0 22px 6px rgba(93, 173, 226, 0.6),
+    0 0 38px 10px rgba(52, 152, 219, 0.45);
+  }
 }
 </style>

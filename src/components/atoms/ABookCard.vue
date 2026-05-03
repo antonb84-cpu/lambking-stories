@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 // Standalone book card — used by the reader's celebration page to surface
 // the next volume, but generic enough to reuse anywhere we need a compact,
 // image-led card.
@@ -40,11 +41,11 @@ function progressPct() {
         :style="{ background: coverGradient || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
       )
       img(
-        v-if="image"
-        :src="image"
+        :src="image || PLACEHOLDER_IMAGE"
         :alt="title"
         class="cover-img"
         loading="lazy"
+        @error="onImgFallback"
       )
       span(v-if="badge" class="badge") {{ badge }}
     div(class="body")

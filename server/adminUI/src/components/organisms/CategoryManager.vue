@@ -2,7 +2,11 @@
   <div class="taxonomy-section">
     <div class="tax-head">
       <h3 class="tax-title">Kategorien</h3>
-      <span class="count-badge">{{ store.items.length }}</span>
+      <span
+        class="count-badge has-tooltip"
+        :data-tooltip="`Anzahl angelegter Kategorien — derzeit ${store.items.length}`"
+        tabindex="0"
+      >{{ store.items.length }}</span>
     </div>
     <div class="flex items-stretch gap-1">
       <input
@@ -23,6 +27,11 @@
       >
         <span class="chip-name">{{ c.name }}</span>
         <span
+          class="chip-count has-tooltip"
+          :data-tooltip="`${countFor(c.name)} Buch/Bücher in dieser Kategorie`"
+          tabindex="0"
+        >{{ countFor(c.name) }}</span>
+        <span
           v-if="isReservedCategory(c.name)"
           class="chip-lock has-tooltip"
           data-tooltip="Reservierte Kategorie — Bücher hier sind in der App ausgeblendet und können nicht gelöscht werden."
@@ -42,16 +51,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { useCategoryStore } from '@/stores/categories'
 import { useToastStore } from '@/stores/toast'
-import { isReservedCategory } from '@/types'
+import { isReservedCategory, type BookDTO } from '@/types'
+
+const props = defineProps<{ books?: BookDTO[] }>()
 
 const store = useCategoryStore()
 const toast = useToastStore()
 const name = ref('')
 const busy = ref(false)
+
+const countByCategory = computed<Record<string, number>>(() => {
+  const out: Record<string, number> = {}
+  for (const b of props.books ?? []) {
+    const c = b.category
+    if (!c) continue
+    out[c] = (out[c] ?? 0) + 1
+  }
+  return out
+})
+
+function countFor(name: string): number {
+  return countByCategory.value[name] ?? 0
+}
 
 const add = async () => {
   const trimmed = name.value.trim()

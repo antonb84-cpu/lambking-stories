@@ -13,6 +13,7 @@ import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, Locale } from '@/types/apiBook'
+import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
@@ -148,11 +149,11 @@ function tagsForBook(b: ApiBook) {
                 :style="{ background: lastReadBook.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="lastReadBook.previewImage || lastReadBook.coverImage"
-                :src="lastReadBook.previewImage || lastReadBook.coverImage"
+                :src="withPlaceholder(lastReadBook.previewImage, lastReadBook.coverImage)"
                 :alt="localizedTitle(lastReadBook)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
+                @error="onImgFallback"
               )
           template(#badge)
             ABadge.new-badge(
@@ -197,11 +198,11 @@ function tagsForBook(b: ApiBook) {
                 :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
               )
               img(
-                v-if="book.previewImage || book.coverImage"
-                :src="book.previewImage || book.coverImage"
+                :src="withPlaceholder(book.previewImage, book.coverImage)"
                 :alt="localizedTitle(book)"
                 class="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
+                @error="onImgFallback"
               )
               ABadge.new-badge(
                 v-if="isNew(book.releaseDate)"

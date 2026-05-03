@@ -20,6 +20,7 @@ import useBookCache from '@/use/useBookCache'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiLocalizedPage, Locale } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
+import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
 const route = useRoute()
 const router = useRouter()
@@ -614,11 +615,12 @@ function goBack() {
               class="page-frame cover-frame"
             )
               img(
-                :src="resolved(slot.entry.image)"
+                :src="resolved(slot.entry.image) || PLACEHOLDER_IMAGE"
                 :alt="t(localization?.title || '')"
                 class="cover-img"
                 draggable="false"
                 @dragstart.prevent
+                @error="onImgFallback"
               )
 
             //- Content page

@@ -12,7 +12,12 @@ const resourceCache = {
   audio: new Map<string, HTMLAudioElement>()
 }
 
+// Placeholder is preloaded first so it's resident in cache before any list/
+// detail view renders an `<img>` that may fall back to it.
+const PLACEHOLDER_IMAGE_PATH = 'images/placeholder.webp'
+
 const STATIC_IMAGES = [
+  PLACEHOLDER_IMAGE_PATH,
   'images/logo/logo_512x512.webp',
   'images/icons/difficulty-icon_128x128.webp',
   'images/icons/settings-icon_128x128.webp',

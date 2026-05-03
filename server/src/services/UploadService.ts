@@ -43,6 +43,19 @@ function relUrl(rel: string): string {
   return '/' + rel.replace(/^\/+/, '')
 }
 
+// Accept either a fully-qualified URL or a stored relative path; strip the
+// leading slash so we can join it with UPLOADS_DIR safely.
+export function stripUploadPrefix(value: string): string | null {
+  if (!value) return null
+  let s = value
+  // Strip scheme + host so callers can pass either store-relative or
+  // absolutized URLs (the admin UI receives the absolutized form).
+  s = s.replace(/^https?:\/\/[^/]+/i, '')
+  s = s.replace(/^\/+/, '')
+  if (!s.startsWith('uploads/')) return null
+  return s
+}
+
 export const UploadService = {
   async saveAudio(buffer: Buffer, mimetype: string, bookId: string, lang: 'de' | 'en') {
     if (!AUDIO_MIME.has(mimetype)) {
@@ -74,6 +87,34 @@ export const UploadService = {
     await fs.writeFile(path.join(dir, name), buffer)
     const rel = `uploads/${subdir}/${name}`
     return { url: relUrl(rel), path: rel, kind }
+  },
+
+  // Delete a content image file from disk after callers have already
+  // verified that no document still references the URL. Returns whether the
+  // file was unlinked, or `notFound` when nothing was on disk to begin with
+  // (idempotent — repeated removal of the same URL is fine).
+  async deleteContentImage(url: string): Promise<{ deleted: boolean; reason?: string }> {
+    const rel = stripUploadPrefix(url)
+    if (!rel) return { deleted: false, reason: 'invalid-url' }
+    // Only allow deleting from the content-images bucket. Covers, previews,
+    // achievement badges, and audio files are managed via the book record
+    // and must NOT be deleted via this endpoint.
+    const contentSubdir = IMAGE_DIR_MAP.content
+    const expectedPrefix = `uploads/${contentSubdir}/`
+    if (!rel.startsWith(expectedPrefix)) return { deleted: false, reason: 'wrong-bucket' }
+    const filename = rel.slice(expectedPrefix.length)
+    if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+      return { deleted: false, reason: 'invalid-filename' }
+    }
+    const abs = path.resolve(env.UPLOADS_DIR, contentSubdir, filename)
+    try {
+      await fs.unlink(abs)
+      return { deleted: true }
+    } catch (err) {
+      const e = err as NodeJS.ErrnoException
+      if (e.code === 'ENOENT') return { deleted: false, reason: 'not-found' }
+      throw err
+    }
   },
 
   async saveAttachment(buffer: Buffer, mimetype: string, originalName: string) {

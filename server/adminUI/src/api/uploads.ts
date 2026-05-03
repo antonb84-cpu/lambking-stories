@@ -21,5 +21,13 @@ export const uploadsApi = {
     const form = new FormData()
     form.append('file', file)
     return apiClient.upload<UploadResult & { filename: string }>('/api/attachments', form)
+  },
+  // Deletes a content image from disk if (and only if) no book references it.
+  // The server is the source of truth for "still referenced" — the admin UI
+  // never sees the global book corpus.
+  deleteImage(url: string): Promise<{ deleted: boolean; reason?: string }> {
+    return apiClient.del<{ deleted: boolean; reason?: string }>(
+      `/api/images?url=${encodeURIComponent(url)}`
+    )
   }
 }

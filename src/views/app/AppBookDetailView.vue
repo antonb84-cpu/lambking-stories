@@ -15,6 +15,7 @@ import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
 import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
 import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
+import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -413,11 +414,11 @@ watch(currentTime, (v, prev) => {
             :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
           )
           img(
-            v-if="book.coverImage || book.previewImage"
-            :src="book.coverImage || book.previewImage"
+            :src="withPlaceholder(book.coverImage, book.previewImage)"
             :alt="localizedTitle"
             class="absolute inset-0 w-full h-full object-cover"
             loading="lazy"
+            @error="onImgFallback"
           )
           span(class="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/25")
 
