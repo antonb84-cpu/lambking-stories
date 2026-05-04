@@ -1,10 +1,5 @@
 <template>
-  <div
-    class="iphone"
-    :class="{ 'show-hint': showHint }"
-    @mouseenter="onHoverStart"
-    @mouseleave="onHoverEnd"
-  >
+  <div class="iphone">
     <div class="notch" />
     <div
       ref="screen"
@@ -21,7 +16,6 @@
       <div
         v-if="currentDisplay?.kind === 'cover'"
         class="cover-page"
-        :class="{ 'swipe-hint': showHint }"
         :style="{ transform: `translateX(${offset}px)` }"
       >
         <img
@@ -35,7 +29,6 @@
       <div
         v-else-if="currentDisplay?.kind === 'celebration'"
         class="celebration"
-        :class="{ 'swipe-hint': showHint }"
         :style="{ transform: `translateX(${offset}px)` }"
       >
         <AchievementBadge
@@ -64,18 +57,10 @@
       <div
         v-else
         class="page"
-        :class="{ 'swipe-hint': showHint }"
         :style="{ transform: `translateX(${offset}px)` }"
       >
         <h3 class="page-title">{{ currentDisplay?.page.title ?? 'Keine Seiten' }}</h3>
         <div class="page-body" v-html="renderedText" />
-      </div>
-
-      <!-- hover hint chevrons -->
-      <div v-if="showHint" class="hint-overlay" aria-hidden="true">
-        <div class="hint-chevron left">‹</div>
-        <div class="hint-chevron right">›</div>
-        <div class="hint-caption">wischen</div>
       </div>
 
       <div class="pager">
@@ -97,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, computed } from 'vue'
 import type { BookPage } from '@/types'
 import { markdownToHtml } from '@/utils/markdownToHtml'
 import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
@@ -106,9 +91,6 @@ const props = defineProps<{ pages: BookPage[]; coverImage?: string; achievementB
 const currentPageIndex = ref(0)
 const offset = ref(0)
 const dragStartX = ref<number | null>(null)
-const showHint = ref(false)
-
-let hintTimer: ReturnType<typeof setTimeout> | null = null
 
 type DisplayEntry =
   | { kind: 'cover'; image: string }
@@ -161,25 +143,6 @@ const endSwipe = () => {
   offset.value = 0
   dragStartX.value = null
 }
-
-function onHoverStart() {
-  if (hintTimer) clearTimeout(hintTimer)
-  hintTimer = setTimeout(() => {
-    showHint.value = true
-  }, 2000)
-}
-
-function onHoverEnd() {
-  if (hintTimer) {
-    clearTimeout(hintTimer)
-    hintTimer = null
-  }
-  showHint.value = false
-}
-
-onBeforeUnmount(() => {
-  if (hintTimer) clearTimeout(hintTimer)
-})
 </script>
 
 <style scoped>
@@ -193,14 +156,6 @@ onBeforeUnmount(() => {
   0 16px 40px -20px rgba(30, 60, 100, 0.35),
   inset 0 0 0 2px rgba(255, 255, 255, 0.12);
   position: relative;
-  transition: transform 220ms ease, box-shadow 220ms ease;
-}
-
-.iphone.show-hint {
-  transform: translateY(-2px);
-  box-shadow: 0 46px 90px -26px rgba(30, 60, 100, 0.65),
-  0 20px 46px -18px rgba(30, 60, 100, 0.4),
-  inset 0 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 .notch {
@@ -238,10 +193,6 @@ onBeforeUnmount(() => {
   background: #000;
 }
 
-.cover-page.swipe-hint {
-  animation: swipe-hint 1.6s ease-in-out infinite;
-}
-
 .cover-full {
   width: 100%;
   height: 100%;
@@ -257,10 +208,6 @@ onBeforeUnmount(() => {
   height: calc(100% - 40px);
   transition: transform 120ms ease-out;
   overflow-y: auto;
-}
-
-.page.swipe-hint {
-  animation: swipe-hint 1.6s ease-in-out infinite;
 }
 
 .page-title {
@@ -363,10 +310,6 @@ onBeforeUnmount(() => {
   gap: 14px;
   text-align: center;
   overflow-y: auto;
-}
-
-.celebration.swipe-hint {
-  animation: swipe-hint 1.6s ease-in-out infinite;
 }
 
 .celebration-burst {
@@ -530,95 +473,5 @@ onBeforeUnmount(() => {
   height: 4px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.3);
-}
-
-.hint-overlay {
-  position: absolute;
-  inset: 56px 0 36px;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 6px;
-  z-index: 3;
-}
-
-.hint-chevron {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  color: #fff;
-  background: rgba(52, 152, 219, 0.75);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  box-shadow: 0 6px 16px -6px rgba(52, 152, 219, 0.6);
-  animation: chevron-pulse 1.2s ease-in-out infinite;
-}
-
-.hint-chevron.right {
-  animation-delay: 0.6s;
-}
-
-.hint-caption {
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #fff;
-  background: rgba(52, 152, 219, 0.85);
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-@keyframes swipe-hint {
-  0% {
-    transform: translateX(0);
-  }
-  20% {
-    transform: translateX(-22px);
-  }
-  45% {
-    transform: translateX(14px);
-  }
-  70% {
-    transform: translateX(-8px);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@keyframes chevron-pulse {
-  0%, 100% {
-    opacity: 0.5;
-    transform: translateX(0) scale(0.96);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(4px) scale(1.04);
-  }
-}
-
-.hint-chevron.left {
-  animation-name: chevron-pulse-left;
-}
-
-@keyframes chevron-pulse-left {
-  0%, 100% {
-    opacity: 0.5;
-    transform: translateX(0) scale(0.96);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-4px) scale(1.04);
-  }
 }
 </style>

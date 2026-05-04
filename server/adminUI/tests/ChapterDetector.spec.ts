@@ -3,13 +3,21 @@ import { detectChapters, isChapterLine } from '@/composables/useChapterDetector'
 
 describe('detectChapters', () => {
   it('splits markdown headings into pages', () => {
-    const md = `# Erstes Kapitel\nErster Absatz.\n\n# Zweites Kapitel\nZweiter Absatz.`
+    const md = `## Erstes Kapitel\nErster Absatz.\n\n## Zweites Kapitel\nZweiter Absatz.`
     const pages = detectChapters(md)
     expect(pages).toHaveLength(2)
     expect(pages[0]!.title).toBe('Erstes Kapitel')
     expect(pages[0]!.page).toBe(1)
     expect(pages[1]!.title).toBe('Zweites Kapitel')
     expect(pages[1]!.page).toBe(2)
+  })
+
+  it('treats single-# headings as in-page titles, not page breaks', () => {
+    const md = `## Kapitel 1\n# Untertitel\nText folgt.`
+    const pages = detectChapters(md)
+    expect(pages).toHaveLength(1)
+    expect(pages[0]!.title).toBe('Kapitel 1')
+    expect(pages[0]!.text).toContain('# Untertitel')
   })
 
   it('splits on "Kapitel N" lines', () => {
@@ -26,9 +34,10 @@ describe('detectChapters', () => {
   })
 
   it('detects chapter lines', () => {
-    expect(isChapterLine('# Intro')).toBe(true)
+    expect(isChapterLine('## Intro')).toBe(true)
     expect(isChapterLine('Kapitel 3: Das Ende')).toBe(true)
     expect(isChapterLine('Chapter 1 - Start')).toBe(true)
+    expect(isChapterLine('# In-page header')).toBe(false)
     expect(isChapterLine('just a line')).toBe(false)
   })
 })

@@ -17,7 +17,7 @@ describe('books routes', () => {
     const res = await request(app)
       .post('/api/books')
       .set('Authorization', ADMIN_AUTH)
-      .send({ ...sampleBook(), bookId: 'not-valid', coverImage: '' })
+      .send({ ...sampleBook(), bookId: 'not-valid', coverImage: { de: '', en: '' } })
     expect(res.status).toBe(400)
     expect(res.body.error.code).toBe('VALIDATION_ERROR')
     const fields = res.body.error.details.map((d: { field: string }) => d.field)

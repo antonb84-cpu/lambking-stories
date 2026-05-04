@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { BookDTO, BookLocalization, Locale } from '@/types'
-import { normalizeAttachment } from '@/types'
+import { normalizeAttachment, normalizeLocalizedImage } from '@/types'
 
 const AUTOSAVE_KEY_PREFIX = 'bookDraft:'
 const AUTOSAVE_INTERVAL_MS = 5000
@@ -59,8 +59,8 @@ function emptyBook(): BookDTO {
     websiteTags: [],
     websitePrice: '',
     cover: '',
-    coverImage: '',
-    previewImage: '',
+    coverImage: { de: '', en: '' },
+    previewImage: { de: '', en: '' },
     contentCoverImage: { de: '', en: '' },
     achievementBadge: { de: '', en: '' },
     etsyLink: { de: '', en: '' },
@@ -77,9 +77,12 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
   const isEditingExisting = ref(false)
   const uploadStatus = ref<Record<string, { ok: boolean; message?: string; filename?: string } | null>>({
     audio: null,
-    cover: null,
-    preview: null,
-    contentCover: null,
+    coverDe: null,
+    coverEn: null,
+    previewDe: null,
+    previewEn: null,
+    contentCoverDe: null,
+    contentCoverEn: null,
     achievementBadgeDe: null,
     achievementBadgeEn: null
   })
@@ -174,8 +177,10 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     isEditingExisting.value = false
     uploadStatus.value = {
       audio: null,
-      cover: null,
-      preview: null,
+      coverDe: null,
+      coverEn: null,
+      previewDe: null,
+      previewEn: null,
       contentCoverDe: null,
       contentCoverEn: null,
       achievementBadgeDe: null,
@@ -191,6 +196,11 @@ export const useBookDraftStore = defineStore('bookDraft', () => {
     if (!cloned.localizations.de) cloned.localizations.de = emptyLocalization()
     if (!Array.isArray(cloned.websiteTags)) cloned.websiteTags = []
     if (typeof cloned.websitePrice !== 'string') cloned.websitePrice = ''
+    // Older books store coverImage / previewImage as a plain URL string.
+    // Promote to the new `{ de, en }` shape so the editor only ever sees
+    // the localized form.
+    cloned.coverImage = normalizeLocalizedImage(cloned.coverImage as unknown as string)
+    cloned.previewImage = normalizeLocalizedImage(cloned.previewImage as unknown as string)
     // Defensive: legacy books still on disk store attachments as plain
     // string URLs. Normalise on load so the editor only sees the new shape.
     if (Array.isArray(cloned.attachments)) {

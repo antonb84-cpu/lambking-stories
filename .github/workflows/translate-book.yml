@@ -51,7 +51,10 @@ jobs:
             hf-opus-mt-
 
       - name: Install dependencies (with optional transformers)
-        run: pnpm install --no-frozen-lockfile --include=optional
+        # `--include=optional` is an npm flag — pnpm includes optional
+        # dependencies by default, so no extra flag is needed for the
+        # transformers native bindings.
+        run: pnpm install --no-frozen-lockfile
 
       - name: Translate book
         working-directory: server

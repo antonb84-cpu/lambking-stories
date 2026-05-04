@@ -10,8 +10,8 @@ export function sampleBook(overrides: Record<string, unknown> = {}) {
     bookSeriesId: 'fruit-agents',
     releaseDate: '2026-01-15',
     badges: ['new'],
-    coverImage: 'https://example.test/cover.webp',
-    previewImage: 'https://example.test/preview.webp',
+    coverImage: { de: 'https://example.test/cover.webp', en: '' },
+    previewImage: { de: 'https://example.test/preview.webp', en: '' },
     audio: { de: '', en: '' },
     attachments: [],
     localizations: {

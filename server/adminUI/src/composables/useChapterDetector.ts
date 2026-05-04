@@ -1,9 +1,10 @@
 import type { BookPage } from '@/types'
 
-// Matches either a markdown heading (#+ optionally followed by title text)
-// or a "Kapitel N" / "Chapter N" lead-in. The title capture is optional so
-// an empty "##" alone creates a titleless page break.
-const CHAPTER_LINE = /^\s*(?:#+(?:\s+(.*))?|(?:Kapitel|Chapter)\s+\d+[:.\s-]*(.*))\s*$/i
+// Matches either a level-2+ markdown heading ("##" with an optional title)
+// or a "Kapitel N" / "Chapter N" lead-in. h1 ("# ...") is treated as an
+// in-page header title, not a page break — that's what the editor's H1
+// toolbar button produces, and what splitting an h2 demotes to.
+const CHAPTER_LINE = /^\s*(?:#{2,}(?:\s+(.*))?|(?:Kapitel|Chapter)\s+\d+[:.\s-]*(.*))\s*$/i
 
 export function detectChapters(raw: string, fallbackTitle = 'Seite 1'): BookPage[] {
   const lines = raw.replace(/\r\n/g, '\n').split('\n')

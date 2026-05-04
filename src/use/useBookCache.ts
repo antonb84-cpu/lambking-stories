@@ -14,6 +14,7 @@
  * should revoke on unmount to avoid leaking during long sessions.
  */
 import type { ApiBook } from '@/types/apiBook'
+import { pickLocalizedImage } from '@/types/apiBook'
 
 const DB_NAME = 'kanaan-book-cache'
 const DB_VERSION = 1
@@ -174,8 +175,12 @@ function collectBookUrls(book: ApiBook): string[] {
   const push = (v?: string) => {
     if (v && /^https?:\/\//i.test(v)) out.add(v)
   }
-  push(book.coverImage)
-  push(book.previewImage)
+  // coverImage / previewImage are localized — collect both locales so the
+  // offline cache covers either reading direction.
+  push(pickLocalizedImage(book.coverImage, 'de'))
+  push(pickLocalizedImage(book.coverImage, 'en'))
+  push(pickLocalizedImage(book.previewImage, 'de'))
+  push(pickLocalizedImage(book.previewImage, 'en'))
   push(book.contentCoverImage?.de)
   push(book.contentCoverImage?.en)
   push(book.audio?.de)

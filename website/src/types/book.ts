@@ -19,6 +19,19 @@ export interface BookLocalizedString {
   en?: string
 }
 
+// Image asset that may be a plain URL string (legacy) or a localized
+// `{ de, en }` map. Use `pickLocalizedImage` to resolve to a concrete URL.
+export type LocalizedImage = string | BookLocalizedString
+
+export function pickLocalizedImage(
+  value: LocalizedImage | undefined,
+  locale: Locale = 'de'
+): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value[locale] || value.de || value.en || ''
+}
+
 export interface BookDTO {
   bookId: string
   author: string
@@ -28,8 +41,8 @@ export interface BookDTO {
   badges?: string[]
   websiteTags?: string[]
   websitePrice?: string
-  coverImage: string
-  previewImage: string
+  coverImage: LocalizedImage
+  previewImage: LocalizedImage
   contentCoverImage?: BookLocalizedString
   achievementBadge?: BookLocalizedString
   etsyLink?: BookLocalizedString

@@ -12,6 +12,7 @@ import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
+import { pickLocalizedImage } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
 import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
 import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
@@ -414,7 +415,7 @@ watch(currentTime, (v, prev) => {
             :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
           )
           img(
-            :src="withPlaceholder(book.coverImage, book.previewImage)"
+            :src="withPlaceholder(pickLocalizedImage(book.coverImage, lang), pickLocalizedImage(book.previewImage, lang))"
             :alt="localizedTitle"
             class="absolute inset-0 w-full h-full object-cover"
             loading="lazy"

@@ -136,25 +136,25 @@
       <div class="form-grid">
         <div id="field-cover" class="col-6" :class="fieldClass('field-cover')">
           <DropZone
-            label="Cover-Bild"
+            :label="`Cover-Bild (${activeLocale.toUpperCase()})`"
             accept="image/webp,image/jpeg,image/png"
             kind="image"
             hint="16:9 · 800x450, 1280×720 · max 3 MB"
-            subhint=".webp bevorzugt · ziehen oder klicken"
-            :status="draft.uploadStatus.cover"
-            :preview-url="draft.book.coverImage || PLACEHOLDER_IMAGE"
+            subhint=".webp bevorzugt · pro Sprache eigenes Bild möglich"
+            :status="activeLocale === 'de' ? draft.uploadStatus.coverDe : draft.uploadStatus.coverEn"
+            :preview-url="(draft.book.coverImage?.[activeLocale]) || PLACEHOLDER_IMAGE"
             :on-file="uploadCover"
           />
         </div>
         <div id="field-preview" class="col-6" :class="fieldClass('field-preview')">
           <DropZone
-            label="Preview-Bild"
+            :label="`Preview-Bild (${activeLocale.toUpperCase()})`"
             accept="image/webp,image/jpeg,image/png"
             kind="image"
             hint="1:1 · 512×512 or larger · max 2 MB"
-            subhint=".webp bevorzugt · ziehen oder klicken"
-            :status="draft.uploadStatus.preview"
-            :preview-url="draft.book.previewImage || PLACEHOLDER_IMAGE"
+            subhint=".webp bevorzugt · pro Sprache eigenes Bild möglich"
+            :status="activeLocale === 'de' ? draft.uploadStatus.previewDe : draft.uploadStatus.previewEn"
+            :preview-url="(draft.book.previewImage?.[activeLocale]) || PLACEHOLDER_IMAGE"
             :on-file="uploadPreview"
           />
         </div>
@@ -413,8 +413,12 @@ async function uploadAudio(file: File) {
 async function uploadCover(file: File) {
   try {
     const res = await uploadsApi.image(file, 'cover')
-    draft.book.coverImage = res.url
-    draft.uploadStatus.cover = { ok: true, filename: file.name }
+    if (!draft.book.coverImage) draft.book.coverImage = { de: '', en: '' }
+    draft.book.coverImage[activeLocale.value] = res.url
+    draft.uploadStatus[activeLocale.value === 'de' ? 'coverDe' : 'coverEn'] = {
+      ok: true,
+      filename: file.name
+    }
   } catch (err) {
     throw new Error(explainApiError(err))
   }
@@ -423,8 +427,12 @@ async function uploadCover(file: File) {
 async function uploadPreview(file: File) {
   try {
     const res = await uploadsApi.image(file, 'preview')
-    draft.book.previewImage = res.url
-    draft.uploadStatus.preview = { ok: true, filename: file.name }
+    if (!draft.book.previewImage) draft.book.previewImage = { de: '', en: '' }
+    draft.book.previewImage[activeLocale.value] = res.url
+    draft.uploadStatus[activeLocale.value === 'de' ? 'previewDe' : 'previewEn'] = {
+      ok: true,
+      filename: file.name
+    }
   } catch (err) {
     throw new Error(explainApiError(err))
   }
@@ -608,15 +616,20 @@ async function uploadPlaceholderAs(kind: 'cover' | 'preview'): Promise<string> {
 }
 
 async function ensureRequiredImages() {
-  if (!draft.book.coverImage) {
+  // Only the German image slot is auto-filled with the bundled placeholder
+  // — EN is treated as an optional translation and stays empty unless the
+  // user uploads something explicitly.
+  if (!draft.book.coverImage) draft.book.coverImage = { de: '', en: '' }
+  if (!draft.book.coverImage.de) {
     const url = await uploadPlaceholderAs('cover')
-    draft.book.coverImage = url
-    draft.uploadStatus.cover = { ok: true, filename: 'placeholder.webp' }
+    draft.book.coverImage.de = url
+    draft.uploadStatus.coverDe = { ok: true, filename: 'placeholder.webp' }
   }
-  if (!draft.book.previewImage) {
+  if (!draft.book.previewImage) draft.book.previewImage = { de: '', en: '' }
+  if (!draft.book.previewImage.de) {
     const url = await uploadPlaceholderAs('preview')
-    draft.book.previewImage = url
-    draft.uploadStatus.preview = { ok: true, filename: 'placeholder.webp' }
+    draft.book.previewImage.de = url
+    draft.uploadStatus.previewDe = { ok: true, filename: 'placeholder.webp' }
   }
 }
 
@@ -643,8 +656,24 @@ async function submit() {
     void createdAt
     void updatedAt
     void __v
+    // Drop an all-empty `localizations.en` slot so a DE-only book can be
+    // saved cleanly. The EN tab seeds an empty localization on first hover,
+    // which would otherwise be persisted as a hollow sub-doc.
+    const localizations = draft.book.localizations
+    const en = localizations.en
+    const enIsEmpty = !en || (
+      !en.title?.trim() &&
+      !en.shortDescription?.trim() &&
+      !en.description?.trim() &&
+      !en.contentNotes?.trim() &&
+      (!en.content || en.content.length === 0)
+    )
+    const cleanedLocalizations = enIsEmpty
+      ? { de: localizations.de }
+      : localizations
     const payload = {
       ...rest,
+      localizations: cleanedLocalizations,
       releaseDate: new Date(draft.book.releaseDate).toISOString()
     } as any
     const saved = draft.isEditingExisting

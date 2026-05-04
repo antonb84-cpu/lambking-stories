@@ -14,7 +14,7 @@
           :rel="purchasable(book) ? 'noopener' : undefined"
         )
           .cover
-            img(v-if="book.coverImage", :src="book.coverImage", :alt="titleOf(book)", loading="lazy")
+            img(v-if="coverOf(book)", :src="coverOf(book)", :alt="titleOf(book)", loading="lazy")
           .meta
             .title {{ titleOf(book) }}
             .price {{ purchasable(book) ? priceOf(book) : 'Nur in der App' }}
@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import type { BookDTO } from '@/types/book'
+import { pickLocalizedImage } from '@/types/book'
 
 const props = defineProps<{
   books: BookDTO[]
@@ -30,6 +31,7 @@ const props = defineProps<{
 }>()
 
 const titleOf = (b: BookDTO) => b.localizations?.de?.title ?? b.bookId
+const coverOf = (b: BookDTO) => pickLocalizedImage(b.coverImage, 'de')
 const priceOf = (b: BookDTO) => {
   const raw = (b.websitePrice ?? '').trim()
   if (!raw) return ''

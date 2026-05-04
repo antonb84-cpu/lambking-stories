@@ -43,7 +43,8 @@
       "Bash(curl -s \"http://localhost:2099/api/books\")",
       "Bash(curl -s -o /dev/null -w \"  %{http_code} \\(%{size_download} bytes, %{time_total}s\\)\\\\n\" \"http://localhost:2099/api/books\")",
       "Bash(curl *)",
-      "Bash(awk NR>=64 && NR<=68 {printf \"L%d \\(%d bytes\\): \", NR, length\\($0\\); print} *)"
+      "Bash(awk NR>=64 && NR<=68 {printf \"L%d \\(%d bytes\\): \", NR, length\\($0\\); print} *)",
+      "Bash(pnpm vitest *)"
     ]
   },
   "defaultMode": "auto",

@@ -36,6 +36,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BookDTO } from '@/types/book'
+import { pickLocalizedImage } from '@/types/book'
 
 const props = defineProps<{
   book: BookDTO | null
@@ -43,7 +44,7 @@ const props = defineProps<{
 }>()
 
 const title = computed(() => props.book?.localizations?.de?.title ?? 'Mission Friede')
-const coverImage = computed(() => props.book?.coverImage ?? '')
+const coverImage = computed(() => pickLocalizedImage(props.book?.coverImage, 'de'))
 
 const priceRaw = computed(() => (props.book?.websitePrice ?? '').trim())
 

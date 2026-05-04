@@ -19,6 +19,23 @@ export interface BookAudio {
   en?: string
 }
 
+export type LocalizedImage = string | BookAudio
+
+export function pickLocalizedImage(
+  value: LocalizedImage | undefined,
+  locale: 'de' | 'en' = 'de'
+): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value[locale] || value.de || value.en || ''
+}
+
+export function normalizeLocalizedImage(value: LocalizedImage | undefined): BookAudio {
+  if (!value) return { de: '', en: '' }
+  if (typeof value === 'string') return { de: value, en: '' }
+  return { de: value.de ?? '', en: value.en ?? '' }
+}
+
 export type BookAttachmentType = 'coloring' | 'download'
 
 export interface BookAttachment {
@@ -53,8 +70,8 @@ export interface BookDTO {
   websiteTags: string[]
   websitePrice: string
   cover?: string
-  coverImage: string
-  previewImage: string
+  coverImage: BookAudio
+  previewImage: BookAudio
   contentCoverImage?: BookAudio
   achievementBadge?: BookAudio
   etsyLink?: BookAudio

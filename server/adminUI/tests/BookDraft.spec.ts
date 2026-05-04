@@ -17,8 +17,8 @@ describe('useBookDraftStore', () => {
     s.book.category = 'Früchte'
     s.book.bookSeriesId = 'fruit-agents'
     s.book.releaseDate = '2026-01-15'
-    s.book.coverImage = 'http://x/cover.webp'
-    s.book.previewImage = 'http://x/preview.webp'
+    s.book.coverImage = { de: 'http://x/cover.webp', en: '' }
+    s.book.previewImage = { de: 'http://x/preview.webp', en: '' }
     s.book.audio.de = 'http://x/a.ogg'
     s.activeLocalization.title = 'Der Apfel'
     s.activeLocalization.shortDescription = 'kurz'
@@ -34,7 +34,7 @@ describe('useBookDraftStore', () => {
     s.book.category = 'Früchte'
     s.book.bookSeriesId = 'fruit-agents'
     s.book.releaseDate = '2026-01-15'
-    // coverImage + previewImage intentionally left blank
+    // coverImage + previewImage intentionally left blank ({ de: '', en: '' })
     s.activeLocalization.title = 'Der Apfel'
     s.activeLocalization.shortDescription = 'kurz'
     s.activeLocalization.description = 'lang'

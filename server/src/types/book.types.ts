@@ -19,6 +19,12 @@ export interface BookAudio {
   en?: string
 }
 
+// Localized image asset. Stored as `{ de, en }` server-side. Some fields
+// historically stored a plain URL string (legacy data on disk and older
+// admin payloads); accept-on-input/normalize-on-write keeps consumers
+// always seeing the object shape.
+export type LocalizedImage = string | BookAudio
+
 export type BookAttachmentType = 'coloring' | 'download'
 
 export interface BookAttachment {
@@ -38,8 +44,8 @@ export interface BookDTO {
   websiteTags: string[]
   websitePrice: string
   cover?: string
-  coverImage: string
-  previewImage: string
+  coverImage: BookAudio
+  previewImage: BookAudio
   contentCoverImage?: BookAudio
   achievementBadge?: BookAudio
   etsyLink?: BookAudio

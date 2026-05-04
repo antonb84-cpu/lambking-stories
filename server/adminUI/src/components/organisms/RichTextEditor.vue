@@ -1,5 +1,5 @@
 <template>
-  <div class="glass card !p-1 overflow-hidden" :class="{ 'is-drop-active': isDropActive }">
+  <div class="glass card !p-1" :class="{ 'is-drop-active': isDropActive }">
     <div class="editor-toolbar">
       <div class="tool-group">
         <button type="button" class="toolbar-btn" :class="{ active: isBold }"
@@ -85,6 +85,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { EditorContent, useEditor, VueNodeViewRenderer } from '@tiptap/vue-3'
+import { Extension } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import CharacterCount from '@tiptap/extension-character-count'
@@ -155,8 +156,30 @@ const ImagePreview = Image.extend({
   }
 }).configure({ inline: false })
 
+// Splitting an h2 (chapter break) mid-line would otherwise leave both halves
+// as h2 — and detectChapters would then read the second half as a brand-new
+// page. Demoting the lower half to h1 keeps it inside the same page as a
+// regular header title. End-of-line Enter is left to ProseMirror's default
+// (which already inserts a paragraph below).
+const ChapterHeadingSplit = Extension.create({
+  name: 'chapterHeadingSplit',
+  priority: 1000,
+  addKeyboardShortcuts() {
+    return {
+      Enter: () => {
+        const { $from, empty } = this.editor.state.selection
+        if (!empty) return false
+        if ($from.parent.type.name !== 'heading') return false
+        if ($from.parent.attrs.level !== 2) return false
+        if ($from.parentOffset === $from.parent.content.size) return false
+        return this.editor.chain().splitBlock().setNode('heading', { level: 1 }).run()
+      }
+    }
+  }
+})
+
 const editor = useEditor({
-  extensions: [StarterKit, ImagePreview, CharacterCount, Markdown],
+  extensions: [StarterKit, ImagePreview, CharacterCount, Markdown, ChapterHeadingSplit],
   // Seed the editor with markdown, not HTML — tiptap-markdown's setContent
   // override parses string input through markdown-it so `![alt](url)` lands
   // as a real Image node. The previous HTML-wrapped form turned every
@@ -368,7 +391,19 @@ function pagesToMarkdown(pages: BookPage[]): string {
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.85);
+  /* Pin the toolbar to the top of the viewport while the page editor
+   * scrolls past, so formatting buttons stay one click away even on
+   * very long page bodies. `z-index: 5` keeps the toolbar above the
+   * editor content but below the global server-banner (z-index: 50). */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 14px -10px rgba(20, 60, 100, 0.25);
 }
 
 .tool-group {

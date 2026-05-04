@@ -42,18 +42,25 @@ function mapBook<T>(
   const b = book as Record<string, unknown>
   const out: Record<string, unknown> = { ...b }
 
-  for (const k of ['coverImage', 'previewImage', 'cover']) {
-    const v = out[k]
-    if (typeof v === 'string') out[k] = mapString(v)
+  // `cover` is a CSS gradient string, not a URL — mapped as a flat string.
+  {
+    const v = out.cover
+    if (typeof v === 'string') out.cover = mapString(v)
   }
 
-  for (const k of ['contentCoverImage', 'achievementBadge', 'audio']) {
-    const v = out[k] as { de?: string; en?: string } | undefined
-    if (v && typeof v === 'object') {
+  // Localized image assets. Legacy rows store these as plain URL strings;
+  // promote to `{ de, en }` on the way out so consumers can rely on the
+  // object shape. Empty `en` is fine — the mobile app falls back to `de`.
+  for (const k of ['coverImage', 'previewImage', 'contentCoverImage', 'achievementBadge', 'audio']) {
+    const v = out[k]
+    if (typeof v === 'string') {
+      out[k] = { de: mapString(v), en: '' }
+    } else if (v && typeof v === 'object') {
+      const o = v as { de?: string; en?: string }
       out[k] = {
-        ...v,
-        de: typeof v.de === 'string' ? mapString(v.de) : v.de,
-        en: typeof v.en === 'string' ? mapString(v.en) : v.en
+        ...o,
+        de: typeof o.de === 'string' ? mapString(o.de) : (o.de ?? ''),
+        en: typeof o.en === 'string' ? mapString(o.en) : (o.en ?? '')
       }
     }
   }

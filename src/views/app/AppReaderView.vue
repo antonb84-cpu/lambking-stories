@@ -19,6 +19,7 @@ import useApiBooks from '@/use/useApiBooks'
 import useBookCache from '@/use/useBookCache'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiLocalizedPage, Locale } from '@/types/apiBook'
+import { pickLocalizedImage } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
 import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
@@ -80,7 +81,12 @@ const coverImage = computed<string>(() => {
   // Prefer the per-locale content cover (an in-book splash) when present;
   // fall back to the marketing cover so there's always a first page.
   const localized = b.contentCoverImage?.[lang.value] ?? b.contentCoverImage?.de
-  return localized || b.coverImage || b.previewImage || ''
+  return (
+    localized ||
+    pickLocalizedImage(b.coverImage, lang.value) ||
+    pickLocalizedImage(b.previewImage, lang.value) ||
+    ''
+  )
 })
 
 type DisplayEntry =
@@ -451,7 +457,11 @@ const nextBook = computed(() => (book.value ? apiBooks.nextBookInSeries(book.val
 const nextBookCoverUrl = computed(() => {
   const b = nextBook.value
   if (!b) return ''
-  return b.coverImage || b.previewImage || ''
+  return (
+    pickLocalizedImage(b.coverImage, lang.value) ||
+    pickLocalizedImage(b.previewImage, lang.value) ||
+    ''
+  )
 })
 
 watch(nextBookCoverUrl, async (u) => {

@@ -12,6 +12,7 @@ import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useUser from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
+import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -129,7 +130,7 @@ function openBook(bookId: string) {
                   :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
                 )
                 img(
-                  :src="withPlaceholder(book.previewImage, book.coverImage)"
+                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang), pickLocalizedImage(book.coverImage, lang))"
                   :alt="localizedTitle(book)"
                   class="absolute inset-0 w-full h-full object-cover"
                   loading="lazy"

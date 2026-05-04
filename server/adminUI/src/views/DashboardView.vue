@@ -68,9 +68,12 @@ const toast = useToastStore()
 const books = ref<BookDTO[]>([])
 
 const previewPages = computed(() => draft.activeLocalization.content)
-const previewCoverImage = computed(
-  () => draft.book.contentCoverImage?.[draft.activeLocale] || draft.book.coverImage
-)
+const previewCoverImage = computed(() => {
+  const loc = draft.activeLocale
+  const ci = draft.book.coverImage
+  const localizedCover = ci ? (ci[loc] || ci.de || ci.en || '') : ''
+  return draft.book.contentCoverImage?.[loc] || localizedCover
+})
 const previewAchievementBadge = computed(() => {
   const ab = draft.book.achievementBadge
   if (!ab) return ''

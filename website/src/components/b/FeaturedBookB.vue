@@ -2,7 +2,7 @@
   section.featured-b#buch
     .featured-b-inner(v-if="book")
       .featured-b-cover
-        img(v-if="book.coverImage", :src="book.coverImage", :alt="title", loading="lazy")
+        img(v-if="coverUrl", :src="coverUrl", :alt="title", loading="lazy")
         .featured-b-fallback(v-else) {{ title }}
 
       .featured-b-pitch
@@ -48,6 +48,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BookDTO } from '@/types/book'
+import { pickLocalizedImage } from '@/types/book'
 
 const props = defineProps<{
   book: BookDTO | null
@@ -56,6 +57,7 @@ const props = defineProps<{
 
 const title = computed(() => props.book?.localizations?.de?.title ?? '')
 const description = computed(() => props.book?.localizations?.de?.shortDescription ?? '')
+const coverUrl = computed(() => pickLocalizedImage(props.book?.coverImage, 'de'))
 
 const tags = computed<string[]>(() => {
   const websiteTags = Array.isArray(props.book?.websiteTags) ? props.book!.websiteTags! : []

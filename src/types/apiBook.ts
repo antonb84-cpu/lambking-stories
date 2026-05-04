@@ -24,6 +24,20 @@ export interface ApiLocalizedAsset {
   en?: string
 }
 
+// Localized image asset. Server normalises to `{ de, en }` on the way out,
+// but legacy responses or older cached payloads might still carry a plain
+// URL string — `pickLocalizedImage` handles both forms.
+export type ApiLocalizedImage = string | ApiLocalizedAsset
+
+export function pickLocalizedImage(
+  value: ApiLocalizedImage | undefined,
+  locale: Locale = 'de'
+): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  return value[locale] || value.de || value.en || ''
+}
+
 export type ApiBookAttachmentType = 'coloring' | 'download'
 
 export interface ApiBookAttachment {
@@ -41,8 +55,8 @@ export interface ApiBook {
   updatedDate: string
   badges: string[]
   cover?: string
-  coverImage: string
-  previewImage: string
+  coverImage: ApiLocalizedImage
+  previewImage: ApiLocalizedImage
   contentCoverImage?: ApiLocalizedAsset
   achievementBadge?: ApiLocalizedAsset
   audio?: ApiLocalizedAsset

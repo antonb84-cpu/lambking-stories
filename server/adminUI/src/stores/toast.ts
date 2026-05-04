@@ -14,7 +14,7 @@ export const useToastStore = defineStore('toast', () => {
   const push = (t: Omit<Toast, 'id'>) => {
     const id = crypto.randomUUID()
     toasts.value.push({ ...t, id })
-    setTimeout(() => remove(id), 5000)
+    setTimeout(() => remove(id), 10000)
   }
 
   const remove = (id: string) => {

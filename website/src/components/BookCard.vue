@@ -3,7 +3,7 @@
     .book-image-wrap
       span.book-status-flag(:class="{ soon: !isPurchasable }") {{ isPurchasable ? 'Verfügbar' : 'Nur App' }}
       .book-image
-        img(v-if="book.coverImage", :src="book.coverImage", :alt="title", loading="lazy")
+        img(v-if="coverUrl", :src="coverUrl", :alt="title", loading="lazy")
         BookCover(
           v-else,
           :series="seriesLabel",
@@ -44,12 +44,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BookDTO } from '@/types/book'
+import { pickLocalizedImage } from '@/types/book'
 import BookCover from './BookCover.vue'
 
 const props = defineProps<{ book: BookDTO }>()
 
 const title = computed(() => props.book.localizations?.de?.title ?? props.book.bookId)
 const description = computed(() => props.book.localizations?.de?.shortDescription ?? '')
+const coverUrl = computed(() => pickLocalizedImage(props.book.coverImage, 'de'))
 
 const buyUrl = computed(() => {
   const link = props.book.etsyLink
