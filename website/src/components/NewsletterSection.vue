@@ -14,9 +14,15 @@
         button.newsletter-btn(type="submit") Anmelden
       p.newsletter-mini
         | Kein Spam, jederzeit abbestellbar. Mehr in der&nbsp;
-        a(href="#") Datenschutzerklärung
+        a(href="#", @click.prevent="openPrivacy") Datenschutzerklärung
         | .
 </template>
+
+<script setup lang="ts">
+import { usePrivacyModal } from '@/composables/usePrivacyModal'
+
+const { open: openPrivacy } = usePrivacyModal()
+</script>
 
 <style scoped lang="scss">
 .newsletter {

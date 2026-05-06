@@ -1,0 +1,7 @@
+# Private git repo that stores the encrypted certs + profiles.
+# Create an empty private repo first, seed it with a commit on master
+# (see PITFALLS.md → "Signing repo has no commits"), then run the
+# iOS Bootstrap Signing workflow to populate it.
+git_url "https://github.com/konstantinsteinmiller/lamb-king-stories-signing"
+storage_mode "git"
+type "appstore"

@@ -22,6 +22,9 @@ coverage
 *.env
 .env
 .env.*
+# .env.tauri.remote holds non-secret build state (Android versionCode)
+# bumped by scripts/bump-android-version-code.mjs — must stay tracked.
+!.env.tauri.remote
 
 # Editor directories and files
 .vscode/settings.json
@@ -56,3 +59,9 @@ __screenshots__/
 /src/assets/inspiration/Take Card.vue.png
 /src/assets/inspiration/Turn selection.png
 /output_previews/*
+
+# Tauri / Rust
+src-tauri/target
+src-tauri/gen
+.bundle
+src-tauri/vendor

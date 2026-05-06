@@ -11,12 +11,18 @@
         div SenfkornGeschichten
       .footer-b-links
         a(href="#") Impressum
-        a(href="#") Datenschutz
+        a(href="#", @click.prevent="openPrivacy") Datenschutz
         a(href="#") AGB
         a(href="#") Widerruf
         a(href="#") Versand
       .footer-b-copy © 2026 SenfkornGeschichten · Made with ♥ in Deutschland
 </template>
+
+<script setup lang="ts">
+import { usePrivacyModal } from '@/composables/usePrivacyModal'
+
+const { open: openPrivacy } = usePrivacyModal()
+</script>
 
 <style scoped lang="scss">
 .footer-b {

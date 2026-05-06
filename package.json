@@ -27,11 +27,21 @@
     "align:extract": "node scripts/extract-page-text.mjs --key fa-1 --lang de --page 1 --out scripts/align-input/fa-1-de-page-1.txt",
     "align:audio": "node scripts/align-audio.mjs --audio public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1-page-1.ogg --text scripts/align-input/fa-1-de-page-1.txt --lang de --out public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1-page-1.align.json",
     "align:extract-book": "node scripts/extract-page-text.mjs --key fa-1 --lang de --pages all --out scripts/align-input/fa-1-de.txt",
-    "align:audio-book": "node scripts/align-audio.mjs --audio public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1.ogg --text scripts/align-input/fa-1-de.txt --lang de --out public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1.align.json"
+    "align:audio-book": "node scripts/align-audio.mjs --audio public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1.ogg --text scripts/align-input/fa-1-de.txt --lang de --out public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1.align.json",
+    "tauri": "tauri",
+    "tauri:dev": "dotenv -e .env.tauri -- tauri dev",
+    "tauri:dev-android": "dotenv -e .env.tauri -- tauri android dev",
+    "tauri:dev-ios": "dotenv -e .env.tauri -- tauri ios dev",
+    "tauri:build": "dotenv -e .env.tauri -- tauri build",
+    "tauri:build-android": "dotenv -e .env.tauri -- tauri android build",
+    "tauri:build-android-apk": "node scripts/patch-android-signing.mjs && dotenv -e .env.tauri -e .env.tauri.remote -- tauri android build --apk && node scripts/rename-android-output.mjs apk && node scripts/bump-android-version-code.mjs",
+    "tauri:build-android-aab": "node scripts/patch-android-signing.mjs && dotenv -e .env.tauri -e .env.tauri.remote -- tauri android build --aab && node scripts/rename-android-output.mjs aab && node scripts/bump-android-version-code.mjs",
+    "tauri:build-ios": "dotenv -e .env.tauri -- tauri ios build",
+    "ci:ios:testflight": "gh workflow run ios-build.yml -f export_method=app-store-connect -f upload_testflight=true && echo \"Triggered iOS TestFlight build — track at: $(gh repo view --json url -q .url)/actions/workflows/ios-build.yml\""
   },
   "build": {
-    "appId": "com.game.kanaanstories",
-    "productName": "Seedolino",
+    "appId": "com.stories.lambking",
+    "productName": "LambKing Stories",
     "directories": {
       "output": "electron/dist",
       "buildResources": "electron/resources"
@@ -53,6 +63,8 @@
     ]
   },
   "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-shell": "^2",
     "@vueuse/core": "^14.2.1",
     "canvas-confetti": "^1.9.4",
     "lodash.clonedeep": "^4.5.0",
@@ -66,6 +78,7 @@
     "@huggingface/transformers": "^3.0.0",
     "@intlify/unplugin-vue-i18n": "^11.0.7",
     "@tailwindcss/vite": "^4.2.1",
+    "@tauri-apps/cli": "^2",
     "@tsconfig/node24": "^24.0.4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/lodash.clonedeep": "^4.5.9",

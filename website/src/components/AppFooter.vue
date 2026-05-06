@@ -56,7 +56,7 @@
       div © 2026 SenfkornGeschichten · Made with ♥ in Deutschland
       .footer-bottom-links
         a(href="#") Impressum
-        a(href="#") Datenschutz
+        a(href="#", @click.prevent="openPrivacy") Datenschutz
         a(href="#") AGB
         a(href="#") Widerrufsbelehrung
         a(href="#") Versand
@@ -64,8 +64,10 @@
 
 <script setup lang="ts">
 import { runtime } from '@/config/runtime'
+import { usePrivacyModal } from '@/composables/usePrivacyModal'
 
 const newsletterEnabled = runtime.newsletterEnabled
+const { open: openPrivacy } = usePrivacyModal()
 </script>
 
 <style scoped lang="scss">

@@ -44,7 +44,13 @@
       "Bash(curl -s -o /dev/null -w \"  %{http_code} \\(%{size_download} bytes, %{time_total}s\\)\\\\n\" \"http://localhost:2099/api/books\")",
       "Bash(curl *)",
       "Bash(awk NR>=64 && NR<=68 {printf \"L%d \\(%d bytes\\): \", NR, length\\($0\\); print} *)",
-      "Bash(pnpm vitest *)"
+      "Bash(pnpm vitest *)",
+      "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/ios-build.yml /c/Users/konst/kanaan-stories/.github/workflows/ios-build.yml)",
+      "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/ios-bootstrap-signing.yml /c/Users/konst/kanaan-stories/.github/workflows/ios-bootstrap-signing.yml)",
+      "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/ios-simulator-build.yml /c/Users/konst/kanaan-stories/.github/workflows/ios-simulator-build.yml)",
+      "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/android-build.yml /c/Users/konst/kanaan-stories/.github/workflows/android-build.yml)",
+      "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/fastlane/Fastfile /c/Users/konst/kanaan-stories/src-tauri/fastlane/Fastfile)",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('src-tauri/icons/icon.png'\\); print\\('size:', img.size, 'mode:', img.mode\\)\")"
     ]
   },
   "defaultMode": "auto",
