@@ -10,7 +10,7 @@
             circle(cx="12", cy="22", r="1.2", fill="currentColor")
         div SenfkornGeschichten
       .footer-b-links
-        a(href="#") Impressum
+        a(href="#", @click.prevent="openImprint") Impressum
         a(href="#", @click.prevent="openPrivacy") Datenschutz
         a(href="#") AGB
         a(href="#") Widerruf
@@ -20,8 +20,10 @@
 
 <script setup lang="ts">
 import { usePrivacyModal } from '@/composables/usePrivacyModal'
+import { useImprintModal } from '@/composables/useImprintModal'
 
 const { open: openPrivacy } = usePrivacyModal()
+const { open: openImprint } = useImprintModal()
 </script>
 
 <style scoped lang="scss">

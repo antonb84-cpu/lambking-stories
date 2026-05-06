@@ -55,7 +55,7 @@
     .wrap.footer-bottom
       div © 2026 SenfkornGeschichten · Made with ♥ in Deutschland
       .footer-bottom-links
-        a(href="#") Impressum
+        a(href="#", @click.prevent="openImprint") Impressum
         a(href="#", @click.prevent="openPrivacy") Datenschutz
         a(href="#") AGB
         a(href="#") Widerrufsbelehrung
@@ -65,9 +65,11 @@
 <script setup lang="ts">
 import { runtime } from '@/config/runtime'
 import { usePrivacyModal } from '@/composables/usePrivacyModal'
+import { useImprintModal } from '@/composables/useImprintModal'
 
 const newsletterEnabled = runtime.newsletterEnabled
 const { open: openPrivacy } = usePrivacyModal()
+const { open: openImprint } = useImprintModal()
 </script>
 
 <style scoped lang="scss">

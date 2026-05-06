@@ -20,8 +20,7 @@ Verbraucherstreitbeilegung/Universalschlichtungsstelle:
 Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
 teilzunehmen.
 
-`
-`1. Datenschutz auf einen Blick
+1. Datenschutz auf einen Blick
 Allgemeine Hinweise
 Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit deinen personenbezogenen Daten passiert, wenn du
 diese App nutzt oder unsere Website besuchst. Personenbezogene Daten sind alle Daten, mit denen du persönlich
