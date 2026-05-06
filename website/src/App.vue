@@ -19,6 +19,7 @@
   component(:is="layout === 'b' ? LayoutB : LayoutA")
   PrivacyPolicyModal
   ImprintModal
+  AllBooksModal
 </template>
 
 <script setup lang="ts">
@@ -27,6 +28,7 @@ import LayoutA from '@/layouts/LayoutA.vue'
 import LayoutB from '@/layouts/LayoutB.vue'
 import PrivacyPolicyModal from '@/components/PrivacyPolicyModal.vue'
 import ImprintModal from '@/components/ImprintModal.vue'
+import AllBooksModal from '@/components/AllBooksModal.vue'
 import { useLayout } from '@/composables/useLayout'
 import { useServerStatus } from '@/composables/useServerStatus'
 

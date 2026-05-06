@@ -49,4 +49,9 @@ export interface BookDTO {
   audio?: BookLocalizedString
   localizations: Partial<Record<Locale, BookLocalization>>
   isPublished: boolean
+  // Mongoose `timestamps: true` writes these on the server. ISO string
+  // after JSON-encoding. Optional because legacy rows imported before
+  // the timestamps option was enabled may not have one.
+  createdAt?: string
+  updatedAt?: string
 }
