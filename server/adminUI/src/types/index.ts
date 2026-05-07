@@ -70,7 +70,10 @@ export interface BookDTO {
   websiteTags: string[]
   websitePrice: string
   cover?: string
-  coverImage: BookAudio
+  // coverImage is optional now — its DropZone is hidden in BookForm and
+  // the server schema doesn't require it. The field stays declared so the
+  // store can carry an existing value through edits without dropping it.
+  coverImage?: BookAudio
   previewImage: BookAudio
   contentCoverImage?: BookAudio
   achievementBadge?: BookAudio

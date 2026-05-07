@@ -23,6 +23,33 @@
         <button type="button" class="toolbar-btn" :class="{ active: isH2 }"
                 @click="editor?.chain().focus().toggleHeading({ level: 2 }).run()">H2
         </button>
+        <button
+          type="button"
+          class="toolbar-btn has-tooltip tooltip-below"
+          data-tooltip="Markierten Text mit <center>…</center> umschließen — wird im iPhone-Previewer und im BookReader horizontal zentriert dargestellt. Markiere zuerst Text, dann klicken."
+          @click="wrapSelectionInCenter"
+        >⌳ Mitte
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn has-tooltip tooltip-below"
+          data-tooltip="Markierten Text mit <vcenter>…</vcenter> umschließen — der Block wird im iPhone-Previewer und im BookReader vertikal in der Seitenmitte zentriert. Markiere zuerst Text, dann klicken."
+          @click="wrapSelectionInVCenter"
+        >↕ Mitte
+        </button>
+        <button
+          type="button"
+          class="toolbar-btn has-tooltip tooltip-below"
+          data-tooltip="Aktuelle Seite vollständig vertikal zentrieren — wickelt den gesamten Inhalt der Seite, in der der Cursor steht, in einen <vcenter>-Block."
+          @click="wrapCurrentPageInVCenter"
+        >↕ Seite
+        </button>
+        <span class="tool-sep" />
+        <FontSizePicker
+          :model-value="activeFontSize"
+          @apply="applyFontSize"
+          @clear="clearFontSize"
+        />
         <span class="tool-sep" />
         <button
           type="button"
@@ -98,6 +125,8 @@ import { useToastStore } from '@/stores/toast'
 import { cleanMarkdown } from '@/utils/markdownToHtml'
 import type { BookPage } from '@/types'
 import EditorImageNode from './EditorImageNode.vue'
+import FontSizePicker from '@/components/molecules/FontSizePicker.vue'
+import { applyFsMarksFromText, FontSize } from '@/composables/useFontSizeMark'
 
 const props = defineProps<{ modelValue: BookPage[] }>()
 const emit = defineEmits<{
@@ -179,7 +208,14 @@ const ChapterHeadingSplit = Extension.create({
 })
 
 const editor = useEditor({
-  extensions: [StarterKit, ImagePreview, CharacterCount, Markdown, ChapterHeadingSplit],
+  // `Markdown.configure({ html: false })`: keep `<center>…</center>` (and any
+  // other HTML the admin types) as plain text instead of letting markdown-it
+  // parse it as raw HTML. The text round-trips unchanged through
+  // prosemirror-markdown's serializer (it doesn't escape `<`/`>`), so the
+  // saved markdown contains literal `<center>` tags. The downstream
+  // `markdownToHtml` post-process turns them into centered spans for the
+  // iPhone preview + BookReader.
+  extensions: [StarterKit, ImagePreview, CharacterCount, FontSize, Markdown.configure({ html: false }), ChapterHeadingSplit],
   // Seed the editor with markdown, not HTML — tiptap-markdown's setContent
   // override parses string input through markdown-it so `![alt](url)` lands
   // as a real Image node. The previous HTML-wrapped form turned every
@@ -193,6 +229,11 @@ const editor = useEditor({
       return false
     }
   },
+  // Initial markdown lands in the editor with literal `<fs size="N">…</fs>`
+  // text (markdown-it can't parse our custom tag with `html: false`); the
+  // post-process converts each occurrence into a real fontSize mark so the
+  // styling shows up in the editor immediately.
+  onCreate: ({ editor }) => applyFsMarksFromText(editor as any),
   onUpdate: ({ editor }) => {
     // `tiptap-markdown` writes hard-break `\` at line ends (CommonMark).
     // Normalising to plain newlines keeps the saved data clean and stops
@@ -233,6 +274,7 @@ watch(
     // each save cycle to add another backslash to every prior image.
     const nextMd = pagesToMarkdown(next)
     editor.value.commands.setContent(nextMd)
+    applyFsMarksFromText(editor.value)
     markdown.value = nextMd
   }
 )
@@ -246,6 +288,33 @@ const isOrderedList = computed(() => editor.value?.isActive('orderedList') ?? fa
 const characters = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
 const pageCount = computed(() => props.modelValue.length)
 
+// Font-size of the current selection. Returns null when the mark is absent
+// or when the selection straddles different sizes (TipTap reports the
+// mark as inactive in that case, which is the right "mixed" affordance).
+const activeFontSize = computed<number | null>(() => {
+  const e = editor.value
+  if (!e) return null
+  const attrs = e.getAttributes('fontSize')
+  const n = Number(attrs?.size)
+  return Number.isFinite(n) && n > 0 ? n : null
+})
+
+function applyFontSize(size: number) {
+  const e = editor.value
+  if (!e) return
+  if (e.state.selection.empty) {
+    toast.error('Bitte zuerst Text markieren, dessen Größe geändert werden soll.')
+    return
+  }
+  e.chain().focus().setFontSize(size).run()
+}
+
+function clearFontSize() {
+  const e = editor.value
+  if (!e) return
+  e.chain().focus().unsetFontSize().run()
+}
+
 // `splitBlock` ends the current paragraph and starts a new one — exposed as
 // a button so the toolbar offers "real-book paragraph" as a deliberate
 // action alongside lists and emphasis.
@@ -257,8 +326,168 @@ const onMarkdownInput = () => {
 }
 
 const insertChapterBreak = () => {
+  const e = editor.value
+  if (!e) return
   const pageNumber = (props.modelValue.length ?? 0) + 1
-  editor.value?.chain().focus().insertContent(`\n\n## Kapitel ${pageNumber}\n\n`).run()
+  // Append a real H2 heading + empty paragraph at the END of the document
+  // (rather than inserting a markdown string at the cursor — `insertContent`
+  // doesn't parse markdown, so the previous code inserted literal text
+  // `## Kapitel N` that only became a heading after the next save round-
+  // trip, leaving the editor visually broken in between).
+  const docEnd = e.state.doc.content.size
+  e.chain()
+    .focus()
+    .setTextSelection(docEnd)
+    .insertContent([
+      {
+        type: 'heading',
+        attrs: { level: 2 },
+        content: [{ type: 'text', text: `Kapitel ${pageNumber}` }]
+      },
+      { type: 'paragraph' }
+    ])
+    .run()
+}
+
+// Wrap the current selection in `<center>…</center>` tags that survive
+// the prosemirror-markdown round-trip (default text escape doesn't touch
+// `<` / `>`) and that `markdownToHtml` rewrites into either a block-level
+// `<div class="rt-center">` (when the tags sit on their own lines) or an
+// inline `<span class="rt-center">` (when they're glued to a heading
+// line). The wrap strategy switches on whether the selection spans
+// multiple top-level blocks:
+//
+//   - Single block (selection lives inside one paragraph/heading): insert
+//     the tags inline at `from` / `to`, preserving the inner text.
+//   - Multiple blocks (e.g. two headings selected together): insert the
+//     opening tag in its OWN paragraph immediately before the first
+//     selected block and the closing tag in its OWN paragraph
+//     immediately after the last selected block. The selected headings /
+//     paragraphs in between stay as-is so their block structure (and
+//     therefore their `# `/`## ` markdown prefixes) survives the round-
+//     trip — the previous flatten-to-text approach merged them into one
+//     paragraph, which destroyed all heading information.
+const wrapSelectionWithTag = (tag: 'center' | 'vcenter') => {
+  const e = editor.value
+  if (!e) return
+  const { from, to, empty } = e.state.selection
+  if (empty) {
+    toast.error(
+      tag === 'vcenter'
+        ? 'Bitte zuerst Text markieren, der vertikal zentriert werden soll.'
+        : 'Bitte zuerst Text markieren, der zentriert werden soll.'
+    )
+    return
+  }
+
+  const $from = e.state.doc.resolve(from)
+  const $to = e.state.doc.resolve(to)
+
+  // Heuristic: the selection is "single-block" when both endpoints share
+  // the same parent node (so they live in the same paragraph / heading /
+  // list item). Anything else is multi-block and gets the line-aligned
+  // wrapper so block structure survives.
+  const sameParent = $from.sameParent($to)
+
+  if (sameParent) {
+    // Insert closing tag first (at the higher position) so the lower
+    // `from` index isn't shifted before the second insert.
+    e.chain()
+      .focus()
+      .insertContentAt(to, [{ type: 'text', text: `</${tag}>` }])
+      .insertContentAt(from, [{ type: 'text', text: `<${tag}>` }])
+      .run()
+    return
+  }
+
+  // Multi-block: anchor the wrappers to the boundaries of the topmost
+  // block that contains each endpoint. `before(1)` / `after(1)` resolve
+  // to positions in the doc just outside those blocks, which is where a
+  // freshly-inserted paragraph slots in cleanly.
+  const blockStart = $from.before(1)
+  const blockEnd = $to.after(1)
+
+  e.chain()
+    .focus()
+    .insertContentAt(blockEnd, [
+      { type: 'paragraph', content: [{ type: 'text', text: `</${tag}>` }] }
+    ])
+    .insertContentAt(blockStart, [
+      { type: 'paragraph', content: [{ type: 'text', text: `<${tag}>` }] }
+    ])
+    .run()
+}
+
+const wrapSelectionInCenter = () => wrapSelectionWithTag('center')
+const wrapSelectionInVCenter = () => wrapSelectionWithTag('vcenter')
+
+// Wrap the page (delimited by `## …` headings, just like `detectChapters`)
+// where the cursor sits in `<vcenter>…</vcenter>`. Operates on the editor's
+// markdown serialisation so we can locate the chapter boundaries in
+// markdown space, slice them apart, and rebuild the document with the page
+// fully wrapped.
+const wrapCurrentPageInVCenter = () => {
+  const e = editor.value
+  if (!e) return
+  const md = e.storage.markdown?.getMarkdown?.() as string | undefined
+  if (typeof md !== 'string' || !md.length) {
+    toast.error('Die Seite ist leer — bitte zuerst Inhalt einfügen.')
+    return
+  }
+  // Caret position in markdown space ≈ caret position in textContent. We
+  // look up the current page by walking the heading lines (`## …`) and
+  // matching the heading whose body contains the caret-equivalent offset.
+  const caretText = e.state.doc.textBetween(0, e.state.selection.from, '\n', ' ')
+  const lines = md.split('\n')
+  const pageStartLines: number[] = []
+  for (let i = 0; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i] ?? '')) pageStartLines.push(i)
+  }
+  if (!pageStartLines.length) {
+    // No chapter splits — wrap the whole document.
+    if (md.includes('<vcenter>')) {
+      toast.info('Seite ist bereits vertikal zentriert.')
+      return
+    }
+    e.chain().focus().setContent(`<vcenter>\n${md}\n</vcenter>`).run()
+    applyFsMarksFromText(e)
+    return
+  }
+  // Find the page index that contains the caret. We approximate by counting
+  // characters in each lines[i] — same line-by-line walk the renderer uses.
+  let charCount = 0
+  let activePageIdx = 0
+  for (let i = 0; i < lines.length; i++) {
+    const lineLen = (lines[i]?.length ?? 0) + 1
+    if (caretText.length <= charCount + lineLen) {
+      // caret sits in line i — find which page bracket it belongs to
+      activePageIdx = pageStartLines.findIndex((s, k) => {
+        const next = pageStartLines[k + 1] ?? Infinity
+        return s <= i && i < next
+      })
+      if (activePageIdx === -1) activePageIdx = pageStartLines.length - 1
+      break
+    }
+    charCount += lineLen
+  }
+  const startLine = pageStartLines[activePageIdx]!
+  const endLine = pageStartLines[activePageIdx + 1] ?? lines.length
+  const pageLines = lines.slice(startLine, endLine)
+  if (pageLines.some((l) => l.includes('<vcenter>'))) {
+    toast.error('Seite ist bereits vertikal zentriert.')
+    return
+  }
+  // Wrap everything after the heading (line 0 of the slice) in vcenter so
+  // the chapter title still flows above the centered block, mirroring the
+  // BookReader's title + body separation.
+  const heading = pageLines[0]!
+  const bodyLines = pageLines.slice(1).join('\n').replace(/^\n+|\n+$/g, '')
+  const wrapped = `${heading}\n\n<vcenter>\n${bodyLines}\n</vcenter>`
+  const before = lines.slice(0, startLine).join('\n')
+  const after = lines.slice(endLine).join('\n')
+  const next = [before, wrapped, after].filter((s) => s.length).join('\n\n')
+  e.chain().focus().setContent(next).run()
+  applyFsMarksFromText(e)
 }
 
 const pickImage = () => {

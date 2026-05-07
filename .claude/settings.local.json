@@ -50,10 +50,14 @@
       "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/ios-simulator-build.yml /c/Users/konst/kanaan-stories/.github/workflows/ios-simulator-build.yml)",
       "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/workflows/android-build.yml /c/Users/konst/kanaan-stories/.github/workflows/android-build.yml)",
       "Bash(cp /c/Users/konst/.claude/skills/tauri-mobile-ci/templates/fastlane/Fastfile /c/Users/konst/kanaan-stories/src-tauri/fastlane/Fastfile)",
-      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('src-tauri/icons/icon.png'\\); print\\('size:', img.size, 'mode:', img.mode\\)\")"
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('src-tauri/icons/icon.png'\\); print\\('size:', img.size, 'mode:', img.mode\\)\")",
+      "PowerShell(pnpm *)",
+      "PowerShell(pnpm exec *)",
+      "Bash(awk 'NR>=600 && NR<=720' C:/Users/konst/kanaan-stories/node_modules/.pnpm/tiptap-markdown@0.8.10_@tip_82575c1da52095ed19295d99a3a4f628/node_modules/tiptap-markdown/dist/tiptap-markdown.es.js)",
+      "Bash(awk NR>=110 && NR<=200 *)"
     ]
   },
   "defaultMode": "auto",
-  "defaultName": "Seedolino",
+  "defaultName": "LambKing",
   "defaultColor": "green"
 }

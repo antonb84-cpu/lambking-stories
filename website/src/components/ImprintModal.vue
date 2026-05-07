@@ -66,16 +66,45 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape' && isOpen.value) close()
 }
 
+// Deep-link support: `?imprint=de` (or any value) opens the modal on first
+// paint so the URL is shareable. The locale value is informational right
+// now — only imprint.md exists; future translations can branch on it.
+const QUERY_KEY = 'imprint'
+
+function openFromUrlIfRequested() {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  if (params.has(QUERY_KEY)) isOpen.value = true
+}
+
+function clearUrlParam() {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has(QUERY_KEY)) return
+  url.searchParams.delete(QUERY_KEY)
+  window.history.replaceState(window.history.state, '', url.toString())
+}
+
 watch(isOpen, (open) => {
   if (typeof document === 'undefined') return
   document.body.style.overflow = open ? 'hidden' : ''
+  if (!open) clearUrlParam()
 })
+
+function onPopState() {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  isOpen.value = params.has(QUERY_KEY)
+}
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
+  window.addEventListener('popstate', onPopState)
+  openFromUrlIfRequested()
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('popstate', onPopState)
   if (typeof document !== 'undefined') document.body.style.overflow = ''
 })
 </script>

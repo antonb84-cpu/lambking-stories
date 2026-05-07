@@ -26,6 +26,11 @@ export class ApiClientError extends Error {
 // down" and let the serverStatus store surface the banner + queue retries.
 const OFFLINE_STATUSES = new Set([502, 503, 504])
 
+// AdminUI's per-build client key. Sent on every request so the public read
+// endpoints (gated by `requireClientKey` server-side) accept calls from
+// the BookBrowser dropdown. Empty string disables the header.
+const CLIENT_KEY: string = (import.meta.env.VITE_CLIENT_KEY ?? '').trim()
+
 function isOfflineFetchError(err: unknown): boolean {
   return err instanceof TypeError
 }
@@ -36,10 +41,18 @@ async function performRequest<T>(
   body?: unknown,
   init?: RequestInit
 ): Promise<T> {
+  // Merge headers carefully: FormData uploads must NOT carry a
+  // Content-Type so the browser fills in the multipart boundary; JSON
+  // requests need it set. The X-Client-Key header rides on every
+  // request when configured.
+  const baseHeaders: Record<string, string> = {}
+  if (!(body instanceof FormData)) baseHeaders['Content-Type'] = 'application/json'
+  if (CLIENT_KEY) baseHeaders['X-Client-Key'] = CLIENT_KEY
+
   const res = await fetch(path, {
     method,
     credentials: 'include',
-    headers: body instanceof FormData ? undefined : { 'Content-Type': 'application/json' },
+    headers: baseHeaders,
     body: body instanceof FormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     ...init
   })

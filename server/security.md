@@ -1,6 +1,6 @@
 # Security
 
-This document captures the security posture of the Seedolino server and the
+This document captures the security posture of the LambKing server and the
 configuration required to run it safely. Treat the contents as a checklist before
 promoting the service to a public environment.
 

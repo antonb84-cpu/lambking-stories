@@ -33,6 +33,15 @@ describe('detectChapters', () => {
     expect(pages).toHaveLength(1)
   })
 
+  it('folds pre-first-chapter content into the first chapter (no orphan auto-page)', () => {
+    const md = `<center>Cover-Text</center>\n\n## Kapitel 1\nErster Absatz.`
+    const pages = detectChapters(md)
+    expect(pages).toHaveLength(1)
+    expect(pages[0]!.title).toBe('Kapitel 1')
+    expect(pages[0]!.text).toContain('<center>Cover-Text</center>')
+    expect(pages[0]!.text).toContain('Erster Absatz.')
+  })
+
   it('detects chapter lines', () => {
     expect(isChapterLine('## Intro')).toBe(true)
     expect(isChapterLine('Kapitel 3: Das Ende')).toBe(true)

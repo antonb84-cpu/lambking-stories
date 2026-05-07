@@ -20,7 +20,7 @@ import useBookCache from '@/use/useBookCache'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiLocalizedPage, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
-import { markdownToHtml } from '@/utils/markdownToHtml'
+import { hasVerticalCenter, markdownToHtml, renderInline } from '@/utils/markdownToHtml'
 import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
 const route = useRoute()
@@ -78,15 +78,11 @@ const pages = computed<ApiLocalizedPage[]>(() => localization.value?.content ?? 
 const coverImage = computed<string>(() => {
   const b = book.value
   if (!b) return ''
-  // Prefer the per-locale content cover (an in-book splash) when present;
-  // fall back to the marketing cover so there's always a first page.
-  const localized = b.contentCoverImage?.[lang.value] ?? b.contentCoverImage?.de
-  return (
-    localized ||
-    pickLocalizedImage(b.coverImage, lang.value) ||
-    pickLocalizedImage(b.previewImage, lang.value) ||
-    ''
-  )
+  // Page 1 (the in-reader title image) now uses previewImage exclusively —
+  // coverImage and contentCoverImage are hidden in the admin UI and treated
+  // as optional. Fall back across locales so a DE-only book still renders
+  // the splash on the EN tab.
+  return pickLocalizedImage(b.previewImage, lang.value)
 })
 
 type DisplayEntry =
@@ -158,6 +154,15 @@ function renderPageHtml(text: string): string {
   return markdownToHtml(text ?? '', { resolveSrc: resolved, imgClass: 'page-img' })
 }
 
+// `<vcenter>…</vcenter>` flips the page body to a flex column so the
+// wrapper div can claim the full available height and center its children
+// vertically. We add the marker class on the body element rather than
+// inside the rendered HTML so the CSS doesn't have to reach across the
+// `:deep` boundary to lay out the parent.
+function pageBodyClass(text: string): string[] {
+  return hasVerticalCenter(text) ? ['page-body', 'has-vcenter'] : ['page-body']
+}
+
 // ----- Page navigation + swipe -----
 // The "deck" model: the current entry plus, while dragging or animating, the
 // adjacent entry in the direction of motion are both rendered. Each slot sits
@@ -174,7 +179,15 @@ const dragStartX = ref<number | null>(null)
 const isDragging = ref(false)
 const isAnimating = ref(false)
 const pendingShift = ref<-1 | 0 | 1>(0)
+// Page only starts following the finger after the user has dragged 15% of
+// the viewport width — below that the touch is treated as inert (likely
+// vertical-scroll jitter from a finger that isn't moving in a perfect
+// vertical line). Once activated the page tracks smoothly from the
+// activation point, so there's no jump when the threshold is crossed.
 const SWIPE_THRESHOLD = 60
+const DRAG_ACTIVATION_PCT = 0.15
+const dragActivated = ref(false)
+const dragActivationOrigin = ref(0)
 const EDGE_DAMPENING = 3
 const ANIMATION_FALLBACK_MS = 600
 
@@ -221,17 +234,39 @@ function startSwipe(e: MouseEvent | TouchEvent) {
   measureStage()
   dragStartX.value = getX(e)
   isDragging.value = true
+  dragActivated.value = false
+  dragActivationOrigin.value = 0
 }
 
 function duringSwipe(e: MouseEvent | TouchEvent) {
   if (dragStartX.value === null) return
-  let raw = getX(e) - dragStartX.value
+  const rawDelta = getX(e) - dragStartX.value
+
+  // Pre-activation deadzone: ignore horizontal motion until the user has
+  // moved past the activation threshold. Inside this band the page sits
+  // perfectly still so vertical scroll touches don't wobble the page.
+  if (!dragActivated.value) {
+    const threshold = stageWidth.value * DRAG_ACTIVATION_PCT
+    if (Math.abs(rawDelta) < threshold) {
+      // Page stays at center; vertical scrolling on .page-inner can do
+      // its thing without competing for the horizontal axis.
+      if (dragOffset.value !== 0) dragOffset.value = 0
+      return
+    }
+    // First frame past the threshold: anchor the activation origin to the
+    // current rawDelta so the effective offset starts at exactly 0. From
+    // here on the page tracks the finger smoothly with no visible jump.
+    dragActivated.value = true
+    dragActivationOrigin.value = rawDelta
+  }
+
+  let effective = rawDelta - dragActivationOrigin.value
   const lastIdx = displayEntries.value.length - 1
   // No neighbour in this direction → rubber-band the drag so the user feels
   // the edge instead of dragging the void in.
-  if (raw < 0 && currentIndex.value >= lastIdx) raw = raw / EDGE_DAMPENING
-  if (raw > 0 && currentIndex.value <= 0) raw = raw / EDGE_DAMPENING
-  dragOffset.value = raw
+  if (effective < 0 && currentIndex.value >= lastIdx) effective = effective / EDGE_DAMPENING
+  if (effective > 0 && currentIndex.value <= 0) effective = effective / EDGE_DAMPENING
+  dragOffset.value = effective
 }
 
 function endSwipe() {
@@ -457,11 +492,7 @@ const nextBook = computed(() => (book.value ? apiBooks.nextBookInSeries(book.val
 const nextBookCoverUrl = computed(() => {
   const b = nextBook.value
   if (!b) return ''
-  return (
-    pickLocalizedImage(b.coverImage, lang.value) ||
-    pickLocalizedImage(b.previewImage, lang.value) ||
-    ''
-  )
+  return pickLocalizedImage(b.previewImage, lang.value)
 })
 
 watch(nextBookCoverUrl, async (u) => {
@@ -474,78 +505,18 @@ function openNextBook() {
   router.replace({ name: 'app-reader', params: { bookId: b.bookId } })
 }
 
-// ----- Auto-fit text to viewport -----
-// The reader fills the screen and never scrolls inside a page — we instead
-// pick the largest font-size at which the title + body fit within the
-// available content area (between the back button and the bottom controls).
-// Works by binary-searching the font-size on the .page-inner element until
-// `scrollHeight <= clientHeight` (and width fits too). Inline-style mutation
-// skips Vue reactivity so each search iteration is one synchronous reflow.
-
-const pageInnerEls = new Map<number, HTMLElement>()
-const FIT_MIN_PX = 12
-const FIT_MAX_PX = 64
-
-function bindPageInner(idx: number, el: unknown) {
-  if (el instanceof HTMLElement) {
-    pageInnerEls.set(idx, el)
-    scheduleFit()
-  } else {
-    pageInnerEls.delete(idx)
-  }
-}
-
-function fitOne(inner: HTMLElement) {
-  inner.style.fontSize = `${FIT_MAX_PX}px`
-  if (
-    inner.scrollHeight <= inner.clientHeight &&
-    inner.scrollWidth <= inner.clientWidth
-  ) {
-    return
-  }
-  let lo = FIT_MIN_PX
-  let hi = FIT_MAX_PX
-  for (let i = 0; i < 10; i++) {
-    const mid = (lo + hi) / 2
-    inner.style.fontSize = `${mid}px`
-    if (
-      inner.scrollHeight <= inner.clientHeight &&
-      inner.scrollWidth <= inner.clientWidth
-    ) {
-      lo = mid
-    } else {
-      hi = mid
-    }
-  }
-  inner.style.fontSize = `${lo}px`
-}
-
-function fitText() {
-  // Each rendered slot has its own page-inner; fit them all so the neighbour
-  // is sized correctly the moment it slides into view. At most 2 elements.
-  for (const inner of pageInnerEls.values()) fitOne(inner)
-}
-
-function scheduleFit() {
-  // Two RAFs: one for Vue's render flush, one for the browser to settle
-  // layout (image natural size, font swap, etc.) before we measure.
-  requestAnimationFrame(() => requestAnimationFrame(fitText))
-}
-
-watch(currentIndex, scheduleFit)
-watch(book, scheduleFit)
-watch(blobUrlByOriginal, scheduleFit, { deep: true })
-watch(pages, scheduleFit, { deep: true })
+// Page text uses fixed sizes (body 16px, headers + chapter caption 20px).
+// The previous auto-fitter shrank type to fit the viewport; long admin-
+// authored pages got unreadably small. Content pages scroll vertically
+// instead.
 
 function onWindowResize() {
   measureStage()
-  scheduleFit()
 }
 
 onMounted(() => {
   window.addEventListener('resize', onWindowResize)
   measureStage()
-  scheduleFit()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onWindowResize)
@@ -638,16 +609,14 @@ function goBack() {
               v-else-if="slot.entry.kind === 'page'"
               class="page-frame content-frame"
             )
-              div(
-                :ref="(el) => bindPageInner(slot.index, el)"
-                class="page-inner"
-              )
+              div(class="page-inner")
                 h1(
                   v-if="slot.entry.page.title && slot.entry.page.title.trim()"
                   class="page-title"
-                ) {{ slot.entry.page.title }}
+                  v-html="renderInline(slot.entry.page.title)"
+                )
                 div(
-                  class="page-body"
+                  :class="pageBodyClass(slot.entry.page.text)"
                   v-html="renderPageHtml(slot.entry.page.text)"
                 )
 
@@ -780,12 +749,24 @@ function goBack() {
   flex-direction: column
 
 .cover-frame
-  background: #000
+  // Match the content-page surface so the unfilled top/bottom around the
+  // cover image blend into the rest of the book.
+  background: #fffdf7
+  // Center the image vertically; horizontal centering inherited from the
+  // page-frame's flex column.
+  align-items: center
+  justify-content: center
 
 .cover-img
+  // Fit the full width of the viewport, height follows from the source's
+  // natural aspect ratio so the artwork is never stretched. Rounded
+  // corners + the cream container background give the image a "card on
+  // page" look that matches the content-frame surface.
   width: 100%
-  height: 100%
-  object-fit: cover
+  height: auto
+  max-height: 100%
+  object-fit: contain
+  border-radius: 18px
   display: block
   pointer-events: none
   -webkit-user-drag: none
@@ -796,8 +777,8 @@ function goBack() {
   // Bottom reserves pager dots + page-counter + their bottom offset + gap.
   padding-top: calc(env(safe-area-inset-top, 0px) + 72px)
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 60px)
-  padding-left: 22px
-  padding-right: 22px
+  padding-left: 16px
+  padding-right: 16px
   display: flex
   align-items: stretch
   justify-content: center
@@ -806,25 +787,28 @@ function goBack() {
   width: 100%
   max-width: 720px
   height: 100%
-  // The font-fitter writes an inline font-size onto this element. Title +
-  // body size in `em` so they cascade. No scrolling — we shrink type until
-  // it fits the available area.
-  overflow: hidden
+  // Fixed sizing: body text 16px, headings + chapter caption 20px. Pages
+  // scroll vertically when the admin's content overflows — overflow-y is
+  // on this container so the scrollbar lives inside the page chrome and
+  // doesn't fight the reader's swipe gesture (which lives on the deck
+  // wrapper above this element).
+  overflow-y: auto
+  -webkit-overflow-scrolling: touch
   display: flex
   flex-direction: column
-  gap: 0.5em
-  font-size: 22px
+  gap: 12px
+  font-size: 16px
   line-height: 1.5
 
 .page-title
-  font-size: 1.4em
+  font-size: 20px
   font-weight: 900
   line-height: 1.18
   color: #1a1a1a
   margin: 0
 
 .page-body
-  font-size: 1em
+  font-size: 16px
   line-height: 1.5
   color: #1f1f1f
   font-weight: 600
@@ -849,19 +833,47 @@ function goBack() {
 .page-body :deep(h1),
 .page-body :deep(h2),
 .page-body :deep(h3)
+  font-size: 20px
   font-weight: 900
   color: #1a1a1a
   line-height: 1.2
   margin: 0.4em 0 0.2em
 
-.page-body :deep(h1)
-  font-size: 1.4em
+// Centered text wrapper produced by the admin UI's `<center>…</center>`
+// markup. Display block + width 100% so a span placed inside a paragraph
+// (or wrapping a title) behaves like a centered block. Applied to anything
+// tagged `.rt-center` (post-processed in markdownToHtml + renderInline).
+.page-body :deep(.rt-center),
+.page-title :deep(.rt-center)
+  display: block
+  width: 100%
+  text-align: center
 
-.page-body :deep(h2)
-  font-size: 1.2em
+// Per-selection font-size override produced by the admin UI's `<fs size="N">`
+// markup. The inline style attribute carries the actual pixel value (the
+// renderer sanitises `N` to an integer before emitting it). `line-height`
+// inherits so a 40px line still gets generous breathing room.
+.page-body :deep(.rt-fs),
+.page-title :deep(.rt-fs)
+  line-height: 1.2
 
-.page-body :deep(h3)
-  font-size: 1.05em
+// Vertical-center wrapper produced by the admin UI's `<vcenter>…</vcenter>`
+// markup. The page body switches into flex-column mode (only when the
+// `has-vcenter` marker class is present, so non-vcentered pages keep their
+// default block flow) and the wrapper claims the full remaining height.
+.page-body.has-vcenter
+  display: flex
+  flex-direction: column
+
+.page-body :deep(.rt-vcenter)
+  flex: 1 1 auto
+  display: flex
+  flex-direction: column
+  justify-content: center
+  align-items: stretch
+  min-height: 0
+// The flex children inside vcenter (`<p>`, `<h1>`, etc.) keep their
+// natural margins so paragraph rhythm survives.
 
 .page-body :deep(ul),
 .page-body :deep(ol)

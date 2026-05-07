@@ -51,7 +51,7 @@ const props = defineProps<{ book: BookDTO }>()
 
 const title = computed(() => props.book.localizations?.de?.title ?? props.book.bookId)
 const description = computed(() => props.book.localizations?.de?.shortDescription ?? '')
-const coverUrl = computed(() => pickLocalizedImage(props.book.coverImage, 'de'))
+const coverUrl = computed(() => pickLocalizedImage(props.book.previewImage, 'de'))
 
 const buyUrl = computed(() => {
   const link = props.book.etsyLink

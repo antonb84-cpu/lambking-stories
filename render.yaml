@@ -39,6 +39,22 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      # Per-client API keys gating the public read endpoints
+      # (/api/books, /api/book/:id). Format: name:key,name:key,…
+      # Match the values set in `.env.tauri` / Pages workflow / AdminUI
+      # build (VITE_CLIENT_KEY below). See server/.env.example for the
+      # full rationale — these are NOT secrets, just attribution + a
+      # CORS bypass channel for the Tauri WebView.
+      - key: CLIENT_KEYS
+        sync: false
+      # AdminUI build-time client key. Read by Vite when this build step
+      # compiles the AdminUI (`pnpm --filter little-bible-stories-adminui
+      # build` in buildCommand above), so the bundle ships X-Client-Key
+      # on every request. Must equal the `adminui:<value>` half of
+      # CLIENT_KEYS or the AdminUI's own GET /api/books call 401s with
+      # INVALID_CLIENT_KEY.
+      - key: VITE_CLIENT_KEY
+        sync: false
       - key: AUDIOBOOKS_DIR
         value: /var/data/audiobooks
       - key: UPLOADS_DIR

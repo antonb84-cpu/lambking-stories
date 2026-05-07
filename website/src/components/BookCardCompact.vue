@@ -44,7 +44,7 @@ import BookCover from './BookCover.vue'
 const props = defineProps<{ book: BookDTO }>()
 
 const title = computed(() => props.book.localizations?.de?.title ?? props.book.bookId)
-const coverUrl = computed(() => pickLocalizedImage(props.book.coverImage, 'de'))
+const coverUrl = computed(() => pickLocalizedImage(props.book.previewImage, 'de'))
 const buyUrl = computed(() => buyUrlOf(props.book))
 
 const isPurchasable = computed(

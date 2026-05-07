@@ -1,6 +1,6 @@
-# Seedolino — Server
+# LambKing — Server
 
-Production-grade Node.js + TypeScript + Express backend for the Seedolino
+Production-grade Node.js + TypeScript + Express backend for the LambKing
 Vue 3 app. Ships with:
 
 - Mongoose over MongoDB Atlas for metadata

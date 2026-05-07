@@ -1006,7 +1006,7 @@ async function shareCanvas() {
       await navigator.share({
         files: [file],
         title: 'Mein Ausmalbild',
-        text: 'Mein Ausmalbild aus der Seedolino-App'
+        text: 'Mein Ausmalbild aus der LambKing-App'
       })
     } catch (err) {
       // AbortError = user dismissed the share sheet — silent.

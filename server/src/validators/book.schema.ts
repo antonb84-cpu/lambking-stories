@@ -126,7 +126,12 @@ export const createBookSchema = z.object({
       websiteTags: z.array(z.string()).default([]),
       websitePrice: z.string().max(120).default(''),
       cover: z.string().optional(),
-      coverImage: localizedImageRequiringDe('coverImage'),
+      // coverImage and contentCoverImage (Buch-Vorderseiten-Titelbild) are
+      // currently hidden in the admin UI — every "cover" surface uses
+      // previewImage. Kept on the schema as optional so older books with a
+      // populated coverImage still validate, and so we can re-enable the
+      // upload UI later without a migration. Only previewImage is required.
+      coverImage: localizedImageSchema.optional().default({ de: '', en: '' }),
       previewImage: localizedImageRequiringDe('previewImage'),
       contentCoverImage: audioSchema.default({ de: '', en: '' }),
       achievementBadge: audioSchema.default({ de: '', en: '' }),

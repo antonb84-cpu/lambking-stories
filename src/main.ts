@@ -10,6 +10,34 @@ import appTranslations from '@/i18n/app'
 import { mergeObjectsRecursive } from '@/utils/function'
 import { GAME_USER_LANGUAGE } from '@/utils/constants.ts'
 
+// On-device debug console (vConsole). Gated by `VITE_DEBUG_CONSOLE=true`
+// at build time so production APKs / Pages bundles don't ship the
+// overlay. Vite inlines `import.meta.env.*`, so when the flag isn't set
+// the dynamic `import('vconsole')` chunk is dead-code-eliminated and
+// never downloaded.
+//
+// Enable for a Tauri Android closed-test diagnostic by setting
+// `VITE_DEBUG_CONSOLE=true` in `.env.tauri.local` (or appending it to
+// `.env.tauri`) and rebuilding the APK. The overlay surfaces the
+// System / Network / Console panels directly inside the WebView —
+// useful when the device is on a closed test track and you can't reach
+// it with `adb` / Chrome remote debugging. The Network tab shows every
+// `fetch` with full headers / response, which is what you need to
+// confirm whether `/api/books` is going out with the right
+// `X-Client-Key` header and what the server is replying.
+if (import.meta.env.VITE_DEBUG_CONSOLE === 'true') {
+  import('vconsole')
+    .then(({ default: VConsole }) => {
+      // eslint-disable-next-line no-new
+      new VConsole({ theme: 'dark' })
+    })
+    .catch((err) => {
+      // Diagnostic only — never block the app on a vConsole load failure.
+      // eslint-disable-next-line no-console
+      console.warn('[vConsole] failed to load:', err)
+    })
+}
+
 const translations = mergeObjectsRecursive(
   mergeObjectsRecursive(
     mergeObjectsRecursive({}, bookTranslations),

@@ -55,7 +55,10 @@ export interface ApiBook {
   updatedDate: string
   badges: string[]
   cover?: string
-  coverImage: ApiLocalizedImage
+  // coverImage is optional — the admin UI's upload slot is hidden and the
+  // server schema no longer requires it. previewImage is the single source
+  // of truth for every "cover" surface in the app.
+  coverImage?: ApiLocalizedImage
   previewImage: ApiLocalizedImage
   contentCoverImage?: ApiLocalizedAsset
   achievementBadge?: ApiLocalizedAsset

@@ -1,6 +1,6 @@
 {
   "name": "little-bible-stories",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "main": "./electron/out/main/main.js",
@@ -22,7 +22,7 @@
     "native-dev:demo": "dotenv -e .env.nativedemo -- electron-vite dev",
     "native-build": "electron-vite build",
     "native-preview": "electron-vite preview",
-    "native-package:demo": "dotenv -e .env.nativedemo -- pnpm run native-build && electron-builder --config.productName=\"Seedolino Demo\" --config.nsis.shortcutName=\"Seedolino Demo\" --config.directories.output=\"electron/dist-demo\" --config.win.artifactName=\"${productName}-Setup-${version}.${ext}\"",
+    "native-package:demo": "dotenv -e .env.nativedemo -- pnpm run native-build && electron-builder --config.productName=\"LambKing Demo\" --config.nsis.shortcutName=\"LambKing Demo\" --config.directories.output=\"electron/dist-demo\" --config.win.artifactName=\"${productName}-Setup-${version}.${ext}\"",
     "native-package": "dotenv -e .env.native -- pnpm run native-build && electron-builder",
     "align:extract": "node scripts/extract-page-text.mjs --key fa-1 --lang de --page 1 --out scripts/align-input/fa-1-de-page-1.txt",
     "align:audio": "node scripts/align-audio.mjs --audio public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1-page-1.ogg --text scripts/align-input/fa-1-de-page-1.txt --lang de --out public/audiobooks/fruit-agents/volume-1/de-fruit-agents-volume-1-page-1.align.json",
@@ -55,7 +55,7 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Seedolino"
+      "shortcutName": "LambKing"
     },
     "files": [
       "electron/out/**/*",
@@ -69,6 +69,7 @@
     "canvas-confetti": "^1.9.4",
     "lodash.clonedeep": "^4.5.0",
     "pdfjs-dist": "4.10.38",
+    "vconsole": "^3.15.1",
     "vue": "^3.5.29",
     "vue-i18n": "^11.2.8",
     "vue-router": "^5.0.3"

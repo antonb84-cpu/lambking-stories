@@ -72,14 +72,20 @@ jobs:
       - name: Build Main Production
         run: npm run build-github-main
         working-directory: main
+        env:
+          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
       - name: Build Develop Production
         run: npm run build-github-develop
         working-directory: develop
+        env:
+          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
       - name: Build Demo Production
         run: npm run build-github-demo
         working-directory: demo
+        env:
+          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
       - name: Build LambKing Website Production
         run: npm run build-github-lamb-king

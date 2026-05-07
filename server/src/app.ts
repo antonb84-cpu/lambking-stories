@@ -66,18 +66,57 @@ export function createApp(): Express {
     })
   )
 
-  // Strict CORS for the JSON API only — credentialed requests must come
-  // from an allow-listed origin.
+  // CORS picks one of two policies per request:
+  //
+  //   1. Permissive (origin: *, no creds) for the public read endpoints
+  //      (`GET /books`, `GET /book/:id`) when the caller carries an
+  //      `X-Client-Key` header — or when the preflight announces it via
+  //      `Access-Control-Request-Headers`. The Tauri Android WebView runs
+  //      from `https://tauri.localhost` (and iOS from `tauri://localhost`),
+  //      origins we can't enumerate across Tauri versions; the keyed flow
+  //      lets any origin in *as long as it presents a valid client key*.
+  //      No cookies are involved here, so `*` is safe.
+  //
+  //   2. Strict credentialed allowlist for everything else — admin writes,
+  //      session checks, uploads. Cookies + basic auth flow through here,
+  //      so the Origin allowlist is the only thing keeping a third-party
+  //      site from triggering a state change with a logged-in admin's
+  //      browser. Behaviour identical to the previous single cors() call.
+  //
+  // The actual key validation runs later in `requireClientKey` on the
+  // route itself; CORS just needs to know which policy to apply, which is
+  // a header-presence check rather than a full validation.
+  const publicReadPath = (p: string) => p === '/books' || p.startsWith('/book/')
   app.use(
-    cors({
-      origin: (origin, cb) => {
-        if (!origin) return cb(null, true)
-        if (env.CORS_ORIGIN.includes(origin)) return cb(null, true)
-        return cb(new Error(`Origin ${origin} not allowed by CORS`))
-      },
-      credentials: true
+    '/api',
+    cors((req, cb) => {
+      // `cors`'s typed callback narrows req to its own minimal shape — the
+      // real object is the full Express request, so cast to read `.path`
+      // and the singular `x-client-key` header.
+      const er = req as import('express').Request
+      const requestedHeaders = String(er.headers['access-control-request-headers'] ?? '').toLowerCase()
+      const announcesKey = er.method === 'OPTIONS' && requestedHeaders.includes('x-client-key')
+      const keyHeader = er.headers['x-client-key']
+      const hasKey = typeof keyHeader === 'string' && keyHeader.trim().length > 0
+      if (publicReadPath(er.path) && (hasKey || announcesKey)) {
+        return cb(null, {
+          origin: '*',
+          credentials: false,
+          allowedHeaders: ['Content-Type', 'X-Client-Key'],
+          methods: ['GET', 'OPTIONS']
+        })
+      }
+      cb(null, {
+        origin: (origin, originCb) => {
+          if (!origin) return originCb(null, true)
+          if (env.CORS_ORIGIN.includes(origin)) return originCb(null, true)
+          return originCb(new Error(`Origin ${origin} not allowed by CORS`))
+        },
+        credentials: true
+      })
     })
   )
+
   app.use(compression())
   app.use(express.json({ limit: '1mb' }))
   app.use(express.urlencoded({ extended: true, limit: '1mb' }))

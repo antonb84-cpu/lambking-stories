@@ -41,7 +41,11 @@ export interface BookDTO {
   badges?: string[]
   websiteTags?: string[]
   websitePrice?: string
-  coverImage: LocalizedImage
+  // coverImage is optional now — admin UI hides its upload slot and the
+  // server schema no longer requires it. Older books still in the DB may
+  // have a value; we leave the field declared so consumers can read it,
+  // but every "cover" surface in the website has switched to previewImage.
+  coverImage?: LocalizedImage
   previewImage: LocalizedImage
   contentCoverImage?: BookLocalizedString
   achievementBadge?: BookLocalizedString

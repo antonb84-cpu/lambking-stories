@@ -134,19 +134,14 @@
       </header>
 
       <div class="form-grid">
-        <div id="field-cover" class="col-6" :class="fieldClass('field-cover')">
-          <DropZone
-            :label="`Cover-Bild (${activeLocale.toUpperCase()})`"
-            accept="image/webp,image/jpeg,image/png"
-            kind="image"
-            hint="16:9 · 800x450, 1280×720 · max 3 MB"
-            subhint=".webp bevorzugt · pro Sprache eigenes Bild möglich"
-            :status="activeLocale === 'de' ? draft.uploadStatus.coverDe : draft.uploadStatus.coverEn"
-            :preview-url="(draft.book.coverImage?.[activeLocale]) || PLACEHOLDER_IMAGE"
-            :on-file="uploadCover"
-          />
-        </div>
-        <div id="field-preview" class="col-6" :class="fieldClass('field-preview')">
+        <!--
+          Cover-Bild and Buch-Vorderseiten-Titelbild dropzones are hidden for
+          now. The previewImage is the single source of truth for every "cover"
+          surface (iPhone preview, reader page 1, website, app lists). The
+          upload helpers stay wired in case we re-enable these slots later, but
+          their UI is suppressed and the schema makes both fields optional.
+        -->
+        <div id="field-preview" class="col-12" :class="fieldClass('field-preview')">
           <DropZone
             :label="`Preview-Bild (${activeLocale.toUpperCase()})`"
             accept="image/webp,image/jpeg,image/png"
@@ -170,30 +165,6 @@
             :status="draft.uploadStatus.audio"
             :preview-url="draft.book.audio?.[activeLocale] || undefined"
             :on-file="uploadAudio"
-          />
-        </div>
-        <div v-if="activeLocale === 'de'" class="col-6">
-          <DropZone
-            label="Buch-Vorderseiten-Titelbild (DE)"
-            accept="image/webp,image/jpeg,image/png"
-            kind="image"
-            hint="9:16 · z.B. 450x800 · max 2 MB"
-            subhint=".webp bevorzugt · ziehen oder klicken · optional"
-            :status="draft.uploadStatus.contentCoverDe"
-            :preview-url="draft.book.contentCoverImage?.de || undefined"
-            :on-file="uploadContentCoverDe"
-          />
-        </div>
-        <div v-else class="col-6">
-          <DropZone
-            label="Buch-Vorderseiten-Titelbild (EN)"
-            accept="image/webp,image/jpeg,image/png"
-            kind="image"
-            hint="9:16 · z.B. 450x800 · max 2 MB"
-            subhint=".webp bevorzugt · ziehen oder klicken · optional"
-            :status="draft.uploadStatus.contentCoverEn"
-            :preview-url="draft.book.contentCoverImage?.en || undefined"
-            :on-file="uploadContentCoverEn"
           />
         </div>
 
@@ -602,10 +573,10 @@ async function flushImageDeletes(urls: string[]) {
 }
 
 // Promotes the bundled placeholder.webp into a real server-side upload so
-// the book record passes the API's `coverImage`/`previewImage` required
-// checks. Used when the admin saves a brand-new book before they've had
-// time to attach proper artwork — they get a valid placeholder URL on the
-// server filesystem and can replace it later.
+// the book record passes the API's `previewImage` required check. Used
+// when the admin saves a brand-new book before they've had time to attach
+// proper artwork — they get a valid placeholder URL on the server
+// filesystem and can replace it later.
 async function uploadPlaceholderAs(kind: 'cover' | 'preview'): Promise<string> {
   const res = await fetch(PLACEHOLDER_IMAGE, { cache: 'force-cache' })
   if (!res.ok) throw new Error(`Placeholder konnte nicht geladen werden (${res.status})`)
@@ -616,15 +587,10 @@ async function uploadPlaceholderAs(kind: 'cover' | 'preview'): Promise<string> {
 }
 
 async function ensureRequiredImages() {
-  // Only the German image slot is auto-filled with the bundled placeholder
-  // — EN is treated as an optional translation and stays empty unless the
-  // user uploads something explicitly.
-  if (!draft.book.coverImage) draft.book.coverImage = { de: '', en: '' }
-  if (!draft.book.coverImage.de) {
-    const url = await uploadPlaceholderAs('cover')
-    draft.book.coverImage.de = url
-    draft.uploadStatus.coverDe = { ok: true, filename: 'placeholder.webp' }
-  }
+  // Only previewImage is required server-side now — coverImage is optional
+  // and its upload UI is hidden. We seed previewImage.de with the bundled
+  // placeholder so a hasty "save" still passes the API's required check.
+  // EN is an optional translation and stays empty unless explicitly set.
   if (!draft.book.previewImage) draft.book.previewImage = { de: '', en: '' }
   if (!draft.book.previewImage.de) {
     const url = await uploadPlaceholderAs('preview')

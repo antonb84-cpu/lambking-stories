@@ -17,12 +17,12 @@ describe('books routes', () => {
     const res = await request(app)
       .post('/api/books')
       .set('Authorization', ADMIN_AUTH)
-      .send({ ...sampleBook(), bookId: 'not-valid', coverImage: { de: '', en: '' } })
+      .send({ ...sampleBook(), bookId: 'not-valid', previewImage: { de: '', en: '' } })
     expect(res.status).toBe(400)
     expect(res.body.error.code).toBe('VALIDATION_ERROR')
     const fields = res.body.error.details.map((d: { field: string }) => d.field)
     expect(fields).toContain('bookId')
-    expect(fields).toContain('coverImage')
+    expect(fields).toContain('previewImage')
   })
 
   it('creates, fetches, lists (cached on 2nd call), updates, and deletes a book', async () => {

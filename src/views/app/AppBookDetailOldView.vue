@@ -162,7 +162,7 @@ watch(bookId, () => {
               :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
             )
             img(
-              :src="withPlaceholder(book.coverImage, book.previewImage)"
+              :src="withPlaceholder(book.previewImage)"
               :alt="t(book.title)"
               class="absolute inset-0 w-full h-full object-cover"
               loading="lazy"

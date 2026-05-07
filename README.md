@@ -1,6 +1,6 @@
-# Seedolino
+# LambKing
 
-Seedolino is an audiobook and stories app
+LambKing is an audiobook and stories app
 
 prototype: [WIP demo](https://konstantinsteinmiller.github.io/little-bible-stories/)
 

@@ -22,8 +22,11 @@
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import privacyText from '@/documentation/privacy-policy-de.md?raw'
 import { usePrivacyModal } from '@/composables/usePrivacyModal'
+import { useRoute } from 'vue-router'
 
 const { isOpen, close } = usePrivacyModal()
+
+const route = useRoute()
 
 const rendered = computed(() => renderMarkdown(privacyText))
 
@@ -86,16 +89,52 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape' && isOpen.value) close()
 }
 
+// Deep-link support: `?privacy-policy=de` (or any value) opens the modal
+// on first paint, so the URL is shareable. The locale value is currently
+// informational — only privacy-policy-de.md exists. When an EN translation
+// is added, switch the markdown import based on this value.
+const QUERY_KEY = 'privacy-policy'
+
+function openFromUrlIfRequested() {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  console.log('route: ', route)
+  console.log('params: ', params, params.has(QUERY_KEY))
+  if (params.has(QUERY_KEY)) isOpen.value = true
+}
+
+function clearUrlParam() {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has(QUERY_KEY)) return
+  url.searchParams.delete(QUERY_KEY)
+  // replaceState (not pushState) so we don't add a back-button entry just
+  // for closing a modal.
+  window.history.replaceState(window.history.state, '', url.toString())
+}
+
 watch(isOpen, (open) => {
   if (typeof document === 'undefined') return
   document.body.style.overflow = open ? 'hidden' : ''
+  if (!open) clearUrlParam()
 })
+
+// Browser back/forward should track the modal: navigating away from a URL
+// that had ?privacy-policy=… closes the modal, navigating back re-opens.
+function onPopState() {
+  if (typeof window === 'undefined') return
+  const params = new URLSearchParams(window.location.search)
+  isOpen.value = params.has(QUERY_KEY)
+}
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
+  window.addEventListener('popstate', onPopState)
+  openFromUrlIfRequested()
 })
 onUnmounted(() => {
   window.removeEventListener('keydown', onKey)
+  window.removeEventListener('popstate', onPopState)
   if (typeof document !== 'undefined') document.body.style.overflow = ''
 })
 </script>

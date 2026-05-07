@@ -1,11 +1,18 @@
-| Date     | Hours | Notes                                                                                |
-|----------|-------|--------------------------------------------------------------------------------------|
-| 09.04.26 | 9h    | basic project setup, 2 design-systems, 4 pages, AudioPlayer with pagers              |
-| 12.04.26 | 6h    | design-system redo                                                                   |
-| 13.04.26 | 12h   | page-transitions, read along with demo audio file                                    |
-| 20.04.26 | 14h   | adminUI and server, render.com hosting                                               |
-| 21.04.26 | 8h    | logging, adminUI UX, db backup, book reader                                          |
-| 27.04.26 | 8h    | AdminUI attachments, coloring app, sales link, editor fixes, content editor          |
-| 28.04.26 | 8h    | coloring app, attachment loading.                                                    |
-| 03.05.26 | 6h    | image fixes, tooltips, qol adminUI                                                   |
-| 04.05.26 | 5h    | AdminUI qol, toolbar, chapter, lang optionality, coverImage + previewImage localized |
+| Date       | Hours   | Notes                                                                                                                                                                                                                               |
+|------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 09.04.26   | 9h      | basic project setup, 2 design-systems, 4 pages, AudioPlayer with pagers                                                                                                                                                             |
+| 12.04.26   | 6h      | design-system redo                                                                                                                                                                                                                  |
+| 13.04.26   | 12h     | page-transitions, read along with demo audio file                                                                                                                                                                                   |
+| 20.04.26   | 14h     | adminUI and server, render.com hosting                                                                                                                                                                                              |
+| 21.04.26   | 8h      | logging, adminUI UX, db backup, book reader                                                                                                                                                                                         |
+| 27.04.26   | 8h      | AdminUI attachments, coloring app, sales link, editor fixes, content editor                                                                                                                                                         |
+| 28.04.26   | 8h      | coloring app, attachment loading.                                                                                                                                                                                                   |
+| 03.05.26   | 6h      | image fixes, tooltips, qol adminUI                                                                                                                                                                                                  |
+| 04.05.26   | 5h      | AdminUI qol, toolbar, chapter, lang optionality, coverImage + previewImage localized                                                                                                                                                |
+| 06.05.26   | 6h      | AdminUI qol, images preview, qol center                                                                                                                                                                                             |
+| 07.05.26   | 10h     | Datenbank anpassung, REST API fix for books, Allow Tauri books requests                                                                                                                                                             |
+| 08.05.26   | 8h      | AdminUI qol, qol center bookpage, images redo with 3:4 format, Swipe fix                                                                                                                                                            |
+| 09.05.26   | 4h      | Setup tauri + android build and ios build. setup PlayStore for Closed Test.                                                                                                                                                         |
+| 10.05.26   | 12h     | AdminUI qol, delete books, hints pdf upload, categories in book dropdown, delete dropdown buttons, remove site scroll refresh, font-size in rich text editor + previewer and BookReader, API gating tauri, scroll fix book reader   |
+| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|            | 114h    | Sum                                                                                                                                                                                                                                 |

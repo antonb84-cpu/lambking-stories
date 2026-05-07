@@ -31,7 +31,7 @@ const props = defineProps<{
 }>()
 
 const titleOf = (b: BookDTO) => b.localizations?.de?.title ?? b.bookId
-const coverOf = (b: BookDTO) => pickLocalizedImage(b.coverImage, 'de')
+const coverOf = (b: BookDTO) => pickLocalizedImage(b.previewImage, 'de')
 const priceOf = (b: BookDTO) => {
   const raw = (b.websitePrice ?? '').trim()
   if (!raw) return ''

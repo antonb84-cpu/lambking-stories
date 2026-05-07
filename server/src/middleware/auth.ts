@@ -5,7 +5,7 @@ import { env } from '../config/env.js'
 export const basicAuthGuard: RequestHandler = basicAuth({
   users: { [env.ADMIN_USER]: env.ADMIN_PASSWORD },
   challenge: true,
-  realm: 'Seedolino Admin',
+  realm: 'LambKing Admin',
   unauthorizedResponse: () => ({
     error: {
       code: 'UNAUTHORIZED',

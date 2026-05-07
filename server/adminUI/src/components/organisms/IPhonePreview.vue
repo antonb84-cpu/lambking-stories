@@ -59,8 +59,8 @@
         class="page"
         :style="{ transform: `translateX(${offset}px)` }"
       >
-        <h3 class="page-title">{{ currentDisplay?.page.title ?? 'Keine Seiten' }}</h3>
-        <div class="page-body" v-html="renderedText" />
+        <h3 v-if="renderedTitle" class="page-title" v-html="renderedTitle" />
+        <div :class="pageBodyClass" v-html="renderedText" />
       </div>
 
       <div class="pager">
@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { BookPage } from '@/types'
-import { markdownToHtml } from '@/utils/markdownToHtml'
+import { hasVerticalCenter, markdownToHtml, renderInline } from '@/utils/markdownToHtml'
 import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
 
 const props = defineProps<{ pages: BookPage[]; coverImage?: string; achievementBadge?: string }>()
@@ -120,6 +120,27 @@ const renderedText = computed(() => {
   const current = currentDisplay.value
   if (!current || current.kind !== 'page') return ''
   return markdownToHtml(current.page.text ?? '', { imgClass: 'page-img' })
+})
+
+// Page title rendered through the inline-safe path so `<center>…</center>`
+// the admin wraps around the title is parsed instead of escaped to literal
+// `&lt;center&gt;` text. Returns empty string when there's no title or no
+// page — the consumer's `v-if` then skips the `<h3>` entirely so a
+// titleless page (`##` + Enter, or no pages at all) renders as a clean
+// blank surface instead of "Keine Seiten" placeholder text.
+const renderedTitle = computed(() => {
+  const current = currentDisplay.value
+  if (!current || current.kind !== 'page') return ''
+  return renderInline(current.page.title)
+})
+
+// Mirrors the AppReaderView marker class — when the page contains a
+// `<vcenter>` wrapper we flip the page body to flex-column so the wrapper
+// can claim the full available height for vertical centering.
+const pageBodyClass = computed(() => {
+  const current = currentDisplay.value
+  if (!current || current.kind !== 'page') return ['page-body']
+  return hasVerticalCenter(current.page.text) ? ['page-body', 'has-vcenter'] : ['page-body']
 })
 
 const getX = (e: MouseEvent | TouchEvent): number => {
@@ -186,17 +207,27 @@ const endSwipe = () => {
   cursor: grabbing;
 }
 
+/* Mirror the AppReaderView cover-frame: cream surface, image fits via
+ * `contain` so the artwork keeps its aspect ratio (matches what the user
+ * sees on a real device — the BookReader does NOT crop with object-fit:
+ * cover and does NOT use a black backdrop). */
 .cover-page {
   position: absolute;
   inset: 0;
   transition: transform 120ms ease-out;
-  background: #000;
+  background: #fffdf7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .cover-full {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 18px;
   display: block;
   pointer-events: none;
   user-select: none;
@@ -208,6 +239,12 @@ const endSwipe = () => {
   height: calc(100% - 40px);
   transition: transform 120ms ease-out;
   overflow-y: auto;
+  /* Flex column so the page-body can grow to fill the remaining height once
+   * the title has taken what it needs — required for `<vcenter>` content to
+   * have a real vertical extent to center against. Non-vcenter content
+   * still stacks naturally because its children have no flex-grow. */
+  display: flex;
+  flex-direction: column;
 }
 
 .page-title {
@@ -221,6 +258,34 @@ const endSwipe = () => {
   font-size: 13px;
   line-height: 1.35;
   color: #333;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Switches into flex column when the page wraps content in `<vcenter>` —
+ * gives the inner `.rt-vcenter` div a flexbox parent to claim the full
+ * height with `flex: 1 1 auto`. */
+.page-body.has-vcenter {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-body :deep(.rt-vcenter) {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 0;
+}
+
+/* Per-selection font-size override produced by the admin UI's
+ * `<fs size="N">` markup. The pixel value lives in the inline style attr
+ * (sanitised by the renderer to an integer 1–999); this rule just resets
+ * the line-height so a 40px line still gets generous breathing room. */
+.page-body :deep(.rt-fs),
+.page-title :deep(.rt-fs) {
+  line-height: 1.2;
 }
 
 .page-body :deep(p) {
@@ -277,6 +342,16 @@ const endSwipe = () => {
 
 .page-body :deep(li) {
   margin: 0.15em 0;
+}
+
+/* Admin-authored `<center>…</center>` lands as a span with this class via
+ * markdownToHtml's post-process. Block + 100% width gives a paragraph-wide
+ * horizontal centering effect from inside a `<p>` (or wrapping a title). */
+.page-body :deep(.rt-center),
+.page-title :deep(.rt-center) {
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .page-body :deep(img),

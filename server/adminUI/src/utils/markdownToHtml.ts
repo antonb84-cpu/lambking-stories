@@ -67,9 +67,77 @@ function applyInline(text: string, opts: MarkdownToHtmlOptions): string {
   return out
 }
 
+// Sentinel prefix used to stash pre-extracted block wrappers
+// (`<vcenter>` / `<center>`) before line-by-line parsing. The string is
+// long and structured enough that it will never collide with anything an
+// admin would type, and applyInline's regex passes don't touch it, so the
+// sentinel survives intact through the parse and we can swap it back for
+// the real wrapper afterwards.
+const ADM_TAG_TOKEN_PREFIX = 'ADMTAG'
+
+interface PendingBlock {
+  index: number
+  tag: 'rt-vcenter' | 'rt-center'
+  inner: string
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export function markdownToHtml(src: string | null | undefined, opts: MarkdownToHtmlOptions = {}): string {
   if (!src) return ''
-  const lines = cleanMarkdown(src).replace(/\r\n?/g, '\n').split('\n')
+
+  // Pre-extract block-level admin wrappers BEFORE the line parser runs.
+  // The previous post-process injected `<div class="rt-vcenter">` as a
+  // string inside whatever paragraph happened to contain the `<vcenter>`
+  // tag, which produced malformed HTML when the wrapper spanned multiple
+  // blocks (e.g. several headings stacked between `<vcenter>` and
+  // `</vcenter>`). By pulling the wrapper text out of the source first,
+  // recursively rendering the inner content, and stitching a real
+  // `<div>` back in at the end, the wrapper becomes a true top-level
+  // block — its inner h1/p/lists nest cleanly inside.
+  //
+  // Order matters: extract `<vcenter>` first so a nested
+  // `<vcenter><center>…</center></vcenter>` lands in the recursive call
+  // (which then pulls the inner `<center>`). Doing it the other way
+  // would leave the outer `<vcenter>` chopped in half.
+  const pending: PendingBlock[] = []
+  const stash = (input: string, regex: RegExp, tag: 'rt-vcenter' | 'rt-center'): string =>
+    input.replace(regex, (_full: string, _leading: string, inner: string) => {
+      const idx = pending.length
+      pending.push({ index: idx, tag, inner: String(inner ?? '').trim() })
+      // Surround the sentinel with blank lines so it always parses as its
+      // own `<p>SENTINEL</p>` paragraph, no matter what neighboured the
+      // original tag.
+      return `\n\n${ADM_TAG_TOKEN_PREFIX}${idx}\n\n`
+    })
+
+  // Line-aligned matchers ONLY — the `<tag>` must sit at start of its line
+  // (after optional whitespace, preceded by a newline or start of string)
+  // and `</tag>` must end its line. This keeps inline uses like
+  // `# <center>title</center>` (a heading with the tag glued to the
+  // heading text) on the inline-span passthrough path further down, so
+  // those legacy single-line wrappers still center correctly via the
+  // `<span class="rt-center">` route. Block uses (`<tag>` on its own
+  // line, or multi-line content between tags) get wrapped in a real div
+  // via the recursive render below.
+  //
+  // The interior whitespace pattern is `[ \t]*\n*` rather than `[ \t]*\n?`
+  // so blank lines around the inner content (which is what the editor
+  // emits when the user separates blocks visually with empty paragraphs)
+  // are absorbed instead of breaking the match. Without this, content
+  // like `<center>\n\n# Heading\n\n</center>` failed to match — the `\n?`
+  // could only swallow one of the two newlines before `</center>`, the
+  // regex bailed, and the unmatched `<center>` fell back to the inline
+  // span path which can't span multiple blocks.
+  const VCENTER_BLOCK_RE = /(^|\n)[ \t]*<vcenter\b[^>]*>[ \t]*\n*([\s\S]*?)\n*[ \t]*<\/vcenter\s*>[ \t]*(?=\n|$)/gi
+  const CENTER_BLOCK_RE = /(^|\n)[ \t]*<center\b[^>]*>[ \t]*\n*([\s\S]*?)\n*[ \t]*<\/center\s*>[ \t]*(?=\n|$)/gi
+
+  let source = stash(src, VCENTER_BLOCK_RE, 'rt-vcenter')
+  source = stash(source, CENTER_BLOCK_RE, 'rt-center')
+
+  const lines = cleanMarkdown(source).replace(/\r\n?/g, '\n').split('\n')
   const blocks: string[] = []
 
   let para: string[] = []
@@ -132,5 +200,84 @@ export function markdownToHtml(src: string | null | undefined, opts: MarkdownToH
 
   flushPara()
   flushList()
-  return blocks.join('')
+
+  let result = passthroughAdminTags(blocks.join(''))
+
+  // Swap each sentinel paragraph back into a real wrapper div containing
+  // the recursively-rendered inner content. The `<p>SENTINEL</p>` shape
+  // comes from the line parser running on `\n\nSENTINEL\n\n` above.
+  for (const p of pending) {
+    const innerHtml = markdownToHtml(p.inner, opts).trim()
+    const token = escapeRegex(`${ADM_TAG_TOKEN_PREFIX}${p.index}`)
+    result = result.replace(
+      new RegExp(`<p>\\s*${token}\\s*</p>`, 'g'),
+      `<div class="${p.tag}">${innerHtml}</div>`
+    )
+  }
+
+  return result
+}
+
+// `applyInline` ran every literal `<` and `>` through `escapeHtml`, so admin
+// markup like `<center>…</center>` and `<fs size="N">…</fs>` now lives in
+// the rendered HTML in escaped form. Convert each back into the real markup
+// so the IPhonePreview and BookReader render them identically.
+//
+// Two source shapes are accepted for every tag:
+//   - literal `<…>` in page.text → after escapeHtml: `&lt;…&gt;` (single).
+//   - already-escaped `&lt;…&gt;` in page.text (legacy data from before
+//     `Markdown.configure({ html: false })` was applied) → after escapeHtml:
+//     `&amp;lt;…&amp;gt;` (double-escaped).
+function passthroughAdminTags(html: string): string {
+  let out = html
+    .replace(/(?:&amp;lt;center&amp;gt;|&lt;center&gt;)/gi, '<span class="rt-center">')
+    .replace(/(?:&amp;lt;\/center&amp;gt;|&lt;\/center&gt;)/gi, '</span>')
+
+  // Font-size span. `size` is sanitised to an integer 1–999 — anything else
+  // is left as the literal escaped text so the author notices the typo.
+  const FS_OPEN = /(?:&amp;lt;|&lt;)fs\s+size\s*=\s*(?:&amp;quot;|&quot;|"|')?\s*(\d{1,3})\s*(?:&amp;quot;|&quot;|"|')?\s*(?:&amp;gt;|&gt;)/gi
+  const FS_CLOSE = /(?:&amp;lt;|&lt;)\/fs\s*(?:&amp;gt;|&gt;)/gi
+  out = out.replace(FS_OPEN, (_m, size: string) => {
+    const n = Math.max(1, Math.min(999, parseInt(size, 10) || 0))
+    return n ? `<span class="rt-fs" style="font-size:${n}px">` : _m
+  })
+  out = out.replace(FS_CLOSE, '</span>')
+
+  // Vertical-center wrapper. Must be a block (not a span) so its flex layout
+  // can claim the page-body's height; we break out of any wrapping `<p>`
+  // and clean up the empty paragraphs that produces.
+  out = out
+    .replace(/(?:&amp;lt;vcenter&amp;gt;|&lt;vcenter&gt;)/gi, '</p><div class="rt-vcenter"><p>')
+    .replace(/(?:&amp;lt;\/vcenter&amp;gt;|&lt;\/vcenter&gt;)/gi, '</p></div><p>')
+    .replace(/<p>\s*<\/p>/g, '')
+
+  return out
+}
+
+// True when the source text contains a vertical-center wrapper. Consumers
+// use this to flip the page body to a flex column so `.rt-vcenter` can
+// claim the full available height with `flex: 1 1 auto`. Matches both
+// literal `<vcenter>` and the legacy `&lt;vcenter&gt;` form so books
+// saved before the post-processor was added still flip correctly.
+export function hasVerticalCenter(src: string | null | undefined): boolean {
+  if (!src) return false
+  return /<vcenter\b|<\/vcenter\s*>|&lt;vcenter\b|&lt;\/vcenter\s*&gt;/i.test(src)
+}
+
+// Render a single line of admin-authored text (e.g. a page title) as safe
+// HTML with the same `<center>` and `<fs size="N">` passthrough as the
+// block renderer. `<vcenter>` intentionally has no inline form.
+export function renderInline(text: string | null | undefined): string {
+  if (!text) return ''
+  let out = escapeHtml(text)
+    .replace(/(?:&amp;lt;center&amp;gt;|&lt;center&gt;)/gi, '<span class="rt-center">')
+    .replace(/(?:&amp;lt;\/center&amp;gt;|&lt;\/center&gt;)/gi, '</span>')
+  const FS_OPEN = /(?:&amp;lt;|&lt;)fs\s+size\s*=\s*(?:&amp;quot;|&quot;|"|')?\s*(\d{1,3})\s*(?:&amp;quot;|&quot;|"|')?\s*(?:&amp;gt;|&gt;)/gi
+  const FS_CLOSE = /(?:&amp;lt;|&lt;)\/fs\s*(?:&amp;gt;|&gt;)/gi
+  out = out.replace(FS_OPEN, (_m, size: string) => {
+    const n = Math.max(1, Math.min(999, parseInt(size, 10) || 0))
+    return n ? `<span class="rt-fs" style="font-size:${n}px">` : _m
+  })
+  out = out.replace(FS_CLOSE, '</span>')
+  return out
 }

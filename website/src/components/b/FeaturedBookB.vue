@@ -57,7 +57,7 @@ const props = defineProps<{
 
 const title = computed(() => props.book?.localizations?.de?.title ?? '')
 const description = computed(() => props.book?.localizations?.de?.shortDescription ?? '')
-const coverUrl = computed(() => pickLocalizedImage(props.book?.coverImage, 'de'))
+const coverUrl = computed(() => pickLocalizedImage(props.book?.previewImage, 'de'))
 
 const tags = computed<string[]>(() => {
   const websiteTags = Array.isArray(props.book?.websiteTags) ? props.book!.websiteTags! : []

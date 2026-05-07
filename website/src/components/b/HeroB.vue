@@ -44,7 +44,7 @@ const props = defineProps<{
 }>()
 
 const title = computed(() => props.book?.localizations?.de?.title ?? 'Mission Friede')
-const coverImage = computed(() => pickLocalizedImage(props.book?.coverImage, 'de'))
+const coverImage = computed(() => pickLocalizedImage(props.book?.previewImage, 'de'))
 
 const priceRaw = computed(() => (props.book?.websitePrice ?? '').trim())
 

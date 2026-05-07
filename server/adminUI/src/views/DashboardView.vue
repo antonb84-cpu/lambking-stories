@@ -1,7 +1,13 @@
 <template>
   <div class="dashboard-grid">
     <div class="flex flex-col gap-y-0.5 min-w-0">
-      <BookBrowser :books="books" :selected="draft.book.bookId" @select="onSelect" />
+      <BookBrowser
+        :books="books"
+        :series="series.items"
+        :selected="draft.book.bookId"
+        @select="onSelect"
+        @delete="onDeleteRequest"
+      />
 
       <section class="form-panel">
         <header class="panel-header">
@@ -43,6 +49,13 @@
       @stay="cancelDiscard"
       @discard="confirmDiscard"
     />
+
+    <ConfirmDeleteBookModal
+      v-if="deleteTargetId"
+      :book-label="deleteTargetLabel"
+      @cancel="cancelDelete"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -54,6 +67,7 @@ import SeriesManager from '@/components/organisms/SeriesManager.vue'
 import CategoryManager from '@/components/organisms/CategoryManager.vue'
 import IPhonePreview from '@/components/organisms/IPhonePreview.vue'
 import ConfirmDiscardModal from '@/components/molecules/ConfirmDiscardModal.vue'
+import ConfirmDeleteBookModal from '@/components/molecules/ConfirmDeleteBookModal.vue'
 import { useSeriesStore } from '@/stores/series'
 import { useCategoryStore } from '@/stores/categories'
 import { useBookDraftStore } from '@/stores/bookDraft'
@@ -69,10 +83,13 @@ const books = ref<BookDTO[]>([])
 
 const previewPages = computed(() => draft.activeLocalization.content)
 const previewCoverImage = computed(() => {
+  // The iPhone preview's first "cover" page now uses previewImage — the
+  // coverImage and contentCoverImage (Buch-Vorderseiten-Titelbild) inputs
+  // are hidden in the form. Fall back to whichever locale has art if the
+  // active locale slot is empty.
   const loc = draft.activeLocale
-  const ci = draft.book.coverImage
-  const localizedCover = ci ? (ci[loc] || ci.de || ci.en || '') : ''
-  return draft.book.contentCoverImage?.[loc] || localizedCover
+  const pi = draft.book.previewImage
+  return pi ? (pi[loc] || pi.de || pi.en || '') : ''
 })
 const previewAchievementBadge = computed(() => {
   const ab = draft.book.achievementBadge
@@ -151,6 +168,40 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', onBeforeUnload)
 })
+
+const deleteTargetId = ref('')
+const deleteTargetLabel = computed(() => {
+  const id = deleteTargetId.value
+  if (!id) return ''
+  const b = books.value.find((x) => x.bookId === id)
+  if (!b) return id
+  const title = b.localizations.de?.title ?? b.localizations.en?.title ?? '(ohne Titel)'
+  return `${b.bookId} — ${title}`
+})
+
+function onDeleteRequest() {
+  const id = draft.book.bookId
+  if (!id) return
+  deleteTargetId.value = id
+}
+
+function cancelDelete() {
+  deleteTargetId.value = ''
+}
+
+async function confirmDelete() {
+  const id = deleteTargetId.value
+  deleteTargetId.value = ''
+  if (!id) return
+  try {
+    await booksApi.remove(id)
+    books.value = books.value.filter((b) => b.bookId !== id)
+    draft.reset()
+    toast.success(`Buch „${id}" gelöscht`)
+  } catch (err) {
+    toast.error((err as Error).message, 'Löschen fehlgeschlagen')
+  }
+}
 
 async function onSaved(saved: BookDTO) {
   const idx = books.value.findIndex((x) => x.bookId === saved.bookId)

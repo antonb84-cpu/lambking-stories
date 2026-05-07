@@ -12,6 +12,13 @@ html, body
   overflow-y: auto
   -webkit-overflow-scrolling: touch
 
+// `overscroll-behavior` was tried here as a pull-to-refresh blocker but
+// silently killed document scroll on the Tauri WebView (Android Chromium
+// resolves "which element owns the viewport scroll" oddly when html+body
+// both carry `overflow-y: auto`, and an overscroll declaration on either
+// pushed it over the edge). The defence now lives in JS on the reader
+// stage instead — see `useBlockPullToRefresh` in src/use/.
+
 #app
   height: 100%
   width: 100%

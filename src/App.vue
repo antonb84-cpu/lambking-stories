@@ -6,6 +6,7 @@ import { orientation } from '@/use/useUser'
 import { mobileCheck } from '@/utils/function'
 import { useMusic } from '@/use/useSound'
 import { useExtensionGuard } from '@/use/useExtensionGuard'
+import { useBlockPullToRefresh } from '@/use/useBlockPullToRefresh'
 import { windowWidth, windowHeight } from '@/use/useUser'
 import useUser from '@/use/useUser'
 import useCheats from '@/use/useCheats'
@@ -29,6 +30,12 @@ watch(userLanguage, (v) => {
 }, { immediate: true })
 useExtensionGuard()
 useCheats()
+// Kill the browser's pull-to-refresh gesture without touching scroll CSS.
+// The earlier overscroll-behavior approach broke document scrolling on the
+// Tauri WebView; the JS handler walks up from the touch target so inner
+// scroll containers keep their native behaviour while the document itself
+// can no longer overscroll-down to trigger a refresh.
+useBlockPullToRefresh()
 const { resourceCache } = useAssets()
 
 

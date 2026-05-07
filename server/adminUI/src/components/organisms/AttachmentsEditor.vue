@@ -10,7 +10,7 @@
     <div v-if="modelValue.length" class="attachments-list">
       <div
         v-for="(att, i) in modelValue"
-        :key="`att-${i}`"
+        :key="rowKeys[i] ?? `att-${i}`"
         class="attachment-card"
       >
         <div class="att-head">
@@ -74,6 +74,23 @@ type UploadStatus = { ok: boolean; filename?: string; message?: string } | null
 const dataStatus = ref<UploadStatus[]>([])
 const previewStatus = ref<UploadStatus[]>([])
 
+// Stable per-row UI keys. Without these the v-for falls back to index-based
+// keys (`att-${i}`), which causes Vue to re-use the same DropZone instance
+// across `remove(i)` + `addColoring()` / `addDownload()` cycles. The
+// re-used DropZone keeps its `useDragDrop` state alive — including the
+// last filename ref — so the freshly added row visually inherits the green
+// success badge from the row that just got deleted, even though the
+// parent's `dataStatus[i]` was correctly cleared. Generating a UUID per
+// row makes Vue treat the new attachment as a brand-new node and remount
+// the DropZone with a clean composable.
+const rowKeys = ref<string[]>([])
+
+function newRowKey(): string {
+  return typeof crypto?.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `row-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 watch(
   () => props.modelValue.length,
   (n) => {
@@ -81,6 +98,12 @@ watch(
     while (previewStatus.value.length < n) previewStatus.value.push(null)
     if (dataStatus.value.length > n) dataStatus.value.length = n
     if (previewStatus.value.length > n) previewStatus.value.length = n
+    // Backfill UI keys for any externally-driven length growth (e.g. an
+    // initial `load(book)` call that arrives with attachments already in
+    // place). We only push missing keys — never overwrite — so add /
+    // remove sequences below stay in lockstep.
+    while (rowKeys.value.length < n) rowKeys.value.push(newRowKey())
+    if (rowKeys.value.length > n) rowKeys.value.length = n
   },
   { immediate: true }
 )
@@ -93,12 +116,14 @@ function addColoring() {
   commit([...props.modelValue, { previewImage: '', data: '', type: 'coloring' }])
   dataStatus.value.push(null)
   previewStatus.value.push(null)
+  rowKeys.value.push(newRowKey())
 }
 
 function addDownload() {
   commit([...props.modelValue, { previewImage: '', data: '', type: 'download' }])
   dataStatus.value.push(null)
   previewStatus.value.push(null)
+  rowKeys.value.push(newRowKey())
 }
 
 function remove(i: number) {
@@ -106,6 +131,7 @@ function remove(i: number) {
   next.splice(i, 1)
   dataStatus.value.splice(i, 1)
   previewStatus.value.splice(i, 1)
+  rowKeys.value.splice(i, 1)
   commit(next)
 }
 

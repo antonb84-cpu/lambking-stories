@@ -29,6 +29,37 @@ const schema = z.object({
       v.split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean)
     ),
 
+  // Per-client API keys gating the public read endpoints. Format:
+  //   CLIENT_KEYS=tauri:abc123,pages:def456,adminui:xyz789
+  // Each value pairs a client *name* (used in logs/metrics) with a *key*
+  // the matching client ships baked into its build as VITE_CLIENT_KEY.
+  // Keys baked into public clients are NOT secret — anyone can extract one
+  // by inspecting an APK or the Pages JS bundle. They serve as attribution
+  // + a CORS bypass channel (requests carrying a known key skip the strict
+  // Origin allowlist), not as an auth boundary. Real DoS protection lives
+  // in the per-IP `readLimiter` and at the platform edge.
+  // Empty string disables the gate (legacy behaviour) so local dev / tests
+  // don't have to provision keys upfront.
+  CLIENT_KEYS: z
+    .string()
+    .default('')
+    .transform((v) => {
+      const map = new Map<string, string>()
+      for (const pair of v.split(',')) {
+        const trimmed = pair.trim()
+        if (!trimmed) continue
+        const idx = trimmed.indexOf(':')
+        if (idx <= 0) continue
+        const name = trimmed.slice(0, idx).trim()
+        const key = trimmed.slice(idx + 1).trim()
+        if (!name || !key) continue
+        // Indexed by key so the lookup at request time is O(1) on the
+        // header value; the value is the human-readable client name.
+        map.set(key, name)
+      }
+      return map
+    }),
+
   AUDIOBOOKS_DIR: z.string().default('./audiobooks'),
   UPLOADS_DIR: z.string().default('./uploads'),
 

@@ -409,13 +409,13 @@ watch(currentTime, (v, prev) => {
       //- ===== Section 1: Hero image + back arrow =====
       div.header
       div(class="hero relative w-full")
-        div(class="hero-img relative w-full aspect-[16/9]")
+        div(class="hero-img relative w-full aspect-[3/4]")
           div(
             class="absolute inset-0"
             :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
           )
           img(
-            :src="withPlaceholder(pickLocalizedImage(book.coverImage, lang), pickLocalizedImage(book.previewImage, lang))"
+            :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
             :alt="localizedTitle"
             class="absolute inset-0 w-full h-full object-cover"
             loading="lazy"

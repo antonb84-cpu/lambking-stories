@@ -130,7 +130,7 @@ function openBook(bookId: string) {
                   :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
                 )
                 img(
-                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang), pickLocalizedImage(book.coverImage, lang))"
+                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
                   :alt="localizedTitle(book)"
                   class="absolute inset-0 w-full h-full object-cover"
                   loading="lazy"

@@ -1,18 +1,20 @@
 #!/usr/bin/env node
-// Rename the gradle-produced .apk / .aab to <bundleId>.<ext> so the
-// final artifact has a stable, recognizable filename. The bundle ID
-// is read from src-tauri/tauri.conf.json so the script stays correct
-// if the identifier ever changes.
+// Duplicate the gradle-produced .apk / .aab to <bundleId>.<ext> so the
+// final artifact has a stable, recognizable filename for upload AND
+// gradle's original output stays put — handy for debugging, build-cache
+// awareness, and re-running the script idempotently. The bundle ID is
+// read from src-tauri/tauri.conf.json so the script stays correct if
+// the identifier ever changes.
 //
 // Usage:
 //   node scripts/rename-android-output.mjs apk
 //   node scripts/rename-android-output.mjs aab
 //
 // If gradle emitted multiple files (e.g. ABI splits — separate APKs
-// per architecture), each is renamed to <bundleId>-<arch>.apk so they
-// don't collide.
+// per architecture), each gets a copy named <bundleId>-<arch>.<ext> so
+// the duplicates don't collide.
 
-import { readFileSync, readdirSync, renameSync, statSync } from 'node:fs'
+import { copyFileSync, readFileSync, readdirSync } from 'node:fs'
 import { join, dirname, basename, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -56,20 +58,28 @@ if (found.length === 0) {
 }
 
 const archRe = /-(arm64-v8a|armeabi-v7a|x86_64|x86|universal)-/i
-for (const src of found) {
+// `walk()` returns previous duplicates too, so skip anything that's
+// already named after the bundle ID — re-running the script after a
+// rebuild would otherwise copy a copy of itself onto itself.
+const sources = found.filter((p) => !basename(p).startsWith(`${bundleId}.`) && !basename(p).startsWith(`${bundleId}-`))
+if (!sources.length) {
+  console.log(`[rename-android-output] no fresh ${format} outputs to duplicate (only pre-existing ${bundleId}.* found)`)
+  process.exit(0)
+}
+for (const src of sources) {
   const dir = dirname(src)
   const stem = basename(src, extname(src))
   const archMatch = stem.match(archRe)
   const arch = archMatch ? archMatch[1].toLowerCase() : null
   // Single universal output → bare bundleId. Split outputs → bundleId-<arch>.
-  const useArch = found.length > 1 && arch
+  const useArch = sources.length > 1 && arch
   const dstName = useArch ? `${bundleId}-${arch}.${format}` : `${bundleId}.${format}`
   const dst = join(dir, dstName)
   if (src === dst) {
     console.log(`[rename-android-output] already named: ${dst}`)
     continue
   }
-  renameSync(src, dst)
-  console.log(`[rename-android-output] ${basename(src)} → ${dstName}`)
+  copyFileSync(src, dst)
+  console.log(`[rename-android-output] ${basename(src)} → ${dstName} (duplicated, original kept)`)
   console.log(`  ${dst}`)
 }
