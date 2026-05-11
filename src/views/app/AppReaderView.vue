@@ -787,7 +787,7 @@ function goBack() {
   width: 100%
   max-width: 720px
   height: 100%
-  // Fixed sizing: body text 16px, headings + chapter caption 20px. Pages
+  // Fixed sizing: body text 18px, headings + chapter caption 20px. Pages
   // scroll vertically when the admin's content overflows — overflow-y is
   // on this container so the scrollbar lives inside the page chrome and
   // doesn't fight the reader's swipe gesture (which lives on the deck
@@ -797,7 +797,7 @@ function goBack() {
   display: flex
   flex-direction: column
   gap: 12px
-  font-size: 16px
+  font-size: 18px
   line-height: 1.5
 
 .page-title
@@ -808,7 +808,7 @@ function goBack() {
   margin: 0
 
 .page-body
-  font-size: 16px
+  font-size: 18px
   line-height: 1.5
   color: #1f1f1f
   font-weight: 600
