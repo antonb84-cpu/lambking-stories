@@ -9,6 +9,7 @@ import useUser, { isWeb } from '@/use/useUser'
 const DesignSystemView = () => import(/* webpackChunkName: "design-system" */ '@/views/DesignSystemView.vue')
 const DesignSystemSView = () => import(/* webpackChunkName: "design-system-s" */ '@/views/DesignSystemSView.vue')
 const DesignSystemAView = () => import(/* webpackChunkName: "design-system-a" */ '@/views/DesignSystemAView.vue')
+const DesignSystemZView = () => import(/* webpackChunkName: "design-system-z" */ '@/views/DesignSystemZView.vue')
 
 // Lazy-load the secondary app routes as well — AppMainView stays eager
 // because it's the landing route.
@@ -25,6 +26,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/design-system', name: 'design-system', component: DesignSystemView },
   { path: '/design-system-s', name: 'design-system-s', component: DesignSystemSView },
   { path: '/design-system-a', name: 'design-system-a', component: DesignSystemAView },
+  { path: '/design-system-z', name: 'design-system-z', component: DesignSystemZView },
   { path: '/app', name: 'app-main', component: AppMainView },
   { path: '/app/all-books', name: 'app-all-books', component: AppAllBooksView },
   { path: '/app/series/:seriesId', name: 'app-series', component: AppBookSeriesView },

@@ -54,7 +54,8 @@
       "PowerShell(pnpm *)",
       "PowerShell(pnpm exec *)",
       "Bash(awk 'NR>=600 && NR<=720' C:/Users/konst/kanaan-stories/node_modules/.pnpm/tiptap-markdown@0.8.10_@tip_82575c1da52095ed19295d99a3a4f628/node_modules/tiptap-markdown/dist/tiptap-markdown.es.js)",
-      "Bash(awk NR>=110 && NR<=200 *)"
+      "Bash(awk NR>=110 && NR<=200 *)",
+      "Bash(findstr -i router)"
     ]
   },
   "defaultMode": "auto",
