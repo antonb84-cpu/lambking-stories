@@ -169,60 +169,70 @@ button
   border: none
   padding: 0
 
+// LambKing parchment palette — navy panel, gold progress, cream play
+// with a gold ring. Echoes the primary "Lesen" button and ZPlayButton
+// so the player reads as a continuation of the rest of the app instead
+// of its own theme.
 .a-audio-player
-  background: linear-gradient(160deg, #9560f4 0%, #7e3af2 60%, #6929c4 100%)
-  border: 1px solid rgba(255, 255, 255, 0.22)
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px -20px rgba(61, 22, 118, 0.55)
-  color: #ffffff
+  background: linear-gradient(160deg, #21406a 0%, #1c3559 60%, #142a47 100%)
+  border: 1px solid rgba(255, 255, 255, 0.18)
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 60px -20px rgba(10, 26, 48, 0.55)
+  color: #fdf8ed
 
 .a-audio-track
-  background-color: rgba(255, 255, 255, 0.25)
+  background-color: rgba(255, 255, 255, 0.2)
 
 .a-audio-fill
-  background: linear-gradient(90deg, #ffd147 0%, #ffffff 100%)
-  box-shadow: 0 0 10px rgba(255, 209, 71, 0.7)
+  background: linear-gradient(90deg, #c89030 0%, #d4a83e 60%, #f3d167 100%)
+  box-shadow: 0 0 10px rgba(212, 168, 62, 0.7)
 
 .a-audio-handle
-  background-color: #ffffff
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18), 0 0 16px 2px rgba(255, 209, 71, 0.8)
+  background: radial-gradient(120% 120% at 30% 25%, #ffffff 0%, #fbf1d6 60%, #e0c082 100%)
+  box-shadow: 0 0 0 4px rgba(212, 168, 62, 0.18), 0 0 16px 2px rgba(212, 168, 62, 0.7)
   transition: transform 120ms ease-out
 
   &.is-dragging
     transform: translate(-50%, -50%) scale(1.25)
 
 .a-audio-time
-  color: rgba(255, 255, 255, 0.85)
+  color: rgba(253, 248, 237, 0.85)
 
 .a-audio-side-btn
-  color: rgba(255, 255, 255, 0.92)
-  background-color: rgba(255, 255, 255, 0.12)
-  border: 1px solid rgba(255, 255, 255, 0.2)
+  color: rgba(253, 248, 237, 0.92)
+  background-color: rgba(255, 255, 255, 0.1)
+  border: 1px solid rgba(255, 255, 255, 0.18)
   border-radius: 9999px
   aspect-ratio: 1 / 1
   flex-shrink: 0
-  transition: transform 150ms ease-out, background-color 150ms ease-out
+  transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out
 
   &:hover
-    background-color: rgba(255, 255, 255, 0.22)
+    background-color: rgba(212, 168, 62, 0.25)
+    color: #f3d167
     transform: translateY(-1px)
 
   &:active
     transform: scale(0.96)
 
 .a-audio-side-btn--sm
-  background-color: rgba(255, 255, 255, 0.08)
+  background-color: rgba(255, 255, 255, 0.06)
 
 .a-audio-skip-num
-  color: rgba(255, 255, 255, 0.85)
+  color: rgba(253, 248, 237, 0.85)
 
+// Play button — wine-red 3D gradient identical to ZPlayButton, with a
+// gold ring so it reads as the primary CTA inside the navy panel.
 .a-audio-play
-  background-color: #ffffff
-  color: #6929c4
-  border: 3px solid #ffd147
+  background: radial-gradient(120% 120% at 30% 25%, #cc5142 0%, #a93d2e 45%, #7a2a1f 100%)
+  color: #ffffff
+  border: 3px solid #d4a83e
   border-radius: 9999px
   aspect-ratio: 1 / 1
   flex-shrink: 0
-  box-shadow: 0 0 0 1px rgba(255, 209, 71, 0.3), 0 0 28px -2px rgba(255, 209, 71, 0.6), 0 12px 32px -8px rgba(61, 22, 118, 0.55)
+  box-shadow: 0 0 0 1px rgba(212, 168, 62, 0.4), 0 0 28px -2px rgba(212, 168, 62, 0.45), 0 12px 32px -8px rgba(10, 26, 48, 0.6), inset 0 3px 0 rgba(255, 255, 255, 0.28), inset 0 -4px 0 rgba(0, 0, 0, 0.22)
+
+  &:hover
+    background: radial-gradient(120% 120% at 30% 25%, #d96354 0%, #bd4435 45%, #8a3022 100%)
 
   &.is-loading
     cursor: progress
@@ -243,7 +253,7 @@ button
   width: 10px
   height: 10px
   border-radius: 999px
-  background-color: #6929c4
+  background-color: #fdf8ed
   transform: translate(-50%, -50%)
   will-change: left, transform, opacity
 
