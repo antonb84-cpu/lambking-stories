@@ -8,13 +8,14 @@
  * rendered (ProfileView header, AppMainView header).
  */
 import { computed, ref } from 'vue'
+import { prependBaseUrl } from '@/utils/function'
 
 const LS_AVATAR = 'kanaan.avatarIndex'
 
 // Canonical fallback image. Lives in /public so Vite serves it
-// verbatim; used both as a real avatar option (slot 0) and as the
-// `@error` recovery target for the rest of the picker.
-export const DEFAULT_AVATAR_IMAGE = '/images/icons/avatar.webp'
+// verbatim. Routed through `prependBaseUrl` so production GH-Pages
+// builds resolve under the deploy subpath instead of the origin root.
+export const DEFAULT_AVATAR_IMAGE = prependBaseUrl('images/icons/avatar.webp')
 
 // Avatar picker slot paths. Slot 0 is the shipped default; the rest
 // reference per-illustration assets that may or may not exist yet. Any
@@ -22,11 +23,11 @@ export const DEFAULT_AVATAR_IMAGE = '/images/icons/avatar.webp'
 // so the picker never renders a broken image.
 const AVATAR_SOURCES: string[] = [
   DEFAULT_AVATAR_IMAGE,
-  '/images/avatars/avatar-1.webp',
-  '/images/avatars/avatar-2.webp',
-  '/images/avatars/avatar-3.webp',
-  '/images/avatars/avatar-4.webp',
-  '/images/avatars/avatar-5.webp'
+  prependBaseUrl('images/avatars/avatar-1.webp'),
+  prependBaseUrl('images/avatars/avatar-2.webp'),
+  prependBaseUrl('images/avatars/avatar-3.webp'),
+  prependBaseUrl('images/avatars/avatar-4.webp'),
+  prependBaseUrl('images/avatars/avatar-5.webp')
 ]
 
 function readIndex(): number {

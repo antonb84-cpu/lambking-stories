@@ -8,6 +8,7 @@ import ZBadge from '@/components/atoms/ZBadge.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
+import useApiSeries from '@/use/useApiSeries'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
@@ -20,11 +21,16 @@ const route = useRoute()
 const router = useRouter()
 const { getSeries } = useModels()
 const apiBooks = useApiBooks()
+const apiSeries = useApiSeries()
 const { getPct } = useReadingProgress()
 const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
+  // Fetch the live series records so the hero pulls the
+  // editor-uploaded `coverImage` instead of falling back to the first
+  // book's preview.
+  void apiSeries.loadAll()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
@@ -63,10 +69,16 @@ function bandLabel(idx: number): string {
   return t('app.bookSeries.bandLabel', { n: idx + 1 })
 }
 
-// Hero image — until the API ships `bookSeriesCoverImage` we fall back to
-// the legacy `coverImage` on the series, then the first book's preview,
-// then the shared placeholder.
+// Hero image source priority:
+//   1. The server-side series record (carries the cover uploaded via
+//      the AdminUI dropzone).
+//   2. The hard-coded `useModels` catalogue.
+//   3. The first book's preview as a graceful fallback.
+//   4. The shared placeholder.
 const heroImage = computed<string>(() => {
+  void apiSeries.state.all
+  const apiMeta = apiSeries.getById(seriesId.value)
+  if (apiMeta?.coverImage) return apiMeta.coverImage
   const meta = seriesMeta.value
   if (meta?.coverImage) return meta.coverImage
   const first = books.value[0]
@@ -118,9 +130,9 @@ function goBack() {
           class="hero-subtitle"
         ) Im Auftrag des Königs
 
-      //- Decorative crown crest top-right
-      span(class="hero-crest")
-        ZIconography(name="crown" :size="38")
+      ////- Decorative crown crest top-right
+      //span(class="hero-crest")
+      //  ZIconography(name="crown" :size="38")
 
     div(class="content")
       p(class="series-desc") {{ description }}
@@ -298,11 +310,12 @@ button
 // long German titles can wrap inside the card instead of forcing the
 // row to overflow horizontally. Capping each track at 30% keeps the
 // three-up layout strictly inside the viewport.
+// Three equal-width tracks. `minmax(0, 1fr)` lets long German titles
+// wrap inside the card without forcing the row to overflow horizontally.
 .book-grid
   display: grid
-  grid-template-columns: repeat(3, minmax(0, 30%))
-  justify-content: space-between
-  gap: 6px
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  gap: 8px
 
 .book-card
   position: relative
@@ -312,10 +325,9 @@ button
   cursor: pointer
   background: $cream-card
   border: 1px solid $border
-  border-radius: 16px
-  padding: 6px 6px 8px
+  border-radius: 14px
+  padding: 6px 6px 10px
   min-width: 0
-  max-width: 30%
   width: 100%
   box-shadow: 0 6px 16px -10px rgba(58, 42, 18, 0.3)
   transition: transform 180ms ease-out, box-shadow 180ms ease-out
@@ -332,30 +344,35 @@ button
       filter: grayscale(0.85)
       opacity: 0.75
 
-// Fixed-height image well so every tile lines up across columns even
-// when the underlying preview ratios differ. The image is fit-contained
-// and horizontally centered so 3:4 portraits and square covers both sit
-// cleanly without cropping.
+// Image well sized to the actual book-cover aspect (3:4 portrait). The
+// `padding-bottom: 133.333%` trick is the legacy bulletproof way to lock
+// a box's height to a percentage of its width — it computes BEFORE any
+// `aspect-ratio` support is required, so cache-busted older builds,
+// quirky browser engines (looking at you, Tauri WebView), and the few
+// platforms that still don't honour `aspect-ratio` on grid items all
+// render the well at the right size. `aspect-ratio` stays as a hint for
+// future stylesheets but is no longer load-bearing.
 .book-card-img-wrap
   position: relative
+  display: block
   width: 100%
-  height: 150px
+  height: 0
+  padding-bottom: 133.333%
+  aspect-ratio: 3 / 4
   border-radius: 10px
   overflow: hidden
   background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
-  display: flex
-  align-items: center
-  justify-content: center
   border: 1px solid $border
 
 .book-card-img
-  max-height: 100%
+  position: absolute
+  inset: 0
+  width: 100% !important
+  height: 100% !important
   max-width: 100%
-  width: auto
-  height: auto
-  object-fit: contain
+  max-height: 100%
+  object-fit: cover
   display: block
-  margin: 0 auto
 
 .book-card-meta
   display: flex

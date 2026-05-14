@@ -12,12 +12,14 @@ import useApiBooks from '@/use/useApiBooks'
 import useUser from '@/use/useUser'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
+import useUserName from '@/use/useUserName'
 import useAppNav from '@/use/useAppNav'
 import useApiConfig from '@/use/useApiConfig'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
+import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
@@ -59,8 +61,27 @@ const watchListBooks = computed<ApiBook[]>(() =>
     .filter((b): b is ApiBook => b !== null)
 )
 
+// Editable display name — persists via `useUserName` (localStorage),
+// so the main-view greeting picks up changes immediately on next render.
+const { displayName, setUserName } = useUserName()
+const isEditingName = ref(false)
+const nameDraft = ref('')
+
+function startEditName() {
+  nameDraft.value = displayName.value
+  isEditingName.value = true
+}
+
+function saveName() {
+  setUserName(nameDraft.value)
+  isEditingName.value = false
+}
+
+function cancelEditName() {
+  isEditingName.value = false
+}
+
 // Level + XP — placeholder values; gamification math lands later.
-const userName = computed(() => 'Leonas')
 const userLevel = computed(() => 7)
 const userXp = computed(() => 320)
 const userXpMax = computed(() => 500)
@@ -95,9 +116,9 @@ interface QuickAction {
 }
 
 const quickActions = computed<QuickAction[]>(() => [
-  { id: 'favorites', label: t('app.profile.favorites'), icon: '/images/icons/favorites.webp' },
-  { id: 'progress', label: t('app.profile.progress'), icon: '/images/icons/progress.webp' },
-  { id: 'achievements', label: t('app.profile.achievements'), icon: '/images/icons/achievements.webp', disabled: true }
+  { id: 'favorites', label: t('app.profile.favorites'), icon: prependBaseUrl('images/icons/favorites.webp') }
+  // { id: 'progress', label: t('app.profile.progress'), icon: prependBaseUrl('images/icons/progress.webp') },
+  // { id: 'achievements', label: t('app.profile.achievements'), icon: prependBaseUrl('images/icons/achievements.webp'), disabled: true }
 ])
 
 function onQuickAction(qa: QuickAction) {
@@ -133,9 +154,15 @@ function onBackendToggle(e: Event) {
     header(class="profile-header")
       ZBackButton(variant="flat" @click="goBack")
       div(class="title-cluster")
-        h1(class="page-title")
-          ZIconography(name="crown" :size="26")
-          span {{ t('app.profile.title') }}
+        div(class="brand-stack flex flex-col items-center justify-center gap-0")
+          img(
+            :src="prependBaseUrl('images/icons/crown_256x256.webp')"
+            alt="LambKing"
+            class="brand-crown w-[44px] object-contain -mb-1"
+            decoding="async"
+          )
+          h1(class="page-title")
+            span {{ t('app.profile.title') }}
       button(
         type="button"
         class="header-btn"
@@ -164,18 +191,57 @@ function onBackendToggle(e: Event) {
               ZIconography(name="camera" :size="14")
 
           div(class="profile-meta")
-            h2(class="profile-name") {{ userName }}
-            p(class="profile-role") {{ t('app.profile.adventurer') }}
-            div(class="level-row")
-              span(class="level-crown")
-                ZIconography(name="crown" :size="14")
-              span(class="level-text") {{ t('app.profile.level', { n: userLevel }) }}
-              span(class="level-xp") {{ userXp }} / {{ userXpMax }}
-            div(class="xp-track")
-              div(
-                class="xp-fill"
-                :style="{ width: Math.round(xpPct * 100) + '%' }"
+            //- View mode: name + pencil edit affordance.
+            //- Edit mode: text input + save / cancel pills.
+            template(v-if="!isEditingName")
+              div(class="name-row")
+                h2(class="profile-name") {{ displayName }}
+                button(
+                  type="button"
+                  class="name-edit-btn"
+                  :aria-label="t('app.profile.editName')"
+                  @click="startEditName"
+                )
+                  ZIconography(name="pencil" :size="16")
+            template(v-else)
+              form(
+                class="name-edit-form"
+                @submit.prevent="saveName"
               )
+                input(
+                  v-model="nameDraft"
+                  type="text"
+                  class="name-edit-input"
+                  :placeholder="t('app.profile.namePlaceholder')"
+                  maxlength="32"
+                  autofocus
+                  @keydown.esc="cancelEditName"
+                )
+                button(
+                  type="submit"
+                  class="name-edit-action name-edit-save"
+                  :aria-label="t('app.profile.saveName')"
+                )
+                  ZIconography(name="check" :size="16")
+                button(
+                  type="button"
+                  class="name-edit-action name-edit-cancel"
+                  :aria-label="t('app.profile.cancelName')"
+                  @click="cancelEditName"
+                )
+                  svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
+                    path(d="M18 6 6 18M6 6l12 12")
+            p(class="profile-role") {{ t('app.profile.adventurer') }}
+            //div(class="level-row")
+            //  span(class="level-crown")
+            //    ZIconography(name="crown" :size="14")
+            //  span(class="level-text") {{ t('app.profile.level', { n: userLevel }) }}
+            //  span(class="level-xp") {{ userXp }} / {{ userXpMax }}
+            //div(class="xp-track")
+            //  div(
+            //    class="xp-fill"
+            //    :style="{ width: Math.round(xpPct * 100) + '%' }"
+            //  )
 
         //- Quick action grid
         div(class="quick-grid")
@@ -410,6 +476,90 @@ button
   font-weight: 900
   color: $navy
   margin: 0
+
+// Name + edit-pencil row. The pencil button sits inline so kids see
+// "I can change this" at a glance without an extra screen.
+.name-row
+  display: flex
+  align-items: center
+  gap: 6px
+
+.name-edit-btn
+  flex: 0 0 auto
+  width: 26px
+  height: 26px
+  border-radius: 999px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background-color: $cream-card
+  border: 1px solid $border
+  color: $navy
+  cursor: pointer
+  transition: background-color 150ms ease-out, transform 150ms ease-out, color 150ms ease-out
+
+  &:hover
+    background-color: $gold
+    color: #ffffff
+    transform: translateY(-1px)
+
+  &:active
+    transform: scale(0.92)
+
+.name-edit-form
+  display: flex
+  align-items: center
+  gap: 6px
+  width: 100%
+
+.name-edit-input
+  flex: 1
+  min-width: 0
+  font-size: 17px
+  font-weight: 900
+  color: $navy
+  padding: 4px 10px
+  background-color: $cream-card
+  border: 1.5px solid $gold
+  border-radius: 10px
+  outline: none
+  font-family: inherit
+
+  &::placeholder
+    color: $brown
+    font-weight: 500
+
+.name-edit-action
+  flex: 0 0 auto
+  width: 28px
+  height: 28px
+  border-radius: 999px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  border: 1.5px solid transparent
+  cursor: pointer
+  transition: transform 150ms ease-out, background-color 150ms ease-out
+
+  &:active
+    transform: scale(0.92)
+
+.name-edit-save
+  background: linear-gradient(180deg, #6da045 0%, #4a7332 100%)
+  color: #ffffff
+  border-color: #4a7332
+
+  &:hover
+    background: linear-gradient(180deg, #7cb24f 0%, #588439 100%)
+
+.name-edit-cancel
+  background-color: $cream-card
+  color: $brown
+  border-color: $border
+
+  &:hover
+    background-color: #ffffff
+    color: #a93d2e
 
 .profile-role
   font-size: 12px

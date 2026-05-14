@@ -10,6 +10,7 @@ export default {
       },
       main: {
         hello: 'Hello, Explorer!',
+        helloName: 'Hello, {name}!',
         subtitle: 'Ready for a new story?',
         searchPlaceholder: 'Search story …',
         unlock: 'Unlock',
@@ -23,7 +24,9 @@ export default {
         seeAll: 'See all',
         missionOfDay: 'Mission of the day',
         missionDone: 'Done!',
-        missionSub: 'Be a peacemaker today.'
+        missionSub: 'Be a peacemaker today.',
+        searchResultsTitle: 'Search results',
+        searchEmpty: 'No books found.'
       },
       allBooks: {
         title: 'Series',
@@ -142,6 +145,10 @@ export default {
         myWorks: 'My works',
         remove: 'Remove',
         chooseAvatar: 'Choose avatar',
+        editName: 'Edit name',
+        saveName: 'Save name',
+        cancelName: 'Cancel',
+        namePlaceholder: 'Your name',
         localBackend: 'Local backend',
         localBackendOn: 'Local · {url}',
         localBackendOff: 'Remote · {url}',
@@ -160,6 +167,7 @@ export default {
       },
       main: {
         hello: 'Hallo, Entdecker!',
+        helloName: 'Hallo, {name}!',
         subtitle: 'Bereit für eine neue Geschichte?',
         searchPlaceholder: 'Geschichte suchen …',
         unlock: 'Freischalten',
@@ -173,7 +181,9 @@ export default {
         seeAll: 'Alle anzeigen',
         missionOfDay: 'Mission des Tages',
         missionDone: 'Geschafft!',
-        missionSub: 'Sei heute ein Friedensstifter.'
+        missionSub: 'Sei heute ein Friedensstifter.',
+        searchResultsTitle: 'Suchergebnisse',
+        searchEmpty: 'Keine Bücher gefunden.'
       },
       allBooks: {
         title: 'Serien',
@@ -291,7 +301,11 @@ export default {
         achievements: 'Errungenschaften',
         myWorks: 'Meine Werke',
         remove: 'Entfernen',
-        chooseAvatar: 'Profilbild wählen'
+        chooseAvatar: 'Profilbild wählen',
+        editName: 'Name ändern',
+        saveName: 'Name speichern',
+        cancelName: 'Abbrechen',
+        namePlaceholder: 'Dein Name'
       }
     }
   }

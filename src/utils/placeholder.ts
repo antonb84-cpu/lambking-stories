@@ -1,4 +1,9 @@
-export const PLACEHOLDER_IMAGE = '/images/placeholder.webp'
+import { prependBaseUrl } from '@/utils/function'
+
+// Routed through `prependBaseUrl` so the production GH-Pages builds
+// (which serve under `/little-bible-stories/<flavor>/`) resolve the
+// asset under the deploy subpath instead of the origin root.
+export const PLACEHOLDER_IMAGE = prependBaseUrl('images/placeholder.webp')
 
 // Returns the first non-empty candidate or the placeholder. Used wherever
 // a book preview/cover URL may be missing (legacy data, optimistic UI,

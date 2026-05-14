@@ -78,6 +78,21 @@ export interface ApiBookListResponse {
   cacheHit?: boolean
 }
 
+// Public-facing series payload as served by `GET /api/book-series`.
+// `coverImage` is the URL of the 16:9 banner uploaded via the AdminUI
+// dropzone (empty string when not yet set).
+export interface ApiSeries {
+  seriesId: string
+  name: string
+  prefix: string
+  description?: string
+  coverImage?: string
+}
+
+export interface ApiSeriesListResponse {
+  series: ApiSeries[]
+}
+
 export interface ApiBookResponse {
   book: ApiBook
   cacheHit?: boolean

@@ -12,6 +12,7 @@ import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
+import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
@@ -54,7 +55,7 @@ function goBack() {
       ZBackButton(variant="flat" class="page-back" @click="goBack")
       div(class="title-cluster")
         img(
-          src="/images/icons/crown_256x256.webp"
+          :src="prependBaseUrl('images/icons/crown_256x256.webp')"
           alt=""
           class="page-crown"
           decoding="async"

@@ -12,10 +12,12 @@ import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAppNav from '@/use/useAppNav'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
+import useUserName from '@/use/useUserName'
 import { isMobileLandscape, isMobilePortrait } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
+import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
@@ -24,6 +26,7 @@ const apiBooks = useApiBooks()
 const { getPct } = useReadingProgress()
 const { navItems, activeNav, onNav } = useAppNav(t)
 const { avatarSrc } = useAvatar()
+const { displayName, hasCustomName } = useUserName()
 
 const searchQuery = ref('')
 
@@ -76,6 +79,34 @@ function openAllSeries() {
 
 const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
 
+// Active when the user has typed something into the search field; the
+// view switches over to the results grid and the standard sections
+// (Weiterlesen / Neu in der Bibliothek / Demnächst / Mission des Tages)
+// disappear until the term is cleared.
+const isSearching = computed(() => searchQuery.value.trim().length > 0)
+
+// Title-substring match against either locale + the series name and
+// author, so a child can type "frucht", "mission", "petrus", or "lukas"
+// and find the right story. Case-insensitive; whitespace-tolerant.
+const searchResults = computed<ApiBook[]>(() => {
+  const term = searchQuery.value.trim().toLowerCase()
+  if (!term) return []
+  return allBooks.value.filter((b) => {
+    const titleDe = b.localizations?.de?.title?.toLowerCase() ?? ''
+    const titleEn = b.localizations?.en?.title?.toLowerCase() ?? ''
+    const author = b.author?.toLowerCase() ?? ''
+    const series = getSeriesOfBook(b.bookId)?.name?.toLowerCase() ?? ''
+    return titleDe.includes(term)
+      || titleEn.includes(term)
+      || author.includes(term)
+      || series.includes(term)
+  })
+})
+
+function clearSearch() {
+  searchQuery.value = ''
+}
+
 const lastReadBook = computed<ApiBook | null>(() =>
   lastReadId.value ? apiBooks.getById(lastReadId.value) : null
 )
@@ -106,7 +137,13 @@ const showContinueReading = computed(() => !!lastReadBook.value)
 
 // Greeting line. The design shows a personalised salute — until we have a
 // real "name" field we fall back to the i18n default.
-const greeting = computed(() => t('app.main.hello'))
+// Personalised greeting once the user has set their own name in Profile;
+// falls back to the generic "Hallo, Entdecker!" until then.
+const greeting = computed(() =>
+  hasCustomName.value
+    ? t('app.main.helloName', { name: displayName.value })
+    : t('app.main.hello')
+)
 
 const avatarOpen = ref(false)
 
@@ -135,13 +172,13 @@ const ENABLE_MISSION_OF_DAY = false
         //- Brand: stacked crown over LambKing banner, centered
         div(class="brand-stack")
           img(
-            src="/images/icons/crown_256x256.webp"
+            :src="prependBaseUrl('images/icons/crown_256x256.webp')"
             alt="LambKing"
             class="brand-crown"
             decoding="async"
           )
           img(
-            src="/images/logo/banner_500x116.webp"
+            :src="prependBaseUrl('images/logo/banner_500x116.webp')"
             alt="LambKing Stories"
             class="brand-banner -ml-8"
             decoding="async"
@@ -174,7 +211,10 @@ const ENABLE_MISSION_OF_DAY = false
           h1(class="greeting-title") {{ greeting }}
           p(class="greeting-sub") {{ t('app.main.subtitle') }}
 
-        //- Search field
+        //- Search field — Vue-controlled input, with an X button that
+        //- appears as soon as the user has typed anything. Clicking it
+        //- (or hitting Escape on a focused field) clears the term and
+        //- restores the original home layout.
         label(class="search-field")
           ZIconography(name="search" :size="18")
           input(
@@ -183,11 +223,54 @@ const ENABLE_MISSION_OF_DAY = false
             :placeholder="t('app.main.searchPlaceholder')"
             class="search-input"
             autocomplete="off"
+            @keydown.esc="clearSearch"
           )
+          button(
+            v-if="isSearching"
+            type="button"
+            class="search-clear-btn"
+            :aria-label="t('app.bookDetail.attachmentClose') || 'Clear'"
+            @click="clearSearch"
+          )
+            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
+              path(d="M18 6 6 18M6 6l12 12")
 
     div(class="main-content")
+      //- ===== Search results =====
+      //- Replaces every other section while the user is typing. Two-up
+      //- portrait tiles so kids can scan covers quickly; "No books found"
+      //- empty state when the term doesn't match anything.
+      section(v-if="isSearching" class="search-section")
+        div(class="section-head")
+          h3(class="section-title") {{ t('app.main.searchResultsTitle') }}
+          span(class="search-results-count") {{ searchResults.length }}
+
+        div(v-if="searchResults.length" class="search-grid")
+          div(
+            v-for="book in searchResults"
+            :key="book.bookId"
+            class="search-tile"
+            @click="openBook(book.bookId)"
+          )
+            div(class="search-tile-img-wrap")
+              img(
+                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
+                :alt="localizedTitle(book)"
+                class="search-tile-img"
+                loading="lazy"
+                @error="onImgFallback"
+              )
+            div(class="search-tile-meta")
+              span(class="search-tile-series") {{ getSeriesOfBook(book.bookId)?.name || book.author }}
+              h4(class="search-tile-title") {{ localizedTitle(book) }}
+
+        div(v-else class="search-empty")
+          span(class="search-empty-icon" aria-hidden="true")
+            ZIconography(name="search" :size="36")
+          p(class="search-empty-text") {{ t('app.main.searchEmpty') }}
+
       //- ===== Continue reading hero =====
-      section(v-if="showContinueReading && lastReadBook" class="continue-section")
+      section(v-if="!isSearching && showContinueReading && lastReadBook" class="continue-section")
         div(class="continue-card")
           div(class="continue-row")
             //- Full-height portrait preview (3:4, height is the limit)
@@ -230,7 +313,7 @@ const ENABLE_MISSION_OF_DAY = false
 
       //- ===== Weiterlesen (saved progress) =====
       section(
-        v-if="lastReadBook && progressPct(lastReadBook) > 0"
+        v-if="!isSearching && lastReadBook && progressPct(lastReadBook) > 0"
         class="resume-section"
       )
         h3(class="section-title") Weiterlesen
@@ -262,7 +345,7 @@ const ENABLE_MISSION_OF_DAY = false
               ZButton(type="primary" icon="none" size="sm" @click.stop="openReader(lastReadBook.bookId)") {{ t('app.main.continue') }}
 
       //- ===== Neu in der Bibliothek =====
-      section(v-if="newReleases.length" class="new-section")
+      section(v-if="!isSearching && newReleases.length" class="new-section")
         div(class="section-head")
           h3(class="section-title") {{ t('app.main.newInLibrary') }}
           button(
@@ -297,7 +380,7 @@ const ENABLE_MISSION_OF_DAY = false
             span(class="new-tile-title") {{ localizedTitle(book) }}
 
       //- ===== Demnächst =====
-      section(v-if="upcomingBooks.length" class="upcoming-section")
+      section(v-if="!isSearching && upcomingBooks.length" class="upcoming-section")
         div(class="section-head")
           h3(class="section-title") {{ t('app.main.upcoming') }}
           button(
@@ -327,7 +410,7 @@ const ENABLE_MISSION_OF_DAY = false
 
       //- ===== Mission of the Day — built but hidden until gamification
       //-       lands. Flip ENABLE_MISSION_OF_DAY to true once ready. =====
-      section(v-if="ENABLE_MISSION_OF_DAY" class="mission-section")
+      section(v-if="!isSearching && ENABLE_MISSION_OF_DAY" class="mission-section")
         div(class="mission-card")
           div(class="mission-text")
             div(class="mission-eyebrow")
@@ -480,6 +563,7 @@ button
 
 .search-input
   flex: 1
+  min-width: 0
   background: transparent
   border: none
   outline: none
@@ -490,6 +574,139 @@ button
   &::placeholder
     color: $brown
     font-weight: 500
+
+// X button — only visible while a term is entered, used to clear the
+// search and return to the standard home layout.
+.search-clear-btn
+  flex: 0 0 auto
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 22px
+  height: 22px
+  border-radius: 999px
+  border: none
+  background-color: $cream-card-soft
+  color: $brown
+  cursor: pointer
+  transition: background-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out
+  -webkit-tap-highlight-color: transparent
+
+  &:hover
+    background-color: $navy
+    color: #ffffff
+
+  &:active
+    transform: scale(0.9)
+
+// ===== Search results =====
+.search-section
+  margin-top: 18px
+
+.search-results-count
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  min-width: 24px
+  height: 22px
+  padding: 0 9px
+  border-radius: 999px
+  font-size: 11px
+  font-weight: 900
+  letter-spacing: 0.04em
+  color: $navy
+  background-color: $cream-card
+  border: 1px solid $border
+
+.search-grid
+  display: grid
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 12px
+
+.search-tile
+  display: flex
+  flex-direction: column
+  gap: 8px
+  cursor: pointer
+  background: $cream-card
+  border: 1px solid $border
+  border-radius: 16px
+  padding: 10px 10px 12px
+  box-shadow: 0 6px 16px -10px rgba(58, 42, 18, 0.3)
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out
+
+  &:hover
+    transform: translateY(-3px)
+    box-shadow: 0 12px 22px -10px rgba(212, 168, 62, 0.4)
+
+  &:active
+    transform: scale(0.98)
+
+.search-tile-img-wrap
+  position: relative
+  width: 100%
+  aspect-ratio: 3 / 4
+  border-radius: 12px
+  overflow: hidden
+  background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
+  display: flex
+  align-items: center
+  justify-content: center
+  border: 1px solid $border
+
+.search-tile-img
+  max-height: 100%
+  max-width: 100%
+  width: auto
+  height: auto
+  object-fit: contain
+  display: block
+
+.search-tile-meta
+  display: flex
+  flex-direction: column
+  gap: 2px
+  padding: 0 2px
+
+.search-tile-series
+  font-size: 10px
+  font-weight: 800
+  text-transform: uppercase
+  letter-spacing: 0.08em
+  color: $brown
+
+.search-tile-title
+  font-size: 13px
+  font-weight: 900
+  color: $navy
+  margin: 0
+  line-height: 1.2
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.search-empty
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 10px
+  background: $cream-card
+  border: 1px dashed $border
+  border-radius: 18px
+  padding: 36px 18px
+  text-align: center
+
+.search-empty-icon
+  display: inline-flex
+  color: $brown
+  opacity: 0.7
+
+.search-empty-text
+  font-size: 14px
+  font-weight: 700
+  color: $brown
+  margin: 0
 
 // ===== Layout container =====
 .main-content

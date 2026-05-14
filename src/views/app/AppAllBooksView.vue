@@ -8,20 +8,27 @@ import ZChip from '@/components/atoms/ZChip.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
+import useApiSeries from '@/use/useApiSeries'
 import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
+import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { getSeries } = useModels()
 const apiBooks = useApiBooks()
+const apiSeries = useApiSeries()
 const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
+  // Pull the real series records (with editor-uploaded coverImage)
+  // alongside the books list so tiles can render the banner instead of
+  // falling back to a derived first-book preview.
+  void apiSeries.loadAll()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
@@ -49,6 +56,9 @@ function humaniseId(id: string): string {
 }
 
 const seriesList = computed<SeriesTile[]>(() => {
+  // touch the reactive series state so the computed re-runs when the
+  // API list arrives.
+  void apiSeries.state.all
   const groups = new Map<string, ApiBook[]>()
   for (const b of allBooks.value) {
     const sid = b.bookSeriesId || 'misc'
@@ -58,19 +68,24 @@ const seriesList = computed<SeriesTile[]>(() => {
   }
   const list: SeriesTile[] = []
   for (const [sid, books] of groups) {
-    const meta = getSeries(sid)
+    // Prefer the server-side series record (carries `coverImage` from
+    // the AdminUI dropzone). Fall back to the hard-coded `useModels`
+    // catalogue for display name + description, and finally to the
+    // first book's preview so a series without any uploaded banner
+    // still renders a thumbnail instead of the bare placeholder.
+    const apiMeta = apiSeries.getById(sid)
+    const legacyMeta = getSeries(sid)
     const firstBook = books[0]
     list.push({
       seriesId: sid,
-      name: meta?.name || humaniseId(sid),
+      name: apiMeta?.name || legacyMeta?.name || humaniseId(sid),
       subtitle: '',
-      description: meta?.description
+      description: apiMeta?.description
+        || legacyMeta?.description
         || `${books.length} ${books.length === 1 ? 'Buch' : 'Bücher'}`,
       bookCount: books.length,
-      // Until the API ships `bookSeriesCoverImage`, prefer the series'
-      // legacy `coverImage` and fall back to the first book's preview so
-      // the tile never renders blank against the placeholder.
-      coverImage: meta?.coverImage
+      coverImage: apiMeta?.coverImage
+        || legacyMeta?.coverImage
         || (firstBook ? pickLocalizedImage(firstBook.previewImage, lang.value) : '')
         || PLACEHOLDER_IMAGE
     })
@@ -120,7 +135,7 @@ function goBack() {
       ZBackButton(variant="flat" class="serien-back" @click="goBack")
       div(class="title-cluster")
         img(
-          src="/images/icons/crown_256x256.webp"
+          :src="prependBaseUrl('images/icons/crown_256x256.webp')"
           alt=""
           class="serien-crown"
           decoding="async"
@@ -149,15 +164,17 @@ function goBack() {
         class="series-tile"
         @click="openSeries(series.seriesId)"
       )
-        div(class="series-tile-image")
-          img(
-            :src="withPlaceholder(series.coverImage)"
-            :alt="series.name"
-            class="series-tile-img"
-            loading="lazy"
-            @error="onImgFallback"
-          )
-          span(class="series-tile-fade")
+        //- Cover image fills the entire tile; the text column sits on
+        //- top with a parchment-to-transparent gradient bleeding into
+        //- the artwork on its right edge.
+        img(
+          :src="withPlaceholder(series.coverImage)"
+          :alt="series.name"
+          class="series-tile-img"
+          loading="lazy"
+          @error="onImgFallback"
+        )
+        span(class="series-tile-fade")
         div(class="series-tile-text")
           h3(class="series-tile-name") {{ series.name }}
           p(
@@ -165,7 +182,7 @@ function goBack() {
             class="series-tile-sub"
           ) {{ series.subtitle }}
           //p(class="series-tile-desc") {{ series.description }}
-          div
+          div(class="series-tile-count-row")
             span.mr-1(class="series-tile-count") {{ series.bookCount }}
             span(class="text-[12px]") {{ series.bookCount === 1 ? 'Buch' : 'Bücher' }}
 
@@ -253,18 +270,20 @@ button
   flex-direction: column
   gap: 14px
 
+// Full-bleed image card. The cover (uploaded via the AdminUI dropzone
+// onto `bookSeries.coverImage`) covers the entire tile; the text column
+// sits on top with a parchment-to-transparent gradient bleeding into
+// the artwork on its right edge so the title still reads cleanly.
 .series-tile
   position: relative
-  display: grid
-  grid-template-columns: 1.05fr 1fr
-  gap: 0
-  align-items: stretch
-  background: linear-gradient(180deg, #fdf8ed 0%, #f5e8c2 100%)
+  display: block
+  background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
   border: 1.5px solid $border
-  border-radius: 12px
+  border-radius: 14px
   overflow: hidden
   cursor: pointer
-  min-height: 140px
+  aspect-ratio: 16 / 9
+  min-height: 110px
   box-shadow: 0 10px 28px -14px rgba(58, 42, 18, 0.35)
   transition: transform 220ms ease-out, box-shadow 220ms ease-out
 
@@ -275,14 +294,38 @@ button
   &:active
     transform: translateY(-1px) scale(0.995)
 
+.series-tile-img
+  position: absolute
+  inset: 0
+  width: 100% !important
+  height: 100% !important
+  max-width: 100%
+  max-height: 100%
+  object-fit: cover
+  display: block
+
+// Parchment gradient that fades from solid cream on the left (where the
+// text sits) into the artwork on the right. Stops are calibrated so the
+// title is fully legible while the image is still recognisable.
+.series-tile-fade
+  position: absolute
+  inset: 0
+  background: linear-gradient(108deg, $cream-bg 0%, #E6D6B5FF 26%, rgba(253, 248, 237, 0.7) 42%, rgba(253, 248, 237, 0) 65%)
+  pointer-events: none
+
 .series-tile-text
-  order: 1
-  padding: 16px 14px 14px
+  position: absolute
+  top: 0
+  bottom: 0
+  left: 0
+  width: 55%
+  padding: 14px 12px
   display: flex
   flex-direction: column
   justify-content: center
   gap: 5px
   min-width: 0
+  z-index: 2
 
 .series-tile-name
   font-size: 18px
@@ -313,30 +356,16 @@ button
   -webkit-box-orient: vertical
   overflow: hidden
 
+
+.series-tile-count-row
+  display: inline-flex
+  align-items: baseline
+  margin-top: 2px
+
 .series-tile-count
   font-size: 12px
   font-weight: 900
   color: $gold
-  margin-top: 2px
-
-.series-tile-image
-  order: 2
-  position: relative
-  overflow: hidden
-  background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
-
-.series-tile-img
-  position: absolute
-  inset: 0
-  width: 100%
-  height: 100%
-  object-fit: cover
-
-.series-tile-fade
-  position: absolute
-  inset: 0
-  background: linear-gradient(90deg, rgba(253, 248, 237, 0.55) 0%, rgba(253, 248, 237, 0) 25%, rgba(0, 0, 0, 0.1) 100%)
-  pointer-events: none
 
 .empty-card
   text-align: center
