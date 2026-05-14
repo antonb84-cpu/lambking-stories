@@ -45,7 +45,7 @@ export const SeriesService = {
     return doc.toJSON()
   },
 
-  async update(id: string, input: Partial<CreateSeriesInput>) {
+  async update(id: string, input: Partial<CreateSeriesInput> & { coverImage?: string }) {
     const doc = await BookSeries.findOneAndUpdate({ seriesId: id }, input, {
       new: true,
       runValidators: true

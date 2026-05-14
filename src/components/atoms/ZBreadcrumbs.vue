@@ -59,7 +59,7 @@ button
   font: inherit
 
 .z-breadcrumbs
-  font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+  font-family: 'PoetsenOne', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
 
 .z-breadcrumb-item
   display: inline-block

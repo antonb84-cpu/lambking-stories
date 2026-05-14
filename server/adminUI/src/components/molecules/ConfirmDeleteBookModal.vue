@@ -68,7 +68,7 @@ defineEmits<{ cancel: []; confirm: [] }>()
   margin: 0 0 18px;
   font-size: 0.85rem;
   color: #44403c;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'PoetsenOne', ui-monospace, SFMono-Regular, Menlo, monospace;
   background: rgba(0, 0, 0, 0.04);
   padding: 6px 10px;
   border-radius: 8px;

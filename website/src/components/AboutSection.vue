@@ -90,7 +90,7 @@
 }
 
 .about-quote {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 30px;
   font-style: italic;
   line-height: 1.25;
@@ -135,7 +135,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 18px;
   font-style: italic;
   font-weight: 500;
@@ -145,7 +145,7 @@
   font-size: 14px;
 
   strong {
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 17px;
     font-weight: 500;
     color: var(--ink);

@@ -38,7 +38,7 @@
             :series="book.series",
             :number="book.number",
             :title="book.title",
-            :author="book.author",
+            author="",
             :series-class="book.seriesClass",
             small
           )
@@ -121,7 +121,7 @@ const books = [
 }
 
 .hero-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 72px;
   line-height: 1.02;
   font-weight: 500;

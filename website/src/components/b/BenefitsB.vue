@@ -69,7 +69,7 @@
   }
 
   h2 {
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 42px;
     line-height: 1.1;
     font-weight: 500;
@@ -102,7 +102,7 @@
   padding: 24px;
 
   h3 {
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 18px;
     font-weight: 500;
     letter-spacing: -0.01em;

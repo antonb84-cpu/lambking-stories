@@ -31,6 +31,36 @@
         class="tax-chip"
       >
         <span class="chip-prefix">{{ s.prefix }}</span>
+        <!--
+          Minimal cover dropzone — accepts image drops or click-to-pick.
+          Empty state shows a tiny placeholder thumb; once a coverImage is
+          present the thumb is replaced with the uploaded preview and a
+          green border. On upload failure the border flashes red and then
+          decays back to the default state.
+        -->
+        <label
+          class="chip-cover has-tooltip"
+          :class="coverClassFor(s)"
+          :data-tooltip="s.coverImage ? 'Cover-Bild ersetzen (Drop oder Klick)' : 'Cover-Bild hochladen (Drop oder Klick)'"
+          @dragover.prevent
+          @dragenter.prevent="onDragEnter(s.seriesId)"
+          @dragleave="onDragLeave(s.seriesId)"
+          @drop.prevent="onDrop($event, s.seriesId)"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            class="chip-cover-input"
+            @change="onFileInput($event, s.seriesId)"
+          />
+          <img
+            v-if="s.coverImage"
+            :src="s.coverImage"
+            class="chip-cover-img"
+            alt=""
+          />
+          <span v-else class="chip-cover-placeholder" aria-hidden="true">+</span>
+        </label>
         <span class="chip-name">{{ s.name }}</span>
         <span
           class="chip-count has-tooltip"
@@ -50,12 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { useSeriesStore } from '@/stores/series'
 import { useToastStore } from '@/stores/toast'
 import { ApiClientError } from '@/api/client'
-import type { BookDTO } from '@/types'
+import type { BookDTO, SeriesDTO } from '@/types'
 
 const props = defineProps<{ books?: BookDTO[] }>()
 
@@ -112,5 +142,80 @@ const remove = async (id: string) => {
 
 const onRemoveContext = (e: MouseEvent, id: string) => {
   if (e.altKey) remove(id)
+}
+
+// ----- Cover-image dropzone -----
+// Per-series transient state. `flashMap` drives the green / red border
+// animation right after an upload settles; `dragOverMap` lifts the
+// background while a file is hovering. `busyMap` blocks double-uploads
+// from rapid drops or simultaneous click + drop.
+type FlashState = 'success' | 'error' | null
+const flashMap = reactive<Record<string, FlashState>>({})
+const dragOverMap = reactive<Record<string, boolean>>({})
+const busyMap = reactive<Record<string, boolean>>({})
+
+function flash(seriesId: string, state: Exclude<FlashState, null>) {
+  flashMap[seriesId] = state
+  setTimeout(() => {
+    if (flashMap[seriesId] === state) flashMap[seriesId] = null
+  }, 1400)
+}
+
+function coverClassFor(s: SeriesDTO) {
+  return {
+    'has-cover': !!s.coverImage,
+    'is-dragover': dragOverMap[s.seriesId],
+    'is-success': flashMap[s.seriesId] === 'success',
+    'is-error': flashMap[s.seriesId] === 'error',
+    'is-busy': busyMap[s.seriesId]
+  }
+}
+
+function onDragEnter(seriesId: string) {
+  dragOverMap[seriesId] = true
+}
+
+function onDragLeave(seriesId: string) {
+  dragOverMap[seriesId] = false
+}
+
+function pickImageFile(list: FileList | null | undefined): File | null {
+  if (!list || !list.length) return null
+  for (const f of Array.from(list)) {
+    if (f.type.startsWith('image/')) return f
+  }
+  return null
+}
+
+async function handleUpload(seriesId: string, file: File | null) {
+  if (!file) {
+    flash(seriesId, 'error')
+    toast.error('Keine Bilddatei erkannt.', 'Upload abgebrochen')
+    return
+  }
+  if (busyMap[seriesId]) return
+  busyMap[seriesId] = true
+  try {
+    await store.uploadCover(seriesId, file)
+    flash(seriesId, 'success')
+    toast.success(`Cover für „${seriesId}" gespeichert`)
+  } catch (err) {
+    flash(seriesId, 'error')
+    toast.error((err as Error).message || 'Upload fehlgeschlagen')
+  } finally {
+    busyMap[seriesId] = false
+  }
+}
+
+function onDrop(e: DragEvent, seriesId: string) {
+  dragOverMap[seriesId] = false
+  void handleUpload(seriesId, pickImageFile(e.dataTransfer?.files))
+}
+
+function onFileInput(e: Event, seriesId: string) {
+  const target = e.target as HTMLInputElement
+  void handleUpload(seriesId, pickImageFile(target.files))
+  // Reset so the same file can be re-selected immediately after an error
+  target.value = ''
 }
 </script>

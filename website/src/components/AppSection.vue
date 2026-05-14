@@ -54,78 +54,79 @@
 
       .app-visual
         .phone-frame
-          .phone-screen
-            .status-bar
-              span 9:41
-              div
-                svg(viewBox="0 0 20 12", fill="none", stroke="currentColor", stroke-width="1.5", width="14", height="9")
-                  rect(x="1", y="1", width="16", height="10", rx="2")
-                  rect(x="3", y="3", width="11", height="6", fill="currentColor")
-            .app-header-row
-              .app-greeting
-                | Willkommen zurück,
-                strong Jonas
-              .streak-pill
-                svg(viewBox="0 0 10 12")
-                  path(d="M5 0 C6 3 9 4 8 8 C8 10 6 12 5 12 C4 12 2 10 2 8 C1 5 3 4 4 1 Z")
-                | 3
-            .app-body
-              .hero-card-mini
-                .hero-cover-mini
-                  BookCover(series="FA", number="01", title="Mission<br>Friede", series-class="c-fruchtagenten", small)
-                .hero-text-mini
-                  .hero-label-mini Weiterlesen
-                  .hero-title-mini Mission Friede
-                  .hero-progress-row
-                    .progress-bar
-                      .progress-fill
-                    span.progress-value 42%
-                  button.btn-mini
-                    svg(viewBox="0 0 8 8")
-                      path(d="M1 0 L7 4 L1 8 Z")
-                    | Weiter
-
-              div
-                .section-mini.series-row-label Deine Reihen
-                .series-row
-                  .series-mini.s-fruchtagenten
-                    svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
-                      circle(cx="10", cy="12", r="6")
-                      path(d="M10 6 V3 M10 3 Q13 3 13 5", stroke-linecap="round")
-                    .series-count 5
-                      span Bände
-                  .series-mini.s-petrus
-                    svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
-                      path(d="M3 12 Q10 8 17 12", stroke-linecap="round")
-                      path(d="M10 5 V13 M7 9 H13", stroke-linecap="round")
-                    .series-count 2
-                      span Bände
-                  .series-mini.s-geschichte
-                    svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
-                      circle(cx="10", cy="10", r="4")
-                      path(d="M10 2 V4 M10 16 V18 M2 10 H4 M16 10 H18", stroke-linecap="round")
-                    .series-count 4
-                      span Bände
-            .bottom-nav
-              .nav-item-sm.active
-                svg(viewBox="0 0 20 20")
-                  path(d="M3 9 L10 3 L17 9 V17 H3 Z")
-                | Start
-              .nav-item-sm
-                svg(viewBox="0 0 20 20")
-                  rect(x="4", y="3", width="4", height="14")
-                  rect(x="9", y="3", width="4", height="14")
-                  rect(x="14", y="6", width="3", height="11")
-                | Bibliothek
-              .nav-item-sm
-                svg(viewBox="0 0 20 20")
-                  path(d="M10 3 A7 7 0 1 0 10 17 C12 17 12 15 11 14 C10 13 12 12 14 12 A3 3 0 0 0 17 9 A7 7 0 0 0 10 3 Z")
-                | Ausmalen
-              .nav-item-sm
-                svg(viewBox="0 0 20 20")
-                  path(d="M5 8 A5 5 0 1 0 15 8 A5 5 0 0 0 5 8 Z")
-                  path(d="M7 12 L5 19 L10 16 L15 19 L13 12")
-                | Belohnung
+          img.w-full.h-full(src="/app-example.webp" class="")
+          //.phone-screen
+          //  .status-bar
+          //    span 9:41
+          //    div
+          //      svg(viewBox="0 0 20 12", fill="none", stroke="currentColor", stroke-width="1.5", width="14", height="9")
+          //        rect(x="1", y="1", width="16", height="10", rx="2")
+          //        rect(x="3", y="3", width="11", height="6", fill="currentColor")
+          //  .app-header-row
+          //    .app-greeting
+          //      | Willkommen zurück,
+          //      strong Jonas
+          //    .streak-pill
+          //      svg(viewBox="0 0 10 12")
+          //        path(d="M5 0 C6 3 9 4 8 8 C8 10 6 12 5 12 C4 12 2 10 2 8 C1 5 3 4 4 1 Z")
+          //      | 3
+          //  .app-body
+          //    .hero-card-mini
+          //      .hero-cover-mini
+          //        BookCover(series="FA", number="01", title="Mission<br>Friede", series-class="c-fruchtagenten", small)
+          //      .hero-text-mini
+          //        .hero-label-mini Weiterlesen
+          //        .hero-title-mini Mission Friede
+          //        .hero-progress-row
+          //          .progress-bar
+          //            .progress-fill
+          //          span.progress-value 42%
+          //        button.btn-mini
+          //          svg(viewBox="0 0 8 8")
+          //            path(d="M1 0 L7 4 L1 8 Z")
+          //          | Weiter
+          //
+          //    div
+          //      .section-mini.series-row-label Deine Reihen
+          //      .series-row
+          //        .series-mini.s-fruchtagenten
+          //          svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
+          //            circle(cx="10", cy="12", r="6")
+          //            path(d="M10 6 V3 M10 3 Q13 3 13 5", stroke-linecap="round")
+          //          .series-count 5
+          //            span Bände
+          //        .series-mini.s-petrus
+          //          svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
+          //            path(d="M3 12 Q10 8 17 12", stroke-linecap="round")
+          //            path(d="M10 5 V13 M7 9 H13", stroke-linecap="round")
+          //          .series-count 2
+          //            span Bände
+          //        .series-mini.s-geschichte
+          //          svg(width="14", height="14", viewBox="0 0 20 20", fill="none", stroke="#fff", stroke-width="1.5", opacity="0.85")
+          //            circle(cx="10", cy="10", r="4")
+          //            path(d="M10 2 V4 M10 16 V18 M2 10 H4 M16 10 H18", stroke-linecap="round")
+          //          .series-count 4
+          //            span Bände
+          //  .bottom-nav
+          //    .nav-item-sm.active
+          //      svg(viewBox="0 0 20 20")
+          //        path(d="M3 9 L10 3 L17 9 V17 H3 Z")
+          //      | Start
+          //    .nav-item-sm
+          //      svg(viewBox="0 0 20 20")
+          //        rect(x="4", y="3", width="4", height="14")
+          //        rect(x="9", y="3", width="4", height="14")
+          //        rect(x="14", y="6", width="3", height="11")
+          //      | Bibliothek
+          //    .nav-item-sm
+          //      svg(viewBox="0 0 20 20")
+          //        path(d="M10 3 A7 7 0 1 0 10 17 C12 17 12 15 11 14 C10 13 12 12 14 12 A3 3 0 0 0 17 9 A7 7 0 0 0 10 3 Z")
+          //      | Ausmalen
+          //    .nav-item-sm
+          //      svg(viewBox="0 0 20 20")
+          //        path(d="M5 8 A5 5 0 1 0 15 8 A5 5 0 0 0 5 8 Z")
+          //        path(d="M7 12 L5 19 L10 16 L15 19 L13 12")
+          //      | Belohnung
 </template>
 
 <script setup lang="ts">
@@ -191,7 +192,7 @@ import BookCover from './BookCover.vue'
 }
 
 .app-feature-text strong {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ink);
@@ -245,7 +246,7 @@ import BookCover from './BookCover.vue'
 }
 
 .store-btn-bottom {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -339,7 +340,7 @@ import BookCover from './BookCover.vue'
 }
 
 .section-mini {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -382,7 +383,7 @@ import BookCover from './BookCover.vue'
 }
 
 .hero-title-mini {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0 5px;
@@ -467,7 +468,7 @@ import BookCover from './BookCover.vue'
 }
 
 .series-count {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 14px;
   font-style: italic;
   line-height: 1;
@@ -476,7 +477,7 @@ import BookCover from './BookCover.vue'
     font-size: 8px;
     opacity: 0.7;
     font-style: normal;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'PoetsenOne', sans-serif;
     margin-left: 2px;
   }
 }

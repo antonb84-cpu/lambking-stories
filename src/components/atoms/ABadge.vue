@@ -29,7 +29,7 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped lang="sass">
 .a-badge
-  font-family: "Nunito", "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", system-ui, sans-serif
+  font-family: 'PoetsenOne', "Nunito", "Roboto Condensed", "Helvetica Neue Condensed", system-ui, sans-serif
   font-weight: 900
   font-stretch: condensed
   letter-spacing: 0.08em

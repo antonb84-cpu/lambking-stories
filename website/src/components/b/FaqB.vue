@@ -48,7 +48,7 @@ const items: { q: string; a: string; open?: boolean }[] = [
 }
 
 h2 {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 34px;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -88,7 +88,7 @@ h2 {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 17px;
     font-weight: 500;
     color: var(--ink);

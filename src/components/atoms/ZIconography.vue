@@ -4,10 +4,24 @@ type IconName =
   | 'speaker'      // 3D navy/gold speaker
   | 'home'         // outline nav
   | 'search'       // outline nav
-  | 'library'      // outline nav
+  | 'series'       // outline nav (book icon for Serien)
+  | 'library'      // outline nav (legacy alias)
   | 'profile'      // outline nav
   | 'star'         // outline nav
   | 'bookmark'     // outline nav
+  | 'headphones'   // outline nav (Hören)
+  | 'brush'        // outline nav (Malen)
+  | 'pencil'       // outline nav alias
+  | 'grid'         // outline nav alias
+  | 'settings'     // outline (gear)
+  | 'camera'       // outline (photo picker)
+  | 'bell'         // outline (notifications)
+  | 'crown'        // crown
+  | 'check'        // checkmark
+  | 'chevron-right'
+  | 'chevron-left'
+  | 'chevron-down'
+  | 'plus'
 
 interface Props {
   name: IconName
@@ -113,9 +127,9 @@ withDefaults(defineProps<Props>(), {
       circle(cx="11" cy="11" r="7")
       path(d="m20 20-3.5-3.5")
 
-    //- Outline nav: library
+    //- Outline nav: series (open book — used for "Serien")
     svg(
-      v-else-if="name === 'library'"
+      v-else-if="name === 'series' || name === 'library'"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -124,9 +138,8 @@ withDefaults(defineProps<Props>(), {
       stroke-linejoin="round"
       class="w-full h-full z-icon-outline"
     )
-      rect(x="3" y="4" width="4" height="16" rx="1")
-      rect(x="9" y="4" width="4" height="16" rx="1")
-      path(d="m16 6 2.4-.8a1 1 0 0 1 1.27.63L21 10")
+      path(d="M12 6v14")
+      path(d="M3 6c3.5 0 6 1 9 2.5C15 7 17.5 6 21 6v12.5c-3.5 0-6 1-9 2.5-3-1.5-5.5-2.5-9-2.5V6Z")
 
     //- Outline nav: profile
     svg(
@@ -155,7 +168,180 @@ withDefaults(defineProps<Props>(), {
     )
       path(d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9L12 3z")
 
-    //- Outline nav: bookmark
+    //- Headphones (Hören)
+    svg(
+      v-else-if="name === 'headphones'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      path(d="M3 17v-5a9 9 0 0 1 18 0v5")
+      path(d="M3 17a2 2 0 0 0 2 2h1a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1H5a2 2 0 0 0-2 2v2Z")
+      path(d="M21 17a2 2 0 0 1-2 2h-1a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h1a2 2 0 0 1 2 2v2Z")
+
+    //- Brush / pencil (Malen)
+    svg(
+      v-else-if="name === 'brush' || name === 'pencil'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      path(d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z")
+      path(d="m14.5 5.5 3 3")
+
+    //- Grid (legacy)
+    svg(
+      v-else-if="name === 'grid'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      rect(x="3" y="3" width="7" height="7" rx="1.5")
+      rect(x="14" y="3" width="7" height="7" rx="1.5")
+      rect(x="3" y="14" width="7" height="7" rx="1.5")
+      rect(x="14" y="14" width="7" height="7" rx="1.5")
+
+    //- Settings (gear)
+    svg(
+      v-else-if="name === 'settings'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      circle(cx="12" cy="12" r="3")
+      path(d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z")
+
+    //- Camera (avatar picker)
+    svg(
+      v-else-if="name === 'camera'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      path(d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z")
+      circle(cx="12" cy="13" r="4")
+
+    //- Bell (notifications)
+    svg(
+      v-else-if="name === 'bell'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      path(d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9")
+      path(d="M13.73 21a2 2 0 0 1-3.46 0")
+
+    //- Crown
+    svg(
+      v-else-if="name === 'crown'"
+      viewBox="0 0 32 32"
+      class="w-full h-full"
+    )
+      defs
+        linearGradient(id="zCrownGrad" x1="0" y1="0" x2="0" y2="1")
+          stop(offset="0%" stop-color="#f3d167")
+          stop(offset="55%" stop-color="#d4a83e")
+          stop(offset="100%" stop-color="#8a5a14")
+      path(
+        d="M4 22l3-12 6 6 3-10 3 10 6-6 3 12z"
+        fill="url(#zCrownGrad)"
+        stroke="#5a3a08"
+        stroke-width="1.2"
+        stroke-linejoin="round"
+      )
+      rect(x="4" y="22" width="24" height="4" rx="1" fill="#1a2f4a" stroke="#0a1a30" stroke-width="1")
+      circle(cx="16" cy="11" r="1.6" fill="#a93d2e")
+
+    //- Check
+    svg(
+      v-else-if="name === 'check'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full"
+    )
+      path(d="M20 6 9 17l-5-5")
+
+    //- Chevron right
+    svg(
+      v-else-if="name === 'chevron-right'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full"
+    )
+      path(d="m9 6 6 6-6 6")
+
+    //- Chevron left
+    svg(
+      v-else-if="name === 'chevron-left'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full"
+    )
+      path(d="m15 18-6-6 6-6")
+
+    //- Chevron down
+    svg(
+      v-else-if="name === 'chevron-down'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full"
+    )
+      path(d="m6 9 6 6 6-6")
+
+    //- Plus
+    svg(
+      v-else-if="name === 'plus'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full"
+    )
+      path(d="M12 5v14M5 12h14")
+
+    //- Outline nav: bookmark (default fallback)
     svg(
       v-else
       viewBox="0 0 24 24"

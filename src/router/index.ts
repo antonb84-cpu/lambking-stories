@@ -14,9 +14,11 @@ const DesignSystemZView = () => import(/* webpackChunkName: "design-system-z" */
 // Lazy-load the secondary app routes as well — AppMainView stays eager
 // because it's the landing route.
 const AppAllBooksView = () => import('@/views/app/AppAllBooksView.vue')
+const AppAllNewBooksView = () => import('@/views/app/AppAllNewBooksView.vue')
 const AppBookSeriesView = () => import('@/views/app/AppBookSeriesView.vue')
 const AppBookDetailView = () => import('@/views/app/AppBookDetailView.vue')
 const AppReaderView = () => import('@/views/app/AppReaderView.vue')
+const AppHoerenView = () => import('@/views/app/AppHoerenView.vue')
 const AppAwardsView = () => import('@/views/app/AppAwardsView.vue')
 const AppColoringView = () => import('@/views/app/AppColoringView.vue')
 const AppProfileView = () => import('@/views/app/AppProfileView.vue')
@@ -29,9 +31,11 @@ const routes: RouteRecordRaw[] = [
   { path: '/design-system-z', name: 'design-system-z', component: DesignSystemZView },
   { path: '/app', name: 'app-main', component: AppMainView },
   { path: '/app/all-books', name: 'app-all-books', component: AppAllBooksView },
+  { path: '/app/new-books', name: 'app-all-new-books', component: AppAllNewBooksView },
   { path: '/app/series/:seriesId', name: 'app-series', component: AppBookSeriesView },
   { path: '/app/book/:bookId', name: 'app-book', component: AppBookDetailView },
   { path: '/app/book/:bookId/reader', name: 'app-reader', component: AppReaderView },
+  { path: '/app/hoeren', name: 'app-hoeren', component: AppHoerenView },
   { path: '/app/awards', name: 'app-awards', component: AppAwardsView },
   { path: '/app/coloring', name: 'app-coloring', component: AppColoringView },
   { path: '/app/profile', name: 'app-profile', component: AppProfileView }

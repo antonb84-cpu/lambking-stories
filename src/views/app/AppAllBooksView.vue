@@ -1,188 +1,369 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import AHeader from '@/components/atoms/AHeader.vue'
-import ACard from '@/components/atoms/ACard.vue'
-import ABadge from '@/components/atoms/ABadge.vue'
-import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
-import ABottomNav from '@/components/atoms/ABottomNav.vue'
+import { useRouter } from 'vue-router'
+import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
+import ZBackButton from '@/components/atoms/ZBackButton.vue'
+import ZChip from '@/components/atoms/ZChip.vue'
+import ZIconography from '@/components/atoms/ZIconography.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
+import useAppNav from '@/use/useAppNav'
+import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
-import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
+import { onImgFallback, withPlaceholder, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
-const route = useRoute()
-const { getSeriesOfBook } = useModels()
+const { getSeries } = useModels()
 const apiBooks = useApiBooks()
+const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
+const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
 
-function localizedTitle(book: ApiBook): string {
-  return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
+// Derive series tiles directly from the API books. Series metadata
+// (display name + tagline) comes from the static `useModels.getSeries`
+// catalog when available; otherwise we fall back to the raw seriesId so
+// brand-new series still render without a content migration.
+interface SeriesTile {
+  seriesId: string
+  name: string
+  subtitle: string
+  description: string
+  bookCount: number
+  coverImage: string
 }
 
-function routeToNav(name: string): string {
-  if (name === 'app-main') return 'home'
-  if (name === 'app-all-books' || name === 'app-book' || name === 'app-book-series') return 'series'
-  if (name === 'app-awards' || name === 'app-coloring') return 'brush'
-  if (name === 'app-profile') return 'profile'
-  return 'home'
+function humaniseId(id: string): string {
+  return id
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(' ')
 }
 
-const navItems = computed(() => [
-  { id: 'home', label: t('app.nav.home'), icon: 'home' as const },
-  { id: 'series', label: t('app.nav.series'), icon: 'series' as const },
-  { id: 'brush', label: t('app.nav.color'), icon: 'brush' as const },
-  { id: 'profile', label: t('app.nav.profile'), icon: 'profile' as const }
-])
-const activeNav = computed<string | number>(() => routeToNav(String(route.name || '')))
-
-function onNav(id: string | number) {
-  if (id === 'home') router.push({ name: 'app-main' })
-  if (id === 'series') router.push({ name: 'app-all-books' })
-  if (id === 'profile') router.push({ name: 'app-profile' })
-  if (id === 'brush') router.push({ name: 'app-coloring' })
-}
-
-function openBook(bookId: string) {
-  router.push({ name: 'app-book', params: { bookId } })
-}
-
-const allBooks = computed<ApiBook[]>(() => {
-  const list = (apiBooks.state.all ?? []) as ApiBook[]
-  return [...list].sort(
-    (a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime()
-  )
+const seriesList = computed<SeriesTile[]>(() => {
+  const groups = new Map<string, ApiBook[]>()
+  for (const b of allBooks.value) {
+    const sid = b.bookSeriesId || 'misc'
+    const arr = groups.get(sid) ?? []
+    arr.push(b)
+    groups.set(sid, arr)
+  }
+  const list: SeriesTile[] = []
+  for (const [sid, books] of groups) {
+    const meta = getSeries(sid)
+    const firstBook = books[0]
+    list.push({
+      seriesId: sid,
+      name: meta?.name || humaniseId(sid),
+      subtitle: '',
+      description: meta?.description
+        || `${books.length} ${books.length === 1 ? 'Buch' : 'Bücher'}`,
+      bookCount: books.length,
+      // Until the API ships `bookSeriesCoverImage`, prefer the series'
+      // legacy `coverImage` and fall back to the first book's preview so
+      // the tile never renders blank against the placeholder.
+      coverImage: meta?.coverImage
+        || (firstBook ? pickLocalizedImage(firstBook.previewImage, lang.value) : '')
+        || PLACEHOLDER_IMAGE
+    })
+  }
+  return list
 })
 
-function isNew(isoDate: string) {
-  const released = new Date(isoDate).getTime()
-  return Date.now() - released < 1000 * 60 * 60 * 24 * 90
+// Filter chips. The "Alle" chip is always present and selected by
+// default; the rest are derived from the actual series list so the chip
+// row tracks the catalogue without needing manual upkeep.
+const ALL_FILTER = '__all__'
+const activeFilter = ref<string>(ALL_FILTER)
+
+interface FilterChip {
+  id: string
+  label: string
 }
 
-function tagsForBook(b: ApiBook) {
-  const series = getSeriesOfBook(b.bookId)
-  const base = ['5 min', 'Alter 4-8']
-  if (series) base.push(series.name)
-  return base
+const filterChips = computed<FilterChip[]>(() => {
+  const chips: FilterChip[] = [
+    { id: ALL_FILTER, label: t('app.allBooks.filterAll') }
+  ]
+  for (const s of seriesList.value) chips.push({ id: s.seriesId, label: s.name })
+  return chips
+})
+
+const filteredSeries = computed<SeriesTile[]>(() =>
+  activeFilter.value === ALL_FILTER
+    ? seriesList.value
+    : seriesList.value.filter((s) => s.seriesId === activeFilter.value)
+)
+
+function openSeries(seriesId: string) {
+  router.push({ name: 'app-series', params: { seriesId } })
+}
+
+function goBack() {
+  if (window.history.length > 1) router.back()
+  else router.push({ name: 'app-main' })
 }
 </script>
 
 <template lang="pug">
-  div(class="app-page min-h-screen w-full")
-    AHeader(
-      :greeting="t('app.allBooks.hello')"
-      :title="t('app.allBooks.title')"
-      :action-label="t('app.allBooks.unlock')"
-      @action="() => {}"
-    )
-
-    section(class="section-wrap mt-6")
-      ABreadcrumbs(:label="t('app.allBooks.allStories')")
-      div(class="flex items-center justify-between gap-3 mt-2")
-        h2(class="releases-title text-xl md:text-2xl font-black") {{ t('app.allBooks.newReleases') }}
-        span(class="count-pill") {{ allBooks.length }}
-
-      div(class="mt-3 flex flex-col gap-3")
-        ACard(
-          v-for="book in allBooks"
-          :key="book.bookId"
-          :title="localizedTitle(book)"
-          :category="getSeriesOfBook(book.bookId)?.name || book.author"
-          :tags="tagsForBook(book)"
-          @click="openBook(book.bookId)"
+  div(:class="['serien-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+    //- ===== Header — back · crown · title =====
+    header(class="serien-header")
+      ZBackButton(variant="flat" class="serien-back" @click="goBack")
+      div(class="title-cluster")
+        img(
+          src="/images/icons/crown_256x256.webp"
+          alt=""
+          class="serien-crown"
+          decoding="async"
+          aria-hidden="true"
         )
-          template(#image)
-            div(class="relative w-full h-full")
-              div(
-                class="absolute inset-0"
-                :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
-              )
-              img(
-                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
-                :alt="localizedTitle(book)"
-                class="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                @error="onImgFallback"
-              )
-              ABadge.new-badge(
-                v-if="isNew(book.releaseDate)"
-                variant="new"
-                position="top-left"
-                label="NEU"
-                size="sm"
-              )
+        h1(class="serien-title") {{ t('app.allBooks.title') }}
 
-    section(class="section-wrap mt-8")
-      h2(class="releases-title text-xl md:text-2xl font-black mb-3") {{ t('app.allBooks.allStories') }}
-      div(class="grid grid-cols-2 gap-3")
-        ACard(
-          v-for="book in allBooks"
-          :key="`grid-${book.bookId}`"
-          layout="vertical"
-          :title="localizedTitle(book)"
-          @click="openBook(book.bookId)"
+    //- ===== Filter chips (swipable) =====
+    div(class="filter-row-wrap")
+      div(class="filter-row")
+        ZChip(
+          v-for="chip in filterChips"
+          :key="chip.id"
+          clickable
+          :selected="chip.id === activeFilter"
+          :label="chip.label"
+          size="md"
+          @click="activeFilter = chip.id"
         )
-          template(#image)
-            div(class="relative w-full h-full")
-              div(
-                class="absolute inset-0"
-                :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
-              )
-              img(
-                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
-                :alt="localizedTitle(book)"
-                class="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                @error="onImgFallback"
-              )
-              ABadge.new-badge(
-                v-if="isNew(book.releaseDate)"
-                variant="new"
-                position="top-left"
-                label="NEU"
-                size="sm"
-              )
 
-    div(class="h-32")
-    ABottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
+    //- ===== Series tiles =====
+    div(class="serien-content")
+      div(
+        v-for="series in filteredSeries"
+        :key="series.seriesId"
+        class="series-tile"
+        @click="openSeries(series.seriesId)"
+      )
+        div(class="series-tile-image")
+          img(
+            :src="withPlaceholder(series.coverImage)"
+            :alt="series.name"
+            class="series-tile-img"
+            loading="lazy"
+            @error="onImgFallback"
+          )
+          span(class="series-tile-fade")
+        div(class="series-tile-text")
+          h3(class="series-tile-name") {{ series.name }}
+          p(
+            v-if="series.subtitle"
+            class="series-tile-sub"
+          ) {{ series.subtitle }}
+          //p(class="series-tile-desc") {{ series.description }}
+          div
+            span.mr-1(class="series-tile-count") {{ series.bookCount }}
+            span(class="text-[12px]") {{ series.bookCount === 1 ? 'Buch' : 'Bücher' }}
+
+
+      div(
+        v-if="!filteredSeries.length"
+        class="empty-card"
+      )
+        h3(class="empty-title") {{ t('app.allBooks.emptyTitle') }}
+        p(class="empty-sub") {{ t('app.allBooks.emptySub') }}
+
+    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">
-.app-page
-  background-color: var(--color-bg-main)
-  color: var(--color-text-primary)
+$cream-bg: #f3e6c4
+$cream-card: #fdf8ed
+$navy: #1a2f4a
+$brown: #7a6b55
+$gold: #d4a83e
+$border: #e6d6b5
 
-.section-wrap
-  max-width: 42rem
-  margin-left: auto
-  margin-right: auto
-  padding-left: 20px
-  padding-right: 20px
+button
+  -webkit-tap-highlight-color: transparent
 
-.releases-title
-  color: var(--color-text-primary)
+.serien-page
+  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  color: $navy
 
-.count-pill
-  display: inline-block
+.serien-header
+  position: relative
+  padding: max(env(safe-area-inset-top), 0.75rem) 20px 8px
+  max-width: 28rem
+  margin: 0 auto
+
+// Back button floats over the centred title block so the crown +
+// "Serien" stack stays optically centred regardless of side widgets.
+.serien-back
+  position: absolute
+  top: calc(max(env(safe-area-inset-top), 0.75rem))
+  left: 12px
+
+.title-cluster
+  display: flex
+  flex-direction: column
+  align-items: center
+  justify-content: center
+  gap: 2px
+
+.serien-crown
+  width: 28px
+  height: auto
+  object-fit: contain
+  filter: drop-shadow(0 2px 4px rgba(58, 42, 18, 0.3))
+
+.serien-title
+  font-size: 24px
+  font-weight: 900
+  color: $navy
+  letter-spacing: -0.01em
+  margin: 0
+  line-height: 1.1
+
+.filter-row-wrap
+  max-width: 28rem
+  margin: 0 auto
+  padding: 4px 20px 12px
+
+.filter-row
+  display: flex
+  gap: 8px
+  overflow-x: auto
+  overflow-y: hidden
+  -webkit-overflow-scrolling: touch
+  padding-bottom: 4px
+
+  &::-webkit-scrollbar
+    display: none
+
+.serien-content
+  max-width: 28rem
+  margin: 0 auto
+  padding: 6px 20px 0
+  display: flex
+  flex-direction: column
+  gap: 14px
+
+.series-tile
+  position: relative
+  display: grid
+  grid-template-columns: 1.05fr 1fr
+  gap: 0
+  align-items: stretch
+  background: linear-gradient(180deg, #fdf8ed 0%, #f5e8c2 100%)
+  border: 1.5px solid $border
+  border-radius: 12px
+  overflow: hidden
+  cursor: pointer
+  min-height: 140px
+  box-shadow: 0 10px 28px -14px rgba(58, 42, 18, 0.35)
+  transition: transform 220ms ease-out, box-shadow 220ms ease-out
+
+  &:hover
+    transform: translateY(-3px)
+    box-shadow: 0 18px 36px -14px rgba(212, 168, 62, 0.4)
+
+  &:active
+    transform: translateY(-1px) scale(0.995)
+
+.series-tile-text
+  order: 1
+  padding: 16px 14px 14px
+  display: flex
+  flex-direction: column
+  justify-content: center
+  gap: 5px
+  min-width: 0
+
+.series-tile-name
+  font-size: 18px
+  font-weight: 900
+  color: $navy
+  margin: 0
+  line-height: 1.1
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.series-tile-sub
   font-size: 11px
   font-weight: 800
-  letter-spacing: 0.1em
+  color: $gold
+  letter-spacing: 0.04em
+  margin: 0
   text-transform: uppercase
-  color: var(--color-text-link)
-  background-color: var(--color-bg-active-pill)
-  padding: 6px 12px
-  border-radius: 999px
 
-.a-card a-badge.new-badge:deep(.a-badge-top-left)
-  top: 2px !important
-  left: 5px
+.series-tile-desc
+  font-size: 12px
+  color: $brown
+  line-height: 1.35
+  margin: 0
+  display: -webkit-box
+  -webkit-line-clamp: 2
+  -webkit-box-orient: vertical
+  overflow: hidden
+
+.series-tile-count
+  font-size: 12px
+  font-weight: 900
+  color: $gold
+  margin-top: 2px
+
+.series-tile-image
+  order: 2
+  position: relative
+  overflow: hidden
+  background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
+
+.series-tile-img
+  position: absolute
+  inset: 0
+  width: 100%
+  height: 100%
+  object-fit: cover
+
+.series-tile-fade
+  position: absolute
+  inset: 0
+  background: linear-gradient(90deg, rgba(253, 248, 237, 0.55) 0%, rgba(253, 248, 237, 0) 25%, rgba(0, 0, 0, 0.1) 100%)
+  pointer-events: none
+
+.empty-card
+  text-align: center
+  background: $cream-card
+  border: 1px dashed $border
+  border-radius: 18px
+  padding: 26px 18px
+  color: $brown
+
+.empty-title
+  font-size: 16px
+  font-weight: 900
+  color: $navy
+  margin: 0 0 6px
+
+.empty-sub
+  font-size: 13px
+  margin: 0
+
+// ===== Mobile landscape =====
+.is-landscape
+  .serien-content
+    max-width: 64rem
+    display: grid
+    grid-template-columns: 1fr 1fr
+    gap: 14px
+
+  .filter-row-wrap, .serien-header
+    max-width: 64rem
 </style>

@@ -96,7 +96,7 @@ const priceLabel = computed(() => {
 }
 
 .hero-b-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 56px;
   line-height: 1.02;
   font-weight: 500;
@@ -232,7 +232,7 @@ const priceLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 22px;
   color: var(--ink-soft);
   padding: 24px;

@@ -25,6 +25,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
+import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import * as pdfjsLib from 'pdfjs-dist'
 // `?worker&inline` makes Vite inline the worker source into the chunk as
 // a blob — no separate asset file (which the production obfuscator drops),
@@ -1280,17 +1281,16 @@ watch([querySource, querySourceType], ([url, type]) => {
     :class="{ 'is-fullscreen': isFullscreen }"
   )
     header(class="ac-hdr")
-      //- Back button replaces the previous brand pill. Goes through the
-      //- router so the unsaved-changes guard can intercept and prompt.
-      button(
-        type="button"
+      //- Shared back button matches the rest of the app (parchment glyph
+      //- on a flat cream surface). Goes through the router so the
+      //- unsaved-changes guard can intercept and prompt.
+      ZBackButton(
+        variant="flat"
+        :size="40"
         class="ac-back-btn"
         :aria-label="t('app.coloring.back')"
-        :title="t('app.coloring.back')"
         @click="onBack"
       )
-        svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round")
-          path(d="m15 18-6-6 6-6")
       div(class="ac-title") {{ t('app.coloring.title') }}
 
       div(class="ac-pages" v-if="pdfDoc && totalPages > 1")
@@ -1610,15 +1610,21 @@ watch([querySource, querySourceType], ([url, type]) => {
 </template>
 
 <style scoped lang="sass">
-$p: #7B2FBE
-$p-dark: #5A1F9A
-$p-mid: #9747FF
-$p-bg: #EDE7F8
-$p-pale: #F5F0FF
-$p-bdr: #DDD4F0
-$text: #1A0A2E
-$text-m: #5A4A7A
-$text-l: #9B8BC0
+// LambKing parchment palette. Variable names kept as `$p*` to minimise
+// churn — they're sprinkled across hundreds of rules below.
+//   $p / $p-dark / $p-mid → navy primary (used for action gradients)
+//   $p-bg / $p-pale       → cream parchment surfaces
+//   $p-bdr                → warm border
+//   $text / $text-m / $text-l → navy + warm-brown text tones
+$p: #21406a
+$p-dark: #142a47
+$p-mid: #2b4d7a
+$p-bg: #f3e6c4
+$p-pale: #fdf8ed
+$p-bdr: #e6d6b5
+$text: #1a2f4a
+$text-m: #7a6b55
+$text-l: #a08962
 
 // `100dvh` follows mobile address-bar collapse/expand; the static `100vh`
 // is the iOS<15.4 fallback. Padding-bottom carves out the bottom nav (and
@@ -1641,47 +1647,33 @@ $text-l: #9B8BC0
   height: 100dvh
 
 .ac-app.is-fullscreen
-  background: #130726
+  background: #142a47
 
 .ac-app.is-fullscreen .ac-hdr
   display: none
 
+// Cream parchment header — same surface as the rest of the app so the
+// coloring screen reads as a continuation of LambKing's design.
 .ac-hdr
-  background: linear-gradient(135deg, $p-dark 0%, $p-mid 100%)
+  background: linear-gradient(180deg, #faf2dc 0%, #f3e6c4 100%)
+  border-bottom: 1px solid $p-bdr
   display: flex
   align-items: center
   gap: 8px
-  min-height: 48px
+  min-height: 52px
   padding: 8px 12px
-  padding-top: env(safe-area-inset-top, 0px)
+  padding-top: max(env(safe-area-inset-top, 0px), 8px)
 
+// `.ac-back-btn` is now a styling hook for the shared ZBackButton; the
+// component already paints itself with the parchment palette so we only
+// need the position marker.
 .ac-back-btn
-  width: 36px
-  height: 36px
-  border-radius: 50%
-  background: rgba(255, 255, 255, 0.22)
-  border: 1.5px solid rgba(255, 255, 255, 0.32)
-  color: #fff
-  cursor: pointer
-  display: grid
-  place-items: center
   flex-shrink: 0
-  transition: background 0.13s, transform 0.1s
-
-  &:hover
-    background: rgba(255, 255, 255, 0.36)
-
-  &:active
-    transform: scale(0.94)
-
-  svg
-    width: 18px
-    height: 18px
 
 .ac-title
   font-weight: 900
   font-size: 1.05rem
-  color: #fff
+  color: $text
   flex-shrink: 0
 
 .ac-pages
@@ -1690,16 +1682,24 @@ $text-l: #9B8BC0
   gap: 5px
   flex-shrink: 0
 
+// Cream pill buttons matching the rest of the app's flat-cream surface.
 .ac-pg-btn
-  width: 26px
-  height: 26px
+  width: 28px
+  height: 28px
   border-radius: 50%
-  background: rgba(255, 255, 255, 0.18)
-  border: 1.5px solid rgba(255, 255, 255, 0.3)
-  color: #fff
+  background: $p-pale
+  border: 1px solid $p-bdr
+  color: $text
   font-size: 0.9rem
   font-weight: 800
   cursor: pointer
+  transition: background 0.13s, transform 0.1s
+
+  &:hover
+    background: #ffffff
+
+  &:active
+    transform: scale(0.94)
 
   &:disabled
     opacity: 0.35
@@ -1707,7 +1707,7 @@ $text-l: #9B8BC0
 
 .ac-pg-info
   font-size: 0.78rem
-  color: rgba(255, 255, 255, 0.85)
+  color: $text-m
   font-weight: 700
 
 .ac-spacer
@@ -1721,32 +1721,38 @@ $text-l: #9B8BC0
   width: 32px
   height: 32px
   border-radius: 10px
-  background: rgba(255, 255, 255, 0.18)
-  border: 1.5px solid rgba(255, 255, 255, 0.25)
-  color: #fff
+  background: $p-pale
+  border: 1px solid $p-bdr
+  color: $text
   cursor: pointer
   display: grid
   place-items: center
   transition: background 0.13s, transform 0.1s
 
   &:hover
-    background: rgba(255, 255, 255, 0.32)
+    background: #ffffff
 
   &:active
     transform: scale(0.94)
 
+  // Active tool — solid navy pill with cream icon, mirrors the "Lesen"
+  // button's primary look elsewhere in the app.
   &.active
-    background: #fff
-    color: $p
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18)
+    background: linear-gradient(180deg, $p 0%, $p-dark 100%)
+    color: #ffffff
+    border-color: $p-dark
+    box-shadow: 0 4px 10px -4px rgba(10, 26, 48, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18)
 
   svg
     width: 16px
     height: 16px
 
+// Eraser keeps the wine-red accent so it reads as the destructive tool.
 .ac-q-eraser.active
-  background: #FFE8EE
-  color: #B04060
+  background: linear-gradient(180deg, #b94535 0%, #8e2f23 100%)
+  color: #ffffff
+  border-color: #5b1a12
+  box-shadow: 0 4px 10px -4px rgba(91, 26, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18)
 
 .ac-actions
   display: flex
@@ -1756,25 +1762,34 @@ $text-l: #9B8BC0
   width: 32px
   height: 32px
   border-radius: 50%
-  background: rgba(255, 255, 255, 0.18)
-  border: 1.5px solid rgba(255, 255, 255, 0.25)
-  color: #fff
+  background: $p-pale
+  border: 1px solid $p-bdr
+  color: $text
   display: grid
   place-items: center
   cursor: pointer
+  transition: background 0.13s, transform 0.1s
+
+  &:hover
+    background: #ffffff
+
+  &:active
+    transform: scale(0.94)
 
   &:disabled
-    opacity: 0.3
+    opacity: 0.35
     cursor: not-allowed
 
   svg
     width: 15px
     height: 15px
 
+  // "Save" stands out as a navy primary so it reads as the commit action.
   &.ac-save
-    background: #fff
-    color: $p
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15)
+    background: linear-gradient(180deg, $p 0%, $p-dark 100%)
+    color: #ffffff
+    border-color: $p-dark
+    box-shadow: 0 4px 10px -4px rgba(10, 26, 48, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18)
 
 .ac-main
   position: relative
@@ -1784,13 +1799,13 @@ $text-l: #9B8BC0
 
 .ac-app.is-fullscreen .ac-main
   padding: 0
-  background: #130726
+  background: #142a47
 
 .ac-main.drop-over::after
   content: '🎨'
   position: absolute
   inset: 0
-  background: rgba(123, 47, 190, 0.07)
+  background: rgba(33, 64, 106, 0.07)
   border: 3px dashed $p-mid
   border-radius: 12px
   display: flex
@@ -1815,7 +1830,7 @@ $text-l: #9B8BC0
   padding: 28px 22px
   background: #fff
   border-radius: 24px
-  box-shadow: 0 8px 32px rgba(123, 47, 190, 0.22)
+  box-shadow: 0 8px 32px rgba(33, 64, 106, 0.22)
 
 .ac-upload-icon
   width: 64px
@@ -1850,7 +1865,7 @@ $text-l: #9B8BC0
   font: inherit
   font-weight: 800
   font-size: 0.92rem
-  box-shadow: 0 4px 16px rgba(123, 47, 190, 0.38)
+  box-shadow: 0 4px 16px rgba(33, 64, 106, 0.38)
 
   svg
     width: 15px
@@ -1861,7 +1876,7 @@ $text-l: #9B8BC0
   display: none
   border-radius: 12px
   overflow: hidden
-  box-shadow: 0 8px 40px rgba(123, 47, 190, 0.22)
+  box-shadow: 0 8px 40px rgba(33, 64, 106, 0.22)
   transform-origin: 0 0
   will-change: transform
   touch-action: none
@@ -1925,7 +1940,7 @@ $text-l: #9B8BC0
   border-radius: 50%
   z-index: 9000
   transform: translate(-50%, -50%)
-  border: 2px solid rgba(123, 47, 190, 0.7)
+  border: 2px solid rgba(33, 64, 106, 0.7)
   opacity: 0
   transition: opacity 0.12s, width 0.08s, height 0.08s
 
@@ -1947,7 +1962,7 @@ $text-l: #9B8BC0
   height: 52px
   border-radius: 50%
   cursor: pointer
-  filter: drop-shadow(0 4px 14px rgba(123, 47, 190, 0.55))
+  filter: drop-shadow(0 4px 14px rgba(33, 64, 106, 0.55))
 
 .ac-minibar.collapsed .ac-mb-panel
   display: none
@@ -1973,12 +1988,12 @@ $text-l: #9B8BC0
 .ac-minibar.dragging
   transition: none !important
   transform: scale(1.06)
-  filter: drop-shadow(0 12px 30px rgba(123, 47, 190, 0.6))
+  filter: drop-shadow(0 12px 30px rgba(33, 64, 106, 0.6))
 
 .ac-minibar:not(.collapsed)
   background: #fff
-  border-radius: 22px
-  box-shadow: 0 8px 32px rgba(123, 47, 190, 0.22)
+  border-radius: 12px
+  box-shadow: 0 8px 32px rgba(33, 64, 106, 0.22)
   border: 1.5px solid $p-bdr
   overflow: hidden
 
@@ -2204,7 +2219,7 @@ input[type=range]::-moz-range-thumb
   &.enter
     background: linear-gradient(135deg, $p-dark, $p-mid)
     color: #fff
-    box-shadow: 0 3px 10px rgba(123, 47, 190, 0.35)
+    box-shadow: 0 3px 10px rgba(33, 64, 106, 0.35)
 
   &.exit
     background: $p-pale

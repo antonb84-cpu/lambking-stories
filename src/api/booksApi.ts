@@ -1,7 +1,5 @@
 import type { ApiBook, ApiBookListResponse, ApiBookResponse } from '@/types/apiBook'
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? 'https://lbs-be.onrender.com')
-  .replace(/\/+$/, '')
+import { getApiBase } from '@/use/useApiConfig'
 
 // Per-build client key. Each distribution channel (Tauri Android, GitHub
 // Pages, etc.) ships with its own value injected at build time via the
@@ -14,7 +12,11 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? 'https://lbs-be.onrender.
 const CLIENT_KEY: string = (import.meta.env.VITE_CLIENT_KEY ?? '').trim()
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
+  // Resolve the base at request time — the runtime feature flag in
+  // `useApiConfig` may have flipped between Render and a local dev
+  // server after module load.
+  const apiBase = getApiBase()
+  const res = await fetch(`${apiBase}${path}`, {
     ...init,
     headers: {
       accept: 'application/json',
@@ -29,7 +31,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const booksApi = {
-  apiBase: API_BASE,
+  get apiBase(): string {
+    return getApiBase()
+  },
 
   async list(): Promise<ApiBook[]> {
     const data = await request<ApiBookListResponse>('/api/books')

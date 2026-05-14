@@ -9,7 +9,7 @@
           :series="seriesLabel",
           :number="bandNumber",
           :title="title",
-          :author="book.author",
+          author="",
           :series-class="seriesClass"
         )
 
@@ -226,7 +226,7 @@ const seriesTagClass = computed(() => {
 }
 
 .book-title {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -293,14 +293,14 @@ const seriesTagClass = computed(() => {
 }
 
 .book-price {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--ink);
   line-height: 1;
 
   small {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'PoetsenOne', sans-serif;
     font-size: 11px;
     color: var(--ink-soft);
     font-weight: 500;

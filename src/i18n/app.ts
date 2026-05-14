@@ -2,26 +2,53 @@ export default {
   en: {
     app: {
       nav: {
-        home: 'Home',
+        home: 'Start',
         series: 'Series',
+        hoeren: 'Listen',
         color: 'Color',
-        profile: 'Profile'
+        profile: 'My Area'
       },
       main: {
-        hello: 'Hello, Jonas!',
-        home: 'Home',
+        hello: 'Hello, Explorer!',
+        subtitle: 'Ready for a new story?',
+        searchPlaceholder: 'Search story …',
         unlock: 'Unlock',
+        newReleased: 'NEW',
         continueListening: 'CONTINUE LISTENING',
-        continueReading: 'CONTINUE READING',
-        newReleases: 'New releases',
-        seeAll: 'See all'
+        continueReading: 'Weiterlesen',
+        page: 'Page {n} of {total}',
+        continue: 'Continue',
+        newInLibrary: 'New in the library',
+        upcoming: 'Coming soon',
+        seeAll: 'See all',
+        missionOfDay: 'Mission of the day',
+        missionDone: 'Done!',
+        missionSub: 'Be a peacemaker today.'
       },
       allBooks: {
-        hello: 'All books',
-        title: 'Alle Bücher',
-        unlock: 'Unlock',
-        newReleases: 'New releases',
-        allStories: 'ALL STORIES'
+        title: 'Series',
+        searchPlaceholder: 'Search …',
+        filterAll: 'All',
+        emptyTitle: 'No series yet',
+        emptySub: 'Series will appear here once added.'
+      },
+      newBooks: {
+        title: 'New Books',
+        breadcrumb: 'NEW IN THE LIBRARY',
+        empty: 'No new books in the past 3 months.'
+      },
+      hoeren: {
+        title: 'Listen',
+        breadcrumb: 'Audiobooks',
+        empty: 'No audio stories available yet.'
+      },
+      bookSeries: {
+        title: 'Series',
+        overview: 'OVERVIEW',
+        books: 'Books in series',
+        bandLabel: 'Band {n}',
+        comingSoon: 'Coming soon',
+        new: 'New'
       },
       bookDetail: {
         story: 'Story',
@@ -30,16 +57,16 @@ export default {
         saved: 'Saved',
         notFound: 'Story not found.',
         back: 'Back',
-        listen: 'Listen to story',
-        readMyself: 'Read myself',
+        listen: 'Listen',
+        readMyself: 'Read',
         download: 'Download',
         nowListening: 'NOW LISTENING',
         followAlong: 'FOLLOW ALONG',
         noText: 'No text available.',
-        progressLabel: 'READING PROGRESS',
+        progressLabel: 'Reading progress',
         progress: 'Reading progress {pct}',
         completed: 'Finished!',
-        thisAwaitsYou: 'This awaits you',
+        thisAwaitsYou: 'What awaits you',
         attachmentsTitle: 'Bonus material',
         attachmentSaveToPhone: 'Save to phone',
         attachmentUseInColoring: 'Use in coloring app',
@@ -91,17 +118,17 @@ export default {
         congratsSub: 'You finished the story.',
         nextStoryWaiting: 'The next story is waiting for you!'
       },
-      bookSeries: {
-        title: 'Book series',
-        overview: 'OVERVIEW'
-      },
       awards: {
         title: 'Awards',
         keepGoing: 'Keep going',
         achievements: 'ACHIEVEMENTS'
       },
       profile: {
-        hello: 'Profile',
+        title: 'My Area',
+        greeting: 'My Area',
+        adventurer: 'Adventurer of the King',
+        level: 'Level {n}',
+        xp: '{cur} / {total}',
         littleReader: 'Little Reader',
         settings: 'SETTINGS',
         language: 'Language',
@@ -109,33 +136,69 @@ export default {
         german: 'German',
         watchList: 'WATCH LIST',
         emptyWatchList: 'Your watch list is empty. Tap the bookmark on a story to save it here.',
-        remove: 'Remove'
+        favorites: 'Favorites',
+        progress: 'Progress',
+        achievements: 'Achievements',
+        myWorks: 'My works',
+        remove: 'Remove',
+        chooseAvatar: 'Choose avatar',
+        localBackend: 'Local backend',
+        localBackendOn: 'Local · {url}',
+        localBackendOff: 'Remote · {url}',
+        localBackendHint: 'Switches the API host. Reloads the app so the cache is rebuilt against the new server.'
       }
     }
   },
   de: {
     app: {
       nav: {
-        home: 'Home',
-        series: 'Reihen',
-        color: 'Ausmalen',
-        profile: 'Profil'
+        home: 'Start',
+        series: 'Serien',
+        hoeren: 'Hören',
+        color: 'Malen',
+        profile: 'Mein Bereich'
       },
       main: {
-        hello: 'Hallo, Jonas!',
-        home: 'Startseite',
+        hello: 'Hallo, Entdecker!',
+        subtitle: 'Bereit für eine neue Geschichte?',
+        searchPlaceholder: 'Geschichte suchen …',
         unlock: 'Freischalten',
+        newReleased: 'NEU ERSCHIENEN',
         continueListening: 'WEITERHÖREN',
-        continueReading: 'WEITERLESEN',
-        newReleases: 'Neu erschienen',
-        seeAll: 'Alle →'
+        continueReading: 'Weiterlesen',
+        page: 'Seite {n} von {total}',
+        continue: 'Fortsetzen',
+        newInLibrary: 'Neu in der Bibliothek',
+        upcoming: 'Demnächst',
+        seeAll: 'Alle anzeigen',
+        missionOfDay: 'Mission des Tages',
+        missionDone: 'Geschafft!',
+        missionSub: 'Sei heute ein Friedensstifter.'
       },
       allBooks: {
-        hello: 'Alle Bücher',
-        title: 'Alle Bücher',
-        unlock: 'Freischalten',
-        newReleases: 'Neu erschienen',
-        allStories: 'ALLE GESCHICHTEN'
+        title: 'Serien',
+        searchPlaceholder: 'Suchen …',
+        filterAll: 'Alle',
+        emptyTitle: 'Noch keine Serien',
+        emptySub: 'Hier erscheinen deine Buchreihen.'
+      },
+      newBooks: {
+        title: 'Neue Bücher',
+        breadcrumb: 'NEU IN DER BIBLIOTHEK',
+        empty: 'Keine neuen Bücher in den letzten 3 Monaten.'
+      },
+      hoeren: {
+        title: 'Hörgeschichten',
+        breadcrumb: 'Hörbücher',
+        empty: 'Es gibt noch keine Hörgeschichten.'
+      },
+      bookSeries: {
+        title: 'Serie',
+        overview: 'ÜBERSICHT',
+        books: 'Bücher der Serie',
+        bandLabel: 'Band {n}',
+        comingSoon: 'Demnächst',
+        new: 'Neu'
       },
       bookDetail: {
         story: 'Geschichte',
@@ -144,16 +207,16 @@ export default {
         saved: 'Gemerkt',
         notFound: 'Geschichte nicht gefunden.',
         back: 'Zurück',
-        listen: 'Geschichte anhören',
-        readMyself: 'Selber lesen',
+        listen: 'Anhören',
+        readMyself: 'Lesen',
         download: 'Herunterladen',
         nowListening: 'HÖRST GERADE',
         followAlong: 'MITLESEN',
         noText: 'Kein Text verfügbar.',
-        progressLabel: 'LESEFORTSCHRITT',
+        progressLabel: 'Lesefortschritt',
         progress: 'Lesefortschritt {pct}',
         completed: 'Geschafft!',
-        thisAwaitsYou: 'Das erwartet Dich',
+        thisAwaitsYou: 'Das erwartet dich',
         attachmentsTitle: 'Extras',
         attachmentSaveToPhone: 'Aufs Handy speichern',
         attachmentUseInColoring: 'In der Ausmal-App öffnen',
@@ -205,17 +268,17 @@ export default {
         congratsSub: 'Du hast die Geschichte zu Ende gelesen.',
         nextStoryWaiting: 'Die nächste Geschichte wartet auf dich!'
       },
-      bookSeries: {
-        title: 'Buchreihe',
-        overview: 'ÜBERSICHT'
-      },
       awards: {
         title: 'Auszeichnungen',
         keepGoing: 'Weiter so',
         achievements: 'ERFOLGE'
       },
       profile: {
-        hello: 'Profil',
+        title: 'Mein Bereich',
+        greeting: 'Mein Bereich',
+        adventurer: 'Abenteurer des Königs',
+        level: 'Level {n}',
+        xp: '{cur} / {total}',
         littleReader: 'Kleiner Leser',
         settings: 'EINSTELLUNGEN',
         language: 'Sprache',
@@ -223,7 +286,12 @@ export default {
         german: 'Deutsch',
         watchList: 'MERKLISTE',
         emptyWatchList: 'Deine Merkliste ist leer. Tippe auf das Lesezeichen einer Geschichte, um sie hier zu speichern.',
-        remove: 'Entfernen'
+        favorites: 'Favoriten',
+        progress: 'Fortschritt',
+        achievements: 'Errungenschaften',
+        myWorks: 'Meine Werke',
+        remove: 'Entfernen',
+        chooseAvatar: 'Profilbild wählen'
       }
     }
   }

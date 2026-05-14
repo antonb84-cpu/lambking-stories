@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import ZIconography from '@/components/atoms/ZIconography.vue'
 
-type IconName = 'home' | 'grid' | 'pencil' | 'profile'
+type IconName = 'home' | 'series' | 'headphones' | 'brush' | 'profile' | 'grid' | 'pencil' | 'library'
 
 interface NavItem {
   id: string | number
@@ -35,7 +36,7 @@ function selectItem(item: NavItem) {
 
 <template lang="pug">
   nav(class="z-bottom-nav fixed bottom-0 left-0 right-0 z-50 pt-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] px-2")
-    div(class="mx-auto max-w-md flex items-stretch justify-around gap-1")
+    div(class="mx-auto max-w-2xl flex items-stretch justify-around gap-0")
       button(
         v-for="item in items"
         :key="item.id"
@@ -43,7 +44,7 @@ function selectItem(item: NavItem) {
         :aria-label="item.label"
         :aria-current="modelValue === item.id ? 'page' : undefined"
         :class="[\
-          'z-nav-btn group relative flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer select-none touch-manipulation py-2 px-1',\
+          'z-nav-btn group relative flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer select-none touch-manipulation py-1.5 px-1',\
           modelValue === item.id ? 'is-active' : 'is-inactive',\
           pressedId === item.id ? 'is-pressed' : ''\
         ]"
@@ -61,59 +62,7 @@ function selectItem(item: NavItem) {
 
         //- icon wrapper
         span(class="z-nav-icon relative inline-flex items-center justify-center w-6 h-6 md:w-7 md:h-7")
-          template(v-if="item.icon === 'home'")
-            svg(
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-full h-full"
-            )
-              path(d="M3 11 12 3l9 8")
-              path(d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10")
-
-          template(v-else-if="item.icon === 'grid'")
-            svg(
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-full h-full"
-            )
-              rect(x="3" y="3" width="7" height="7" rx="1.5")
-              rect(x="14" y="3" width="7" height="7" rx="1.5")
-              rect(x="3" y="14" width="7" height="7" rx="1.5")
-              rect(x="14" y="14" width="7" height="7" rx="1.5")
-
-          template(v-else-if="item.icon === 'pencil'")
-            svg(
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-full h-full"
-            )
-              path(d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z")
-              path(d="m14.5 5.5 3 3")
-
-          template(v-else-if="item.icon === 'profile'")
-            svg(
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="w-full h-full"
-            )
-              circle(cx="12" cy="8" r="4")
-              path(d="M4 21a8 8 0 0 1 16 0")
+          ZIconography(:name="item.icon" :size="'100%'")
 
         //- label
         span(
@@ -156,9 +105,13 @@ button
     transform: scale(0.88)
 
 .z-nav-icon
-  transition: transform 200ms ease-out
+  transition: transform 200ms ease-out, color 200ms ease-out
   will-change: transform
   filter: drop-shadow(0 0 0 rgba(212, 168, 62, 0))
+  color: inherit
+
+.z-nav-icon :deep(.z-icon-outline)
+  color: currentColor
 
 .is-active .z-nav-icon
   filter: drop-shadow(0 2px 6px rgba(212, 168, 62, 0.55))

@@ -56,7 +56,7 @@ const { open: openPrivacy } = usePrivacyModal()
 }
 
 h2 {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 38px;
   font-weight: 500;
   letter-spacing: -0.02em;

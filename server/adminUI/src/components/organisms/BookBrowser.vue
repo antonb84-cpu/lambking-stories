@@ -321,7 +321,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
 }
 
 .bb-item-id {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'PoetsenOne', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
   color: #2471a3;
   flex-shrink: 0;

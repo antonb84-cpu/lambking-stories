@@ -89,6 +89,9 @@ export interface SeriesDTO {
   name: string
   prefix: string
   description?: string
+  // Optional 16:9 banner image, uploaded via the SeriesManager dropzone.
+  // Empty string / undefined means "not yet set".
+  coverImage?: string
 }
 
 export interface CategoryDTO {

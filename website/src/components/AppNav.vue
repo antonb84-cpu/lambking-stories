@@ -74,7 +74,7 @@ const newsletterEnabled = runtime.newsletterEnabled
 }
 
 .logo-text {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;

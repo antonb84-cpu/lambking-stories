@@ -2,20 +2,21 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import AButton from '@/components/atoms/AButton.vue'
-import AChip from '@/components/atoms/AChip.vue'
-import ABreadcrumbs from '@/components/atoms/ABreadcrumbs.vue'
-import ABottomNav from '@/components/atoms/ABottomNav.vue'
+import ZButton from '@/components/atoms/ZButton.vue'
+import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
+import ZBackButton from '@/components/atoms/ZBackButton.vue'
+import ZIconography from '@/components/atoms/ZIconography.vue'
 import AAudioPlayer from '@/components/atoms/AAudioPlayer.vue'
-import AIconography from '@/components/atoms/AIconography.vue'
+import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
+import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
+import useAppNav from '@/use/useAppNav'
+import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
-import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
-import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -27,13 +28,9 @@ const {
 } = useModels()
 const apiBooks = useApiBooks()
 const { getPct, isCompleted } = useReadingProgress()
+const { navItems, activeNav, onNav } = useAppNav(t)
 
 const bookId = computed(() => String(route.params.bookId))
-// Derive `book` from the reactive store rather than a local ref so the
-// view picks up the post-refresh server payload as soon as
-// `refreshBookInBackground` writes it back into `state.byId` — without
-// this, the component clings to whatever was in IndexedDB when it
-// mounted (and misses fields like the new attachment shape).
 const book = computed<ApiBook | null>(
   () => (apiBooks.state.byId[bookId.value] as ApiBook | undefined) ?? null
 )
@@ -50,14 +47,23 @@ const contentNotes = computed(() => localization.value?.contentNotes?.trim() || 
 const contentNotesHtml = computed(() =>
   contentNotes.value ? markdownToHtml(contentNotes.value) : ''
 )
+// Split admin-authored markdown notes into bullet items so we can render
+// each as a green-check row matching the design. Falls back gracefully if
+// the editor wrote a plain paragraph instead of a list.
+const contentNoteItems = computed<string[]>(() => {
+  const raw = contentNotes.value
+  if (!raw) return []
+  const lines = raw
+    .split(/\r?\n/)
+    .map((l) => l.replace(/^\s*[-*+]\s+/, '').trim())
+    .filter((l) => l.length > 0)
+  return lines
+})
 
 const series = computed(() => (book.value ? getSeriesOfBook(book.value.bookId) : undefined))
 const inWatchList = computed(() => (book.value ? isInWatchList(book.value.bookId) : false))
 
 async function fetchBook() {
-  // `loadBook` populates `apiBooks.state.byId[bookId]`, which our `book`
-  // computed reacts to. We only need the return value for the one-shot
-  // side-effects below (last-read marker + playback resume).
   const loaded = await apiBooks.loadBook(bookId.value)
   if (loaded) {
     setLastRead(loaded.bookId)
@@ -69,7 +75,10 @@ async function fetchBook() {
 }
 
 type ViewMode = 'detail' | 'listen'
-const mode = ref<ViewMode>('detail')
+// Deep-link support: `/app/book/:id?mode=listen` opens the audio
+// player directly (used by the "Anhören" CTA on the Weiterlesen
+// hero). Defaults to the standard detail screen otherwise.
+const mode = ref<ViewMode>(route.query.mode === 'listen' ? 'listen' : 'detail')
 
 const audioEl = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
@@ -223,33 +232,27 @@ onUnmounted(() => {
 watch(bookId, () => {
   void fetchBook()
 })
-watch(audioSrc, () => {
+watch(audioSrc, (src) => {
   isPlaying.value = false
   currentTime.value = 0
   duration.value = 0
-})
-
-const navItems = computed(() => [
-  { id: 'home', label: t('app.nav.home'), icon: 'home' as const },
-  { id: 'series', label: t('app.nav.series'), icon: 'series' as const },
-  { id: 'brush', label: t('app.nav.color'), icon: 'brush' as const },
-  { id: 'profile', label: t('app.nav.profile'), icon: 'profile' as const }
-])
-const activeNav = computed<string | number>(() => {
-  const name = String(route.name || '')
-  if (name === 'app-main') return 'home'
-  if (name === 'app-all-books' || name === 'app-book' || name === 'app-book-series') return 'series'
-  if (name === 'app-awards' || name === 'app-coloring') return 'brush'
-  if (name === 'app-profile') return 'profile'
-  return 'home'
-})
-
-function onNav(id: string | number) {
-  if (id === 'home') router.push({ name: 'app-main' })
-  if (id === 'series') router.push({ name: 'app-all-books' })
-  if (id === 'profile') router.push({ name: 'app-profile' })
-  if (id === 'brush') router.push({ name: 'app-coloring' })
-}
+  // Auto-start playback when we were deep-linked into listen mode and
+  // the audio source has just become available. Browsers may still
+  // block the unattended `.play()` (no user gesture); the catch keeps
+  // the view in listen mode either way so the user only needs one
+  // additional tap.
+  if (mode.value === 'listen' && src) {
+    setTimeout(() => {
+      if (audioEl.value && !isPlaying.value) {
+        audioEl.value.play().then(() => {
+          isPlaying.value = true
+          startRaf()
+        }).catch(() => {
+        })
+      }
+    }, 50)
+  }
+}, { immediate: true })
 
 function goBack() {
   if (mode.value !== 'detail') {
@@ -307,15 +310,6 @@ function onDownload() {
 }
 
 // ----- Attachments row -----
-// The row renders every attachment (coloring images + downloadable PDFs).
-// Tapping a tile opens a small menu anchored to the tile's bounding rect.
-// `useInColoring` is offered only for `type: 'coloring'`; `saveToPhone`
-// works for every attachment shape, per spec.
-// Defensive normalisation: a book that was IndexedDB-cached before the
-// attachment schema change still has `attachments: string[]`. The server
-// returns the new shape on the next background refresh, but the first
-// paint reads the stale cache — without this fallback the row would be
-// empty until the user navigates away and back.
 const attachments = computed<ApiBookAttachment[]>(() => {
   const raw = book.value?.attachments
   if (!Array.isArray(raw)) return []
@@ -353,13 +347,11 @@ function closeAttachmentMenu() {
 
 function attachmentDownloadName(att: ApiBookAttachment): string {
   const url = att.data || ''
-  // Try the URL's basename; otherwise build a sensible default.
   try {
     const u = new URL(url, window.location.origin)
     const last = u.pathname.split('/').filter(Boolean).pop()
     if (last) return last
   } catch {
-    // ignore — fall through to the manufactured name
   }
   const base = (localizedTitle.value || 'attachment').replace(/\s+/g, '-')
   if (att.type === 'coloring') return `${base}.png`
@@ -375,8 +367,6 @@ function saveAttachmentToPhone() {
   const a = document.createElement('a')
   a.href = att.data
   a.download = attachmentDownloadName(att)
-  // Some browsers block the download attribute on cross-origin URLs and
-  // simply navigate; opening in a new tab is a graceful fallback.
   a.target = '_blank'
   a.rel = 'noopener'
   a.click()
@@ -401,77 +391,96 @@ watch(currentTime, (v, prev) => {
   if (mode.value !== 'listen' || !isPlaying.value) return
   if (Math.floor(v / 3) !== Math.floor(prev / 3)) savePlayback()
 })
+
+const seriesName = computed(() => series.value?.name || '')
 </script>
 
 <template lang="pug">
-  div(class="app-page min-h-screen w-full relative pb-32 pt-[max(env(safe-area-inset-top),0rem)]")
+  div(:class="['book-detail-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
     template(v-if="book")
-      //- ===== Section 1: Hero image + back arrow =====
-      div.header
-      div(class="hero relative w-full")
-        div(class="hero-img relative w-full aspect-[3/4]")
-          div(
-            class="absolute inset-0"
-            :style="{ background: book.cover || 'linear-gradient(135deg,#9560f4,#7e3af2)' }"
-          )
+      //- ===== Hero — back · centered 3:4 cover card · bookmark =====
+      //- The cover floats inside the cream page (no edge bleed) so the
+      //- whole header reads as parchment with a contained book illustration.
+      div(class="hero")
+        ZBackButton(
+          variant="flat"
+          :size="40"
+          class="hero-back"
+          @click="goBack"
+        )
+
+        div(class="hero-cover")
           img(
             :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
             :alt="localizedTitle"
-            class="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
+            class="hero-cover-img"
+            loading="eager"
             @error="onImgFallback"
           )
-          span(class="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/25")
 
+        //- Bookmark (replaces heart). Reuses watchlist functionality.
         button(
           type="button"
-          @click="goBack"
-          :aria-label="t('app.bookDetail.back') || 'Back'"
-          class="back-btn absolute top-4 left-4 inline-flex items-center justify-center w-11 h-11 rounded-full"
+          class="hero-bookmark"
+          :class="{ 'is-active': inWatchList }"
+          :aria-label="inWatchList ? t('app.bookDetail.saved') : t('app.bookDetail.save')"
+          @click="onToggleWatchList"
         )
-          svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5")
-            path(d="m15 18-6-6 6-6")
+          ZIconography(name="bookmark" :size="22")
 
-      //- ===== Detail mode =====
       template(v-if="mode === 'detail'")
-        section(class="section-wrap mt-5")
-          ABreadcrumbs(:label="series ? series.name : t('app.bookDetail.story')")
-          h1(class="book-title mt-1 text-2xl md:text-3xl font-black leading-tight") {{ localizedTitle }}
+        //- ===== Detail section =====
+        div(class="detail-content")
+          span(class="series-eyebrow") {{ seriesName }}
+          h1(class="book-band-title")
+            //span(v-if="bandLabel") {{ bandLabel }}{{ ': ' }}
+            span {{ localizedTitle }}
+          //p(
+          //  v-if="localization?.shortDescription"
+          //  class="book-subtitle"
+          //) {{ localization.shortDescription }}
 
-          div(class="meta-row mt-3 flex items-center gap-2")
-            template(v-for="(badge, i) in book.badges" :key="badge + i")
-              AChip(:label="t(badge)")
-            div(class="flex-1")
-            button(
-              type="button"
-              @click="onToggleWatchList"
-              :aria-label="inWatchList ? t('app.bookDetail.saved') : t('app.bookDetail.save')"
-              class="heart-btn inline-flex items-center justify-center w-11 h-11 rounded-full"
-              :class="{ 'is-active': inWatchList }"
-            )
-              AIconography(name="heart" :size="28")
+          p(class="book-subtitle") {{ localizedDescription }}
 
-        //- ===== Primary CTA =====
-        //- Listen + download both depend on a saved audiobook file. When the
-        //- editor leaves audio empty in the AdminUI we promote "Read myself"
-        //- to the primary action and skip the audio-only controls.
-        section(v-if="audioSrc" class="section-wrap mt-4")
-          AButton(type="primary" icon="volume" @click="onListen") {{ t('app.bookDetail.listen') }}
+          //- ===== Das erwartet dich (green check list) =====
+          div(
+            v-if="contentNoteItems.length"
+            class="awaits-block"
+          )
+            h3(class="awaits-title") {{ t('app.bookDetail.thisAwaitsYou') }}
+            ul(class="awaits-list")
+              li(
+                v-for="(line, i) in contentNoteItems"
+                :key="`note-${i}`"
+                class="awaits-item"
+              )
+                span(class="awaits-check")
+                  ZIconography(name="check" :size="14")
+                span(v-html="line.replace(/&/g, '&amp;').replace(/</g, '&lt;')")
 
-        //- ===== Secondary actions =====
-        section(class="section-wrap mt-3" :class="{ 'mt-4': !audioSrc }")
-          div(:class="audioSrc ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1'")
-            AButton.self-read(:type="audioSrc ? 'secondary' : 'primary'" icon="book" :size="audioSrc ? 'sm' : 'md'" @click="onRead") {{ t('app.bookDetail.readMyself') }}
-            AButton.download(v-if="audioSrc" type="secondary" icon="download" size="sm" @click="onDownload") {{ t('app.bookDetail.download') }}
+          //- ===== CTAs =====
+          //- Both buttons render unconditionally so the layout never
+          //- collapses to a single full-width CTA. When the book has no
+          //- audio file, `onListen` still flips the view into listen mode
+          //- and shows the empty player — the editor can confirm in
+          //- AdminUI whether the upload is missing.
+          div(class="cta-row")
+            ZButton(type="primary" icon="book" @click="onRead") {{ t('app.bookDetail.readMyself') }}
+            ZButton(
+              type="secondary"
+              icon="volume"
+              :is-disabled="!audioSrc"
+              @click="onListen"
+            ) {{ t('app.bookDetail.listen') }}
 
-          //- Reading progress (only once the user has actually started)
+          //- ===== Reading progress (below the CTAs) =====
           div(
             v-if="readingPct > 0"
-            class="reading-progress mt-4"
-            :aria-label="t('app.bookDetail.progress', { pct: readingPctLabel }) || ('Lesefortschritt ' + readingPctLabel)"
+            class="reading-progress"
+            :aria-label="t('app.bookDetail.progress', { pct: readingPctLabel })"
           )
             div(class="reading-progress-row")
-              span(class="reading-progress-label") {{ readingDone ? (t('app.bookDetail.completed') || 'Geschafft!') : (t('app.bookDetail.progressLabel') || 'Lesefortschritt') }}
+              span(class="reading-progress-label") {{ readingDone ? t('app.bookDetail.completed') : t('app.bookDetail.progressLabel') }}
               span(class="reading-progress-pct") {{ readingPctLabel }}
             div(class="reading-progress-track")
               div(
@@ -480,50 +489,26 @@ watch(currentTime, (v, prev) => {
                 :style="{ width: readingPctLabel }"
               )
 
-        //- ===== This awaits you =====
-        //- Admin-authored, locale-specific notes (markdown). Section is only
-        //- rendered when the editor actually filled it in.
-        section(
-          v-if="contentNotesHtml"
-          class="section-wrap mt-5"
-        )
-          h3(class="content-notes-title") {{ t('app.bookDetail.thisAwaitsYou') || 'Das erwartet Dich' }}
-          div(
-            class="content-notes prose-notes text-sm md:text-base"
-            v-html="contentNotesHtml"
+          //- ===== Attachments =====
+          section(
+            v-if="attachments.length"
+            class="attachments-section"
           )
+            h3(class="awaits-title") {{ t('app.bookDetail.attachmentsTitle') }}
+            div(class="attachments-row")
+              AttachmentTile(
+                v-for="(att, i) in attachments"
+                :key="`att-${i}`"
+                :attachment="att"
+                @select="(a, e) => openAttachmentMenu(a, e)"
+              )
 
-        //- ===== Description =====
-        section(class="section-wrap mt-7")
-          p(class="book-desc text-sm md:text-base") {{ localizedDescription }}
-
-        //- ===== Attachments row =====
-        //- Coloring images + downloadable PDFs the editor attached. Each
-        //- tile opens a tap-anchored menu with save / use-in-coloring /
-        //- close. Sits at the very bottom of the detail page; hidden
-        //- entirely when the book has no attachments.
-        section(
-          v-if="attachments.length"
-          class="section-wrap mt-6 pb-6"
-        )
-          h3(class="attachments-title") {{ t('app.bookDetail.attachmentsTitle') }}
-          div(class="attachments-row")
-            AttachmentTile(
-              v-for="(att, i) in attachments"
-              :key="`att-${i}`"
-              :attachment="att"
-              @select="(a, e) => openAttachmentMenu(a, e)"
-            )
-
-      //- ===== Listen mode (audio player only — read-along is parked in
-      //- ReadAlong.vue for later reuse) =====
+      //- ===== Listen mode =====
       template(v-else-if="mode === 'listen'")
-        section(class="section-wrap mt-5")
-          ABreadcrumbs(:label="t('app.bookDetail.nowListening')")
-          h2(class="book-title mt-1 text-lg md:text-xl font-black") {{ localizedTitle }}
-
-        section(class="section-wrap mt-4")
-          div(class="mx-auto max-w-[420px]")
+        div(class="detail-content")
+          span(class="series-eyebrow") {{ t('app.bookDetail.nowListening') }}
+          h2(class="book-band-title") {{ localizedTitle }}
+          div(class="audio-wrap")
             AAudioPlayer(
               :is-playing="isPlaying"
               :current-time="currentTime"
@@ -534,6 +519,8 @@ watch(currentTime, (v, prev) => {
               @forward="forward"
               @seek="seek"
             )
+            div(v-if="audioSrc" class="audio-download")
+              ZButton(type="secondary" icon="download" size="sm" @click="onDownload") {{ t('app.bookDetail.download') }}
 
       audio(
         ref="audioEl"
@@ -542,11 +529,6 @@ watch(currentTime, (v, prev) => {
         class="hidden"
       )
 
-      //- ===== Attachment context menu =====
-      //- Sits OUTSIDE the v-if/v-else-if(mode) chain so it doesn't break the
-      //- conditional siblings the compiler expects. The menu itself is gated
-      //- on `menuAnchor` and Teleports to body anyway, so the placement here
-      //- is purely about template structure.
       AttachmentContextMenu(
         :anchor="menuAnchor"
         :show-coloring-option="menuAttachment?.type === 'coloring'"
@@ -555,144 +537,207 @@ watch(currentTime, (v, prev) => {
         @use-in-coloring="useInColoringApp"
       )
 
-    div(v-else class="section-wrap mt-10 text-center") {{ t('app.bookDetail.notFound') }}
+    div(v-else class="not-found") {{ t('app.bookDetail.notFound') }}
 
-    ABottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
+    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">
-.app-page
-  background-color: var(--color-bg-main)
-  color: var(--color-text-primary)
+$cream-bg: #f3e6c4
+$cream-card: #fdf8ed
+$navy: #1a2f4a
+$brown: #7a6b55
+$gold: #d4a83e
+$border: #e6d6b5
 
-.section-wrap
-  max-width: 42rem
-  margin-left: auto
-  margin-right: auto
-  padding-left: 20px
-  padding-right: 20px
-
-
-.hero
-  background-color: var(--color-bg-main)
-
-.hero-img
-  border-bottom-left-radius: 32px
-  border-bottom-right-radius: 32px
-  box-shadow: 0 14px 40px -18px rgba(61, 22, 118, 0.4)
-
-.back-btn
-  background-color: rgba(255, 255, 255, 0.2)
-  backdrop-filter: blur(8px)
-  color: #ffffff
-  border: 1.5px solid rgba(255, 255, 255, 0.75)
-  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.35)
-  cursor: pointer
+button
   -webkit-tap-highlight-color: transparent
-  transition: transform 150ms ease-out, background-color 150ms ease-out
+
+.book-detail-page
+  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  color: $navy
+
+// ===== Hero =====
+.hero
+  position: relative
+  width: 100%
+  max-width: 28rem
+  margin: 0 auto
+  padding: max(env(safe-area-inset-top), 0.5rem) 14px 8px
+  display: flex
+  flex-direction: column
+  align-items: center
+
+// Floating 3:4 cover. Height is the limit (~35vh of visible viewport),
+// width follows the aspect ratio so the cover never bleeds to the edge
+// and stays optically centered on the cream page.
+.hero-cover
+  width: auto
+  height: 35vh
+  max-height: 360px
+  aspect-ratio: 3 / 4
+  border-radius: 14px
+  overflow: hidden
+  background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
+  border: 1px solid $border
+  box-shadow: 0 18px 38px -16px rgba(58, 42, 18, 0.55), 0 6px 14px -8px rgba(58, 42, 18, 0.35)
+
+.hero-cover-img
+  width: 100%
+  height: 100%
+  object-fit: cover
+  display: block
+
+.hero-back
+  position: absolute
+  top: calc(env(safe-area-inset-top, 0px) + 10px)
+  left: 10px
+  z-index: 2
+
+.hero-bookmark
+  position: absolute
+  top: calc(env(safe-area-inset-top, 0px) + 14px)
+  right: 14px
+  z-index: 2
+  width: 40px
+  height: 40px
+  border-radius: 999px
+  background-color: rgba(255, 255, 255, 0.85)
+  border: 1.5px solid rgba(230, 214, 181, 0.6)
+  color: $navy
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  cursor: pointer
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.35)
+  transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out
 
   &:hover
-    background-color: rgba(255, 255, 255, 0.32)
+    background-color: #ffffff
     transform: translateY(-1px)
 
   &:active
-    transform: scale(0.98)
+    transform: scale(0.94)
 
-.book-title
-  color: var(--color-text-primary)
+  // Active state — wine-red pill with a cream bookmark fill so it
+  // reads instantly against the parchment background. The deep override
+  // is required because `.z-icon-outline` hard-codes `color: #1a2f4a`,
+  // which otherwise wins over the parent's `color`.
+  &.is-active
+    background: linear-gradient(180deg, #b94535 0%, #8e2f23 100%)
+    border-color: #5b1a12
+    box-shadow: 0 6px 14px -6px rgba(91, 26, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)
 
+    :deep(.z-icon-outline)
+      color: #fdf8ed
+
+    :deep(svg path)
+      fill: #fdf8ed
+
+// ===== Detail =====
+.detail-content
+  max-width: 28rem
+  margin: 0 auto
+  padding: 16px 20px 0
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.series-eyebrow
+  font-size: 12px
+  font-weight: 800
+  color: $brown
+  letter-spacing: 0.06em
+
+.book-band-title
+  font-size: 22px
+  font-weight: 900
+  color: $navy
+  line-height: 1.15
+  margin: 0
+  letter-spacing: -0.005em
 
 .book-subtitle
-  color: var(--color-text-secondary)
+  font-size: 14px
+  color: $brown
+  margin: -2px 0 0
+  font-weight: 600
 
 .book-desc
-  color: var(--color-text-primary)
+  font-size: 14px
   line-height: 1.5
+  color: $navy
+  margin: 8px 0 0
 
-
-.attachments-title
-  font-size: 17px
-  font-weight: 900
-  color: var(--color-text-primary)
-  margin: 0 0 8px
-
-// ~30% per tile so up to three sit side-by-side; wraps on overflow. Tiles
-// are square and aspect-ratio constrained inside `AttachmentTile`.
-.attachments-row
+// ===== Awaits =====
+.awaits-block
+  margin-top: 12px
   display: flex
-  flex-wrap: wrap
-  gap: 12px
+  flex-direction: column
+  gap: 8px
 
-.attachments-row > *
-  flex: 0 0 calc(33.3333% - 8px)
-  max-width: calc(33.3333% - 8px)
-
-
-.content-notes-title
-  font-size: 17px
+.awaits-title
+  font-size: 15px
   font-weight: 900
-  color: var(--color-text-primary)
-  margin: 0 0 6px
+  color: $navy
+  margin: 0
 
-.content-notes
-  color: var(--color-text-primary)
-  line-height: 1.5
+.awaits-list
+  list-style: none
+  margin: 0
+  padding: 0
+  display: flex
+  flex-direction: column
+  gap: 6px
 
-.content-notes :deep(p)
-  margin: 0.45em 0 0
+.awaits-item
+  display: flex
+  align-items: flex-start
+  gap: 10px
+  font-size: 14px
+  color: $navy
+  line-height: 1.4
 
-.content-notes :deep(p:first-child)
-  margin-top: 0
+.awaits-check
+  flex: 0 0 auto
+  width: 22px
+  height: 22px
+  border-radius: 999px
+  background: linear-gradient(180deg, #6da045 0%, #4a7332 100%)
+  color: #ffffff
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  margin-top: 1px
+  box-shadow: 0 4px 8px -3px rgba(74, 115, 50, 0.5)
 
-.content-notes :deep(strong)
-  font-weight: 800
+// ===== CTAs =====
+// ZButton wraps its <button> in an outer div that applies a size-based
+// `scale-*` transform plus a 140/180px min-width. Inside a 2-column grid
+// on a narrow phone that combination either overflows the row or leaves
+// the two buttons at visibly different sizes (one shrunk by transform,
+// the other expanded to fit min-content). The overrides below neutralise
+// both so the buttons truly split the row 50/50.
+.cta-row
+  margin-top: 14px
+  display: grid
+  grid-template-columns: 1fr 1fr
+  gap: 10px
+  align-items: stretch
 
-.content-notes :deep(em)
-  font-style: italic
+.cta-row > :deep(div)
+  transform: none !important
+  width: 100%
 
-.content-notes :deep(ul),
-.content-notes :deep(ol)
-  margin: 0.45em 0
-  padding-left: 1.4em
+.cta-row :deep(.z-button)
+  min-width: 0
+  width: 100%
+  padding-left: 14px
+  padding-right: 14px
 
-.content-notes :deep(ul)
-  list-style: disc
-
-.content-notes :deep(ol)
-  list-style: decimal
-
-.content-notes :deep(li)
-  margin: 0.2em 0
-
-.heart-btn
-  background-color: var(--color-bg-active-pill)
-  color: #d64578
-  border: 1px solid rgba(126, 58, 242, 0.2)
-  cursor: pointer
-  -webkit-tap-highlight-color: transparent
-  transition: transform 150ms ease-out
-
-  &:hover
-    transform: translateY(-1px) scale(1.03)
-
-  &:active
-    transform: scale(0.98)
-
-  &.is-active
-    background: linear-gradient(180deg, #ffd6ea 0%, #ffb3d4 100%)
-    border-color: #ff7ab3
-    box-shadow: 0 0 0 1px rgba(255, 122, 179, 0.3), 0 10px 22px -8px rgba(255, 122, 179, 0.55)
-
-:deep(.self-read) button, :deep(.download) button
-  padding: 8px 11px
-
-  .button-label
-    font-size: 14px
-
-.header
-  background: linear-gradient(180deg, #4a1b91 0%, #3a1272 100%)
-
+// ===== Reading progress =====
 .reading-progress
+  margin-top: 12px
   display: flex
   flex-direction: column
   gap: 6px
@@ -704,12 +749,12 @@ watch(currentTime, (v, prev) => {
   gap: 12px
   font-size: 12px
   font-weight: 800
-  color: var(--color-text-secondary)
+  color: $brown
   text-transform: uppercase
-  letter-spacing: 0.06em
+  letter-spacing: 0.05em
 
 .reading-progress-pct
-  color: var(--color-text-primary)
+  color: $navy
   font-variant-numeric: tabular-nums
 
 .reading-progress-track
@@ -720,10 +765,66 @@ watch(currentTime, (v, prev) => {
 
 .reading-progress-fill
   height: 100%
-  background: linear-gradient(90deg, #ffd645 0%, #ff8b3a 100%)
+  background: linear-gradient(90deg, #c89030 0%, #d4a83e 100%)
   border-radius: inherit
   transition: width 240ms ease-out
 
   &.is-done
-    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%)
+    background: linear-gradient(90deg, #6da045 0%, #4a7332 100%)
+
+// ===== Attachments =====
+.attachments-section
+  margin-top: 18px
+  padding-bottom: 12px
+
+.attachments-row
+  display: flex
+  flex-wrap: wrap
+  gap: 12px
+
+.attachments-row > *
+  flex: 0 0 calc(33.3333% - 8px)
+  max-width: calc(33.3333% - 8px)
+
+// ===== Listen audio wrapper =====
+.audio-wrap
+  margin-top: 12px
+
+.audio-download
+  margin-top: 12px
+  display: flex
+  justify-content: center
+
+.not-found
+  max-width: 28rem
+  margin: 40px auto
+  text-align: center
+  color: $brown
+
+// ===== Mobile landscape — two-column =====
+.is-landscape
+  .hero
+    max-width: 100%
+    align-items: flex-start
+    padding-left: 5vw
+
+  .hero-cover
+    height: 60vh
+    max-height: 60vh
+
+  .detail-content
+    max-width: 64rem
+    padding-top: 6px
+    display: grid
+    grid-template-columns: 1fr 1fr
+    column-gap: 22px
+
+  .series-eyebrow,
+  .book-band-title,
+  .book-subtitle,
+  .book-desc
+    grid-column: 1 / -1
+
+  .awaits-block, .cta-row, .reading-progress, .attachments-section
+    grid-column: 1 / -1
 </style>

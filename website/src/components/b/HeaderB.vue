@@ -69,7 +69,7 @@ defineProps<{ buyUrl: string }>()
 }
 
 .b-logo-text {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 17px;
   font-weight: 600;
   letter-spacing: -0.01em;

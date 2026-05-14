@@ -83,7 +83,7 @@ const onUp = () => (pressed.value = false)
 <style scoped lang="sass">
 button
   -webkit-tap-highlight-color: transparent
-  font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+  font-family: 'PoetsenOne', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
 
 // PRIMARY: deep navy "Lesen" button — solid, bold, dark
 .z-btn-primary

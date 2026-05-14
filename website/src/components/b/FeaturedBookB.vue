@@ -115,7 +115,7 @@ const priceLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 22px;
   color: var(--ink-soft);
   padding: 24px;
@@ -132,7 +132,7 @@ const priceLabel = computed(() => {
 }
 
 h2 {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 34px;
   line-height: 1.1;
   font-weight: 500;
@@ -198,7 +198,7 @@ h2 {
 }
 
 .price {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--ink);
@@ -206,7 +206,7 @@ h2 {
 
   small {
     display: block;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'PoetsenOne', sans-serif;
     font-size: 12px;
     color: var(--ink-soft);
     font-weight: 500;

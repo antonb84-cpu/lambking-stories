@@ -361,7 +361,7 @@ defineExpose({ reset: dd.reset })
   border-radius: 999px;
   margin-top: 2px;
   letter-spacing: 0.01em;
-  font-family: 'Nunito', serif;
+  font-family: 'PoetsenOne', serif;
 }
 
 @keyframes pulse {

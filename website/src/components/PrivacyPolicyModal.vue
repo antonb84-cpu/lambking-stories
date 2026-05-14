@@ -174,7 +174,7 @@ onUnmounted(() => {
   background: var(--cream, #faf4ea);
 
   h2 {
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 22px;
     font-weight: 500;
     letter-spacing: -0.01em;
@@ -214,7 +214,7 @@ onUnmounted(() => {
   color: var(--ink, #1c1611);
 
   :deep(h3) {
-    font-family: 'Fraunces', serif;
+    font-family: 'PoetsenOne', serif;
     font-size: 18px;
     font-weight: 600;
     margin: 28px 0 10px;

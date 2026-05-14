@@ -170,7 +170,6 @@ watch(bookId, () => {
             )
 
           div(class="flex items-center gap-2 flex-wrap")
-            AChip(:label="book.author")
             AChip(:label="formatDate(book.releaseDate)")
             AChip(v-if="series" variant="soft" :label="series.name")
 

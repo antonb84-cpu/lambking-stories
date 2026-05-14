@@ -116,7 +116,7 @@ const { open: openImprint } = useImprintModal()
 }
 
 .logo-text {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -132,7 +132,7 @@ const { open: openImprint } = useImprintModal()
 }
 
 .footer-col h4 {
-  font-family: 'Fraunces', serif;
+  font-family: 'PoetsenOne', serif;
   font-size: 15px;
   font-weight: 500;
   margin-bottom: 16px;

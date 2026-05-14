@@ -90,6 +90,8 @@ jobs:
       - name: Build LambKing Website Production
         run: npm run build-github-lamb-king
         working-directory: main/website
+        env:
+          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
       - name: Create Dist Folder
         run: mkdir dist

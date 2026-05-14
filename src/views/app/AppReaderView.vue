@@ -443,7 +443,9 @@ const celebrationFiredFor = ref<string | null>(null)
 function fireConfetti() {
   // Two short bursts from each side — keeps it festive without overwhelming
   // young readers or burning the GPU on slower devices.
-  const colors = ['#ffd645', '#ff8b3a', '#ff4d8d', '#7e3af2', '#22c55e', '#38bdf8']
+  // Parchment-palette confetti: gold + amber + navy + cream + wine-red
+  // + sage so the burst stays on-brand with the rest of the LambKing UI.
+  const colors = ['#d4a83e', '#f3d167', '#21406a', '#fdf8ed', '#a93d2e', '#6da045']
   confetti({
     particleCount: 60,
     spread: 70,
@@ -549,8 +551,7 @@ function goBack() {
       :aria-label="t('app.reader.back') || 'Zurück'"
       @click="goBack"
     )
-      svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5")
-        path(d="m15 18-6-6 6-6")
+      span(class="back-btn-icon" aria-hidden="true")
 
     div(
       ref="stageRef"
@@ -640,7 +641,7 @@ function goBack() {
                   div(class="next-label") {{ t('app.reader.nextStoryWaiting') }}
                   ABookCard(
                     :title="nextBook.localizations?.[lang]?.title || nextBook.localizations?.de?.title || ''"
-                    :subtitle="nextBook.author"
+                    subtitle=""
                     :image="resolved(nextBookCoverUrl)"
                     :cover-gradient="nextBook.cover"
                     badge="NEU"
@@ -683,40 +684,60 @@ function goBack() {
 .reader-root
   position: fixed
   inset: 0
-  background: linear-gradient(180deg, #fffaf3 0%, #fce8c8 100%)
-  color: #1a1a1a
+  // Parchment radial mirroring the rest of the app's body background so
+  // the reader feels like a continuous surface rather than its own theme.
+  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  color: #1a2f4a
   overflow: hidden
   user-select: none
   z-index: 50
   padding-top: env(safe-area-inset-top)
 
+// Cream parchment back arrow — matches the BookDetail back button so the
+// reader feels like a natural continuation of the same surface.
 .back-btn
   position: absolute
   top: calc(env(safe-area-inset-top, 0px) + 14px)
   left: 14px
   z-index: 30
-  width: 44px
-  height: 44px
+  width: 40px
+  height: 40px
   display: inline-flex
   align-items: center
   justify-content: center
   border-radius: 999px
-  background: rgba(255, 255, 255, 0.7)
-  backdrop-filter: blur(10px)
-  -webkit-backdrop-filter: blur(10px)
-  color: #1a1a1a
-  border: 1.5px solid rgba(255, 255, 255, 0.85)
-  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.35)
+  background-color: rgba(255, 255, 255, 0.85)
+  color: #1a2f4a
+  border: 1.5px solid rgba(230, 214, 181, 0.6)
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.35)
   cursor: pointer
   -webkit-tap-highlight-color: transparent
   transition: transform 150ms ease-out, background-color 150ms ease-out
 
   &:hover
-    background-color: rgba(255, 255, 255, 0.85)
+    background-color: #ffffff
     transform: translateY(-1px)
 
   &:active
-    transform: scale(0.96)
+    transform: scale(0.94)
+
+// Tinted arrow — `mask-image` lets us paint the asset brown so it
+// matches the parchment palette instead of rendering as flat black.
+.back-btn-icon
+  width: 70%
+  height: 70%
+  display: block
+  background-color: #5a3f12
+  -webkit-mask-image: url('/images/icons/back-icon_128x105.webp')
+  mask-image: url('/images/icons/back-icon_128x105.webp')
+  -webkit-mask-repeat: no-repeat
+  mask-repeat: no-repeat
+  -webkit-mask-position: center
+  mask-position: center
+  -webkit-mask-size: contain
+  mask-size: contain
+  pointer-events: none
+  filter: drop-shadow(0 1px 1px rgba(58, 42, 18, 0.2))
 
 .stage
   position: absolute
@@ -804,13 +825,13 @@ function goBack() {
   font-size: 20px
   font-weight: 900
   line-height: 1.18
-  color: #1a1a1a
+  color: #1a2f4a
   margin: 0
 
 .page-body
   font-size: 18px
   line-height: 1.5
-  color: #1f1f1f
+  color: #1a2f4a
   font-weight: 600
   letter-spacing: 0.005em
   flex: 1 1 auto
@@ -825,7 +846,7 @@ function goBack() {
 
 .page-body :deep(strong)
   font-weight: 800
-  color: #111
+  color: #0e2440
 
 .page-body :deep(em)
   font-style: italic
@@ -835,7 +856,7 @@ function goBack() {
 .page-body :deep(h3)
   font-size: 20px
   font-weight: 900
-  color: #1a1a1a
+  color: #1a2f4a
   line-height: 1.2
   margin: 0.4em 0 0.2em
 
@@ -929,7 +950,7 @@ function goBack() {
 .celebration-burst
   font-size: 72px
   line-height: 1
-  filter: drop-shadow(0 8px 14px rgba(255, 150, 60, 0.35))
+  filter: drop-shadow(0 8px 14px rgba(212, 168, 62, 0.4))
 
 
 // Achievement badge presentation lives in `AchievementBadge.vue` — keeping
@@ -938,7 +959,7 @@ function goBack() {
 .celebration-title
   font-size: 32px
   font-weight: 900
-  color: #1a1a1a
+  color: #1a2f4a
 
 .celebration-sub
   font-size: 17px
@@ -985,10 +1006,10 @@ function goBack() {
     background: rgba(0, 0, 0, 0.35)
 
   &.is-end
-    background: rgba(255, 145, 60, 0.55)
+    background: rgba(212, 168, 62, 0.65)
 
   &.active
-    background: #2563eb
+    background: #21406a
     width: 18px
 
 .page-counter
@@ -1024,8 +1045,8 @@ function goBack() {
   width: 40px
   height: 40px
   border-radius: 999px
-  border: 4px solid rgba(126, 58, 242, 0.18)
-  border-top-color: #7e3af2
+  border: 4px solid rgba(33, 64, 106, 0.18)
+  border-top-color: #21406a
   animation: spin 900ms linear infinite
 
 @keyframes spin

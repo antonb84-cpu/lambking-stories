@@ -11,7 +11,11 @@ const BookSeriesSchema = new Schema(
       index: true,
       match: [/^[a-z]{2}$/, 'prefix must be exactly 2 lowercase letters']
     },
-    description: { type: String, default: '' }
+    description: { type: String, default: '' },
+    // Single non-localised banner image (16:9). Uploaded via the
+    // AdminUI dropzone embedded in each series chip; surfaced by the
+    // public app on the SeriesView hero. Empty string means "not yet set".
+    coverImage: { type: String, default: '' }
   },
   { timestamps: true }
 )
