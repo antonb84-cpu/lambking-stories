@@ -35,8 +35,8 @@ function selectItem(item: NavItem) {
 </script>
 
 <template lang="pug">
-  nav(class="z-bottom-nav fixed bottom-0 left-0 right-0 z-50 pt-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] px-2")
-    div(class="mx-auto max-w-2xl flex items-stretch justify-around gap-0")
+  nav(class="z-bottom-nav fixed bottom-0 left-0 right-0 z-50 px-2")
+    div(class="z-bottom-nav-inner mx-auto max-w-2xl flex items-stretch justify-around gap-0")
       button(
         v-for="item in items"
         :key="item.id"
@@ -44,7 +44,7 @@ function selectItem(item: NavItem) {
         :aria-label="item.label"
         :aria-current="modelValue === item.id ? 'page' : undefined"
         :class="[\
-          'z-nav-btn group relative flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer select-none touch-manipulation py-1.5 px-1',\
+          'z-nav-btn group relative flex flex-1 flex-col items-center justify-center gap-1 cursor-pointer select-none touch-manipulation',\
           modelValue === item.id ? 'is-active' : 'is-inactive',\
           pressedId === item.id ? 'is-pressed' : ''\
         ]"
@@ -57,17 +57,17 @@ function selectItem(item: NavItem) {
         //- active dot indicator above the icon
         span(
           v-if="modelValue === item.id"
-          class="z-nav-dot pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full"
+          class="z-nav-dot pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
         )
 
         //- icon wrapper
-        span(class="z-nav-icon relative inline-flex items-center justify-center w-6 h-6 md:w-7 md:h-7")
+        span(class="z-nav-icon relative inline-flex items-center justify-center")
           ZIconography(:name="item.icon" :size="'100%'")
 
         //- label
         span(
           :class="[\
-            'z-nav-label text-[10px] md:text-[11px] font-semibold tracking-wide transition-colors duration-200',\
+            'z-nav-label font-semibold tracking-wide transition-colors duration-200',\
             modelValue === item.id ? 'is-active-label' : ''\
           ]"
         ) {{ item.label }}
@@ -79,15 +79,30 @@ button
   background: transparent
   border: none
 
-// Dark navy bar like the LambKing bottom nav
+// Dark navy bar like the LambKing bottom nav. Sized in absolute pixels
+// so a Chrome/Samsung Internet URL-bar collapse during scroll cannot
+// change the safe-area inset (or the `md:` breakpoint) and resize the
+// nav. The whole bar is exactly 64px tall — no env() inset.
 .z-bottom-nav
   background: linear-gradient(180deg, #21406a 0%, #142a47 100%)
   border-top: 1px solid #0a1a30
   box-shadow: 0 -4px 20px -8px rgba(10, 26, 48, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)
+  padding-top: 8px
+  padding-bottom: 8px
+  height: 64px
+  // iOS home-indicator clearance: lift the (still-fixed-size) bar
+  // above the gesture area instead of padding inside it. Android
+  // returns 0 here so this is a no-op there.
+  bottom: env(safe-area-inset-bottom, 0px)
+
+.z-bottom-nav-inner
+  height: 100%
 
 .z-nav-btn
   color: rgba(255, 255, 255, 0.55)
   transition: color 220ms ease-out, transform 180ms ease-out
+  height: 100%
+  padding: 4px 4px
 
   &.is-inactive:hover
     color: rgba(255, 255, 255, 0.85)
@@ -105,6 +120,8 @@ button
     transform: scale(0.88)
 
 .z-nav-icon
+  width: 24px
+  height: 24px
   transition: transform 200ms ease-out, color 200ms ease-out
   will-change: transform
   filter: drop-shadow(0 0 0 rgba(212, 168, 62, 0))
@@ -117,12 +134,15 @@ button
   filter: drop-shadow(0 2px 6px rgba(212, 168, 62, 0.55))
 
 .z-nav-label
+  font-size: 10px
   color: rgba(255, 255, 255, 0.55)
 
 .is-active-label
   color: #d4a83e
 
 .z-nav-dot
+  width: 24px
+  height: 3px
   background: linear-gradient(90deg, #f3d167 0%, #d4a83e 100%)
   box-shadow: 0 0 10px rgba(212, 168, 62, 0.7)
   animation: z-nav-dot-in 300ms ease-out

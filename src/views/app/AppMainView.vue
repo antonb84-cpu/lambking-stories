@@ -165,261 +165,275 @@ const ENABLE_MISSION_OF_DAY = false
 </script>
 
 <template lang="pug">
-  div(:class="['app-main', layoutClass, 'min-h-screen w-full pb-32']")
-    //- ===== Header bar — centered crown + banner; bell · avatar pinned to the right =====
-    header(class="main-header")
-      div(class="main-header-inner")
-        //- Brand: stacked crown over LambKing banner, centered
-        div(class="brand-stack")
-          img(
-            :src="prependBaseUrl('images/icons/crown_256x256.webp')"
-            alt="LambKing"
-            class="brand-crown"
-            decoding="async"
-          )
-          img(
-            :src="prependBaseUrl('images/logo/banner_500x116.webp')"
-            alt="LambKing Stories"
-            class="brand-banner -ml-8"
-            decoding="async"
-          )
-
-        //- Right-aligned actions — anchored absolutely so they don't
-        //- push the centered brand stack off-axis.
-        div(class="header-actions")
-          button(
-            type="button"
-            class="header-icon-btn"
-            aria-label="Notifications"
-          )
-            ZIconography(name="bell" :size="22")
-          button(
-            type="button"
-            class="header-avatar-btn"
-            :aria-label="t('app.profile.chooseAvatar')"
-            @click="openAvatarPicker"
-          )
+  div(:class="['app-main', layoutClass, 'min-h-screen w-full pb-32', isSearching ? '!pb-16' : '']")
+    //- ===== bg_path artwork zone =====
+    //- Wraps the header + (search/hero) so the image is sized to fit
+    //- exactly that area; the green bottom of the path stays visible
+    //- right above where the .path-overlay rises up.
+    div(
+      :class="['bg-zone', { 'bg-zone-fill': isSearching }]"
+      :style="{ backgroundImage: `url(${prependBaseUrl('images/bg/bg_path.webp')})` }"
+    )
+      //- ===== Header bar — centered crown + banner; bell · avatar pinned to the right =====
+      header(class="main-header")
+        div(class="main-header-inner")
+          //- Brand: stacked crown over LambKing banner, centered
+          div(class="brand-stack")
             img(
-              :src="avatarSrc"
-              alt="Profile"
-              class="header-avatar-img"
-              @error="onAvatarFallback"
+              :src="prependBaseUrl('images/icons/crown_256x256.webp')"
+              alt="LambKing"
+              class="brand-crown"
+              decoding="async"
+            )
+            img(
+              :src="prependBaseUrl('images/logo/banner_500x116.webp')"
+              alt="LambKing Stories"
+              class="brand-banner -ml-8"
+              decoding="async"
             )
 
-        //- Greeting headline
-        div(class="greeting-block")
-          h1(class="greeting-title") {{ greeting }}
-          p(class="greeting-sub") {{ t('app.main.subtitle') }}
-
-        //- Search field — Vue-controlled input, with an X button that
-        //- appears as soon as the user has typed anything. Clicking it
-        //- (or hitting Escape on a focused field) clears the term and
-        //- restores the original home layout.
-        label(class="search-field")
-          ZIconography(name="search" :size="18")
-          input(
-            type="text"
-            v-model="searchQuery"
-            :placeholder="t('app.main.searchPlaceholder')"
-            class="search-input"
-            autocomplete="off"
-            @keydown.esc="clearSearch"
-          )
-          button(
-            v-if="isSearching"
-            type="button"
-            class="search-clear-btn"
-            :aria-label="t('app.bookDetail.attachmentClose') || 'Clear'"
-            @click="clearSearch"
-          )
-            svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
-              path(d="M18 6 6 18M6 6l12 12")
-
-    div(class="main-content")
-      //- ===== Search results =====
-      //- Replaces every other section while the user is typing. Two-up
-      //- portrait tiles so kids can scan covers quickly; "No books found"
-      //- empty state when the term doesn't match anything.
-      section(v-if="isSearching" class="search-section")
-        div(class="section-head")
-          h3(class="section-title") {{ t('app.main.searchResultsTitle') }}
-          span(class="search-results-count") {{ searchResults.length }}
-
-        div(v-if="searchResults.length" class="search-grid")
-          div(
-            v-for="book in searchResults"
-            :key="book.bookId"
-            class="search-tile"
-            @click="openBook(book.bookId)"
-          )
-            div(class="search-tile-img-wrap")
+          //- Right-aligned actions — anchored absolutely so they don't
+          //- push the centered brand stack off-axis.
+          div(class="header-actions")
+            //button(
+            //  type="button"
+            //  class="header-icon-btn"
+            //  aria-label="Notifications"
+            //)
+            //  ZIconography(name="bell" :size="22")
+            button(
+              type="button"
+              class="header-avatar-btn"
+              :aria-label="t('app.profile.chooseAvatar')"
+              @click="openAvatarPicker"
+            )
               img(
-                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
-                :alt="localizedTitle(book)"
-                class="search-tile-img"
-                loading="lazy"
-                @error="onImgFallback"
+                :src="avatarSrc"
+                alt="Profile"
+                class="header-avatar-img"
+                @error="onAvatarFallback"
               )
-            div(class="search-tile-meta")
-              span(class="search-tile-series") {{ getSeriesOfBook(book.bookId)?.name || book.author }}
-              h4(class="search-tile-title") {{ localizedTitle(book) }}
 
-        div(v-else class="search-empty")
-          span(class="search-empty-icon" aria-hidden="true")
-            ZIconography(name="search" :size="36")
-          p(class="search-empty-text") {{ t('app.main.searchEmpty') }}
+          //- Greeting headline
+          div(class="greeting-block")
+            h1(class="greeting-title") {{ greeting }}
+            p(class="greeting-sub") {{ t('app.main.subtitle') }}
 
-      //- ===== Continue reading hero =====
-      section(v-if="!isSearching && showContinueReading && lastReadBook" class="continue-section")
-        div(class="continue-card")
-          div(class="continue-row")
-            //- Full-height portrait preview (3:4, height is the limit)
-            div(
-              class="continue-thumb"
-              @click="openBook(lastReadBook.bookId)"
+          //- Search field — Vue-controlled input, with an X button that
+          //- appears as soon as the user has typed anything. Clicking it
+          //- (or hitting Escape on a focused field) clears the term and
+          //- restores the original home layout.
+          label(class="search-field")
+            ZIconography(name="search" :size="18")
+            input(
+              type="text"
+              v-model="searchQuery"
+              :placeholder="t('app.main.searchPlaceholder')"
+              class="search-input"
+              autocomplete="off"
+              @keydown.esc="clearSearch"
             )
+            button(
+              v-if="isSearching"
+              type="button"
+              class="search-clear-btn"
+              :aria-label="t('app.bookDetail.attachmentClose') || 'Clear'"
+              @click="clearSearch"
+            )
+              svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
+                path(d="M18 6 6 18M6 6l12 12")
+
+      div(class="main-content")
+        //- ===== Search results =====
+        //- Replaces every other section while the user is typing. Two-up
+        //- portrait tiles so kids can scan covers quickly; "No books found"
+        //- empty state when the term doesn't match anything.
+        section(v-if="isSearching" class="search-section")
+          div(class="section-head")
+            h3(class="section-title") {{ t('app.main.searchResultsTitle') }}
+            span(class="search-results-count") {{ searchResults.length }}
+
+          div(v-if="searchResults.length" class="search-grid")
+            div(
+              v-for="book in searchResults"
+              :key="book.bookId"
+              class="search-tile"
+              @click="openBook(book.bookId)"
+            )
+              div(class="search-tile-img-wrap")
+                img(
+                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
+                  :alt="localizedTitle(book)"
+                  class="search-tile-img"
+                  loading="lazy"
+                  @error="onImgFallback"
+                )
+              div(class="search-tile-meta")
+                span(class="search-tile-series") {{ getSeriesOfBook(book.bookId)?.name || book.author }}
+                h4(class="search-tile-title") {{ localizedTitle(book) }}
+
+          div(v-else class="search-empty")
+            span(class="search-empty-icon" aria-hidden="true")
+              ZIconography(name="search" :size="36")
+            p(class="search-empty-text") {{ t('app.main.searchEmpty') }}
+
+        //- ===== Continue reading hero =====
+        section(v-if="!isSearching && showContinueReading && lastReadBook" class="continue-section")
+          div(class="continue-card")
+            div(class="continue-row")
+              //- Full-height portrait preview (3:4, height is the limit)
+              div(
+                class="continue-thumb"
+                @click="openBook(lastReadBook.bookId)"
+              )
+                img(
+                  :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
+                  :alt="localizedTitle(lastReadBook)"
+                  class="continue-thumb-img"
+                  loading="lazy"
+                  @error="onImgFallback"
+                )
+              div(class="continue-meta")
+                //- Badge sits in its own row above the cover/title so it never
+                //- overlaps the heading on narrow viewports.
+                div(class="continue-badge-row mb-0")
+                  ZBadge(
+                    variant="hot"
+                    position="static"
+                    size="md"
+                    class="continue-badge"
+                    :label="t('app.main.newReleased')"
+                  )
+                span(class="continue-series") {{ getSeriesOfBook(lastReadBook.bookId)?.name }}
+                h2(class="continue-title") {{ localizedTitle(lastReadBook) }}
+                span(
+                  v-if="pageCount(lastReadBook) > 0"
+                  class="continue-page"
+                ) {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
+                div(class="continue-cta")
+                  ZButton(type="primary" icon="book" size="sm" @click="openReader(lastReadBook.bookId)") {{ t('app.bookDetail.readMyself') }}
+                  ZButton(
+                    type="secondary"
+                    icon="volume"
+                    size="sm"
+                    @click="openListen(lastReadBook.bookId)"
+                  ) {{ t('app.bookDetail.listen') }}
+
+    //- ===== Path overlay =====
+    //- Sibling of `.bg-zone` so the bg_path artwork above ends right
+    //- where this overlay rises up. Wraps every section from
+    //- "Weiterlesen" downward in a single full-bleed card.
+    div(v-if="!isSearching" class="main-content")
+      div(class="path-overlay")
+        //- ===== Weiterlesen (saved progress) =====
+        section(
+          v-if="lastReadBook && progressPct(lastReadBook) > 0"
+          class="resume-section"
+        )
+          h3(class="section-title") Weiterlesen
+          div(
+            class="resume-card"
+            @click="openReader(lastReadBook.bookId)"
+          )
+            //- Full-height 3:4 preview — height is the limit so the image is
+            //- never cropped. Background fills the side slack with parchment.
+            div(class="resume-thumb")
               img(
                 :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
                 :alt="localizedTitle(lastReadBook)"
-                class="continue-thumb-img"
+                class="resume-thumb-img"
                 loading="lazy"
                 @error="onImgFallback"
               )
-            div(class="continue-meta")
-              //- Badge sits in its own row above the cover/title so it never
-              //- overlaps the heading on narrow viewports.
-              div(class="continue-badge-row mb-0")
-                ZBadge(
-                  variant="hot"
-                  position="static"
-                  size="md"
-                  class="continue-badge"
-                  :label="t('app.main.newReleased')"
-                )
-              span(class="continue-series") {{ getSeriesOfBook(lastReadBook.bookId)?.name }}
-              h2(class="continue-title") {{ localizedTitle(lastReadBook) }}
-              span(
-                v-if="pageCount(lastReadBook) > 0"
-                class="continue-page"
-              ) {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
-              div(class="continue-cta")
-                ZButton(type="primary" icon="book" size="sm" @click="openReader(lastReadBook.bookId)") {{ t('app.bookDetail.readMyself') }}
-                ZButton(
-                  type="secondary"
-                  icon="volume"
-                  size="sm"
-                  @click="openListen(lastReadBook.bookId)"
-                ) {{ t('app.bookDetail.listen') }}
+            div(class="resume-meta")
+              span(class="resume-title") {{ localizedTitle(lastReadBook) }}
+              span(class="resume-page") {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
+              div(class="resume-progress-row")
+                div(class="resume-progress-track")
+                  div(
+                    class="resume-progress-fill"
+                    :style="{ width: Math.round(progressPct(lastReadBook) * 100) + '%' }"
+                  )
+                span(class="resume-progress-pct") {{ Math.round(progressPct(lastReadBook) * 100) }}%
+              div(class="resume-cta-row")
+                ZButton(type="primary" icon="none" size="sm" @click.stop="openReader(lastReadBook.bookId)") {{ t('app.main.continue') }}
 
-      //- ===== Weiterlesen (saved progress) =====
-      section(
-        v-if="!isSearching && lastReadBook && progressPct(lastReadBook) > 0"
-        class="resume-section"
-      )
-        h3(class="section-title") Weiterlesen
-        div(
-          class="resume-card"
-          @click="openReader(lastReadBook.bookId)"
-        )
-          //- Full-height 3:4 preview — height is the limit so the image is
-          //- never cropped. Background fills the side slack with parchment.
-          div(class="resume-thumb")
-            img(
-              :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
-              :alt="localizedTitle(lastReadBook)"
-              class="resume-thumb-img"
-              loading="lazy"
-              @error="onImgFallback"
+        //- ===== Neu in der Bibliothek =====
+        section(v-if="newReleases.length" class="new-section")
+          div(class="section-head")
+            h3(class="section-title") {{ t('app.main.newInLibrary') }}
+            button(
+              type="button"
+              class="see-all-link"
+              @click="openAllNew"
             )
-          div(class="resume-meta")
-            span(class="resume-title") {{ localizedTitle(lastReadBook) }}
-            span(class="resume-page") {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
-            div(class="resume-progress-row")
-              div(class="resume-progress-track")
-                div(
-                  class="resume-progress-fill"
-                  :style="{ width: Math.round(progressPct(lastReadBook) * 100) + '%' }"
+              span {{ t('app.main.seeAll') }}
+              ZIconography(name="chevron-right" :size="14")
+
+          div(class="new-row")
+            div(
+              v-for="book in newReleases"
+              :key="book.bookId"
+              class="new-tile"
+              @click="openBook(book.bookId)"
+            )
+              div(class="new-tile-img-wrap")
+                img(
+                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
+                  :alt="localizedTitle(book)"
+                  class="new-tile-img"
+                  loading="lazy"
+                  @error="onImgFallback"
                 )
-              span(class="resume-progress-pct") {{ Math.round(progressPct(lastReadBook) * 100) }}%
-            div(class="resume-cta-row")
-              ZButton(type="primary" icon="none" size="sm" @click.stop="openReader(lastReadBook.bookId)") {{ t('app.main.continue') }}
+                //ZBadge(
+                //  variant="new"
+                //  size="sm"
+                //  position="top-left"
+                //  :label="t('app.bookSeries.new').toUpperCase()"
+                //)
+              span(class="new-tile-title") {{ localizedTitle(book) }}
 
-      //- ===== Neu in der Bibliothek =====
-      section(v-if="!isSearching && newReleases.length" class="new-section")
-        div(class="section-head")
-          h3(class="section-title") {{ t('app.main.newInLibrary') }}
-          button(
-            type="button"
-            class="see-all-link"
-            @click="openAllNew"
-          )
-            span {{ t('app.main.seeAll') }}
-            ZIconography(name="chevron-right" :size="14")
+        //- ===== Demnächst =====
+        section(v-if="upcomingBooks.length" class="upcoming-section")
+          div(class="section-head")
+            h3(class="section-title") {{ t('app.main.upcoming') }}
+            button(
+              type="button"
+              class="see-all-link"
+              @click="openAllSeries"
+            )
+              span {{ t('app.main.seeAll') }}
+              ZIconography(name="chevron-right" :size="14")
 
-        div(class="new-row")
-          div(
-            v-for="book in newReleases"
-            :key="book.bookId"
-            class="new-tile"
-            @click="openBook(book.bookId)"
-          )
-            div(class="new-tile-img-wrap")
-              img(
-                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
-                :alt="localizedTitle(book)"
-                class="new-tile-img"
-                loading="lazy"
-                @error="onImgFallback"
-              )
-              //ZBadge(
-              //  variant="new"
-              //  size="sm"
-              //  position="top-left"
-              //  :label="t('app.bookSeries.new').toUpperCase()"
-              //)
-            span(class="new-tile-title") {{ localizedTitle(book) }}
+          div(class="upcoming-row")
+            div(
+              v-for="book in upcomingBooks"
+              :key="book.bookId"
+              class="upcoming-tile"
+              @click="openBook(book.bookId)"
+            )
+              div(class="upcoming-tile-img-wrap")
+                img(
+                  :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
+                  :alt="localizedTitle(book)"
+                  class="upcoming-tile-img"
+                  loading="lazy"
+                  @error="onImgFallback"
+                )
+              span(class="upcoming-tile-title") {{ localizedTitle(book) }}
 
-      //- ===== Demnächst =====
-      section(v-if="!isSearching && upcomingBooks.length" class="upcoming-section")
-        div(class="section-head")
-          h3(class="section-title") {{ t('app.main.upcoming') }}
-          button(
-            type="button"
-            class="see-all-link"
-            @click="openAllSeries"
-          )
-            span {{ t('app.main.seeAll') }}
-            ZIconography(name="chevron-right" :size="14")
-
-        div(class="upcoming-row")
-          div(
-            v-for="book in upcomingBooks"
-            :key="book.bookId"
-            class="upcoming-tile"
-            @click="openBook(book.bookId)"
-          )
-            div(class="upcoming-tile-img-wrap")
-              img(
-                :src="withPlaceholder(pickLocalizedImage(book.previewImage, lang))"
-                :alt="localizedTitle(book)"
-                class="upcoming-tile-img"
-                loading="lazy"
-                @error="onImgFallback"
-              )
-            span(class="upcoming-tile-title") {{ localizedTitle(book) }}
-
-      //- ===== Mission of the Day — built but hidden until gamification
-      //-       lands. Flip ENABLE_MISSION_OF_DAY to true once ready. =====
-      section(v-if="!isSearching && ENABLE_MISSION_OF_DAY" class="mission-section")
-        div(class="mission-card")
-          div(class="mission-text")
-            div(class="mission-eyebrow")
-              ZIconography(name="star" :size="14")
-              span {{ t('app.main.missionOfDay') }}
-            p(class="mission-body") {{ t('app.main.missionSub') }}
-            ZButton(type="secondary" icon="none" size="sm") {{ t('app.main.missionDone') }}
-          div(class="mission-crest")
-            ZIconography(name="crown" :size="78")
+        //- ===== Mission of the Day — built but hidden until gamification
+        //-       lands. Flip ENABLE_MISSION_OF_DAY to true once ready. =====
+        section(v-if="ENABLE_MISSION_OF_DAY" class="mission-section")
+          div(class="mission-card")
+            div(class="mission-text")
+              div(class="mission-eyebrow")
+                ZIconography(name="star" :size="14")
+                span {{ t('app.main.missionOfDay') }}
+              p(class="mission-body") {{ t('app.main.missionSub') }}
+              ZButton(type="secondary" icon="none" size="sm") {{ t('app.main.missionDone') }}
+            div(class="mission-crest")
+              ZIconography(name="crown" :size="78")
 
     ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 
@@ -440,8 +454,32 @@ button
   -webkit-tap-highlight-color: transparent
 
 .app-main
-  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  background-color: $cream-bg
   color: $navy
+
+// Top region — header + (search/hero). The bg_path artwork stretches
+// to fill exactly this zone so its green bottom edge meets the top of
+// `.path-overlay` cleanly (matches reference image 10).
+.bg-zone
+  position: relative
+  background-color: $cream-bg
+  background-size: 100% 100%
+  background-repeat: no-repeat
+  background-position: top center
+  // The .main-content inside ends with the hero card; this padding
+  // gives the green bottom of the bg image room to breathe before the
+  // overlay rises out of it.
+  padding-bottom: 8px
+  margin-bottom: -18px
+
+// Search mode: there's no `.path-overlay` sibling to consume the
+// lower half of the viewport, so the zone stretches to the bottom-nav
+// itself (64px tall) — otherwise the artwork would only cover the
+// little box around the search field and leave a parchment void below.
+.bg-zone-fill
+  min-height: calc(100vh - 64px)
+  min-height: calc(100dvh - 64px)
+  margin-bottom: 0px
 
 // ===== Header =====
 .main-header
@@ -658,8 +696,8 @@ button
   max-height: 100%
   max-width: 100%
   width: auto
-  height: auto
-  object-fit: contain
+  height: 100%
+  object-fit: cover
   display: block
 
 .search-tile-meta
@@ -750,12 +788,13 @@ button
 // ===== Continue / Hero card =====
 .continue-section
   margin-top: 16px
+  margin-bottom: 24px
 
 .continue-card
   position: relative
   background: linear-gradient(180deg, #233a5e 0%, #11283a 100%)
-  border-radius: 10px
-  padding: 6px
+  border-radius: 14px
+  padding: 14px
   box-shadow: 0 14px 32px -14px rgba(10, 26, 48, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1)
   overflow: hidden
 
@@ -781,9 +820,9 @@ button
 
 .continue-thumb
   flex: 0 0 auto
-  width: 110px
+  width: 120px
   aspect-ratio: 3 / 4
-  border-radius: 8px
+  border-radius: 10px
   overflow: hidden
   background: linear-gradient(160deg, #f3e6c4 0%, #e8d29a 100%)
   cursor: pointer
@@ -814,13 +853,13 @@ button
   color: #d4a83e
 
 .continue-title
-  font-size: 18px
+  font-size: 15px
   font-weight: 900
-  line-height: 1.15
+  line-height: 1.2
   margin: 0
   color: #ffffff
   display: -webkit-box
-  -webkit-line-clamp: 2
+  -webkit-line-clamp: 3
   -webkit-box-orient: vertical
   overflow: hidden
 
@@ -832,12 +871,57 @@ button
 .continue-cta
   margin-top: auto
   display: flex
-  gap: 8px
   flex-wrap: wrap
+  gap: 2px
+  width: 100%
 
+// Each button needs ~120px to render its icon + full label without
+// truncation ("Anhören" + speaker icon is the wide one). flex-wrap
+// then pushes the second button onto its own row when the meta
+// column is too narrow to seat both — i.e. column layout on small
+// phones, row layout on wider viewports.
 .continue-cta > div
-  flex: 1
-  min-width: 100px
+  flex: 1 1 120px
+  min-width: 120px
+
+// Drop the ZButton's `scale-75` visual transform so the button
+// background fills its full allocated flex slot rather than rendering
+// smaller than its content.
+.continue-cta > :deep(div)
+  transform: none !important
+
+.continue-cta :deep(.z-button)
+  min-width: 0
+  width: 100%
+  padding: 10px 12px
+  border-radius: 12px
+  gap: 6px
+
+.continue-cta :deep(.button-label)
+  font-size: 13px
+  white-space: nowrap
+
+// ===== Path overlay — wraps Weiterlesen + below sections =====
+// Sits in its own `.main-content` sibling of `.bg-zone`, so it starts
+// right where the bg_path artwork ends. Breaks out of the .main-content
+// 20px gutter so the rounded card touches the device edges.
+.path-overlay
+  position: relative
+  margin-top: 0
+  margin-left: -20px
+  margin-right: -20px
+  padding: 24px 20px 32px
+  border-top-left-radius: 24px
+  border-top-right-radius: 24px
+  background-color: $cream-bg
+  box-shadow: 0 -8px 22px -10px rgba(58, 42, 18, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.5)
+  // The pb-32 on `.app-main` gives bottom-nav clearance; let the
+  // overlay extend past the last section to the nav.
+  margin-bottom: -8rem
+  padding-bottom: calc(8rem + 32px)
+
+  > section:first-child
+    margin-top: 0
 
 // ===== Weiterlesen resume card =====
 .resume-section
@@ -959,6 +1043,7 @@ button
 .new-tile-img-wrap
   position: relative
   width: 100%
+  //height: 100%
   aspect-ratio: 3 / 4
   border-radius: 12px
   overflow: hidden
@@ -977,7 +1062,8 @@ button
   height: 100%
   width: auto
   max-width: 100%
-  object-fit: contain
+  max-height: 100%
+  object-fit: cover
 
 .new-tile-title
   font-size: 11px
@@ -1095,6 +1181,15 @@ button
     grid-column: 1 / -1
     margin-top: 12px
 
+  // Search results take the full grid width too, otherwise they sit
+  // squashed in col 1 and waste the right half of the viewport.
+  .search-section
+    grid-column: 1 / -1
+    min-width: 0
+
+  .search-grid
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+
   // The card spans the full grid row but its content stays compact:
   // capped meta column, CTAs forced into a single row at their natural
   // size instead of overflowing the card right edge.
@@ -1133,16 +1228,38 @@ button
     padding-left: 14px
     padding-right: 14px
 
+  // The path overlay spans the whole grid row and itself becomes a
+  // 2-col grid so the resume/new sections sit side-by-side, with
+  // upcoming filling the row below — matching the prior layout but
+  // wrapped in the bg_path card.
+  .path-overlay
+    grid-column: 1 / -1
+    margin-left: -28px
+    margin-right: -28px
+    padding-left: 28px
+    padding-right: 28px
+    display: grid
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+    column-gap: 22px
+    overflow-x: hidden
+
+  // Grid items default to `min-width: auto`, which lets the swipable
+  // .new-row inside .new-section push the column wider than its 1fr
+  // share — that's the landscape blowout. `min-width: 0` forces each
+  // column to honour its fr allocation.
   .resume-section
     grid-column: 1
+    min-width: 0
     margin-top: 16px
 
   .new-section
     grid-column: 2
+    min-width: 0
     margin-top: 16px
 
   .upcoming-section
     grid-column: 1 / -1
+    min-width: 0
 
   .main-header-inner
     max-width: 64rem

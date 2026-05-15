@@ -805,8 +805,9 @@ button
 .is-landscape
   .hero
     max-width: 100%
-    align-items: flex-start
-    padding-left: 5vw
+    align-items: center
+    padding-left: 14px
+    padding-right: 14px
 
   .hero-cover
     height: 60vh

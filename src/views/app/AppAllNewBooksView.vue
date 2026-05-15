@@ -172,7 +172,7 @@ button
 .book-tile
   position: relative
   display: grid
-  grid-template-columns: 1fr 0.85fr
+  grid-template-columns: 1.25fr 1fr
   background: linear-gradient(180deg, #fdf8ed 0%, #f5e8c2 100%)
   border: 1.5px solid $border
   border-radius: 12px
@@ -204,15 +204,16 @@ button
   color: $gold
 
 .book-tile-name
-  font-size: 17px
+  font-size: 14px
   font-weight: 900
   color: $navy
   margin: 0
-  line-height: 1.15
+  line-height: 1.2
   display: -webkit-box
-  -webkit-line-clamp: 2
+  -webkit-line-clamp: 4
   -webkit-box-orient: vertical
   overflow: hidden
+  word-break: break-word
 
 .book-tile-image
   position: relative

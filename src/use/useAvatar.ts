@@ -1,33 +1,35 @@
 /**
- * Tiny shared store for the user's profile picture. Until the full set
- * of avatar artworks ships, slot 0 falls back to the shared default
- * (`/images/icons/avatar.webp`) and the remaining slots resolve to that
- * same default via `onAvatarFallback` whenever their dedicated asset is
- * missing on disk. Selecting one persists its index in localStorage and
- * exposes a reactive `avatarSrc` everywhere the profile picture is
- * rendered (ProfileView header, AppMainView header).
+ * Tiny shared store for the user's profile picture. Slot 0 is the
+ * default avatar (`avatar-1.webp`); slots 1–9 are the remaining
+ * illustrated choices; the trailing `avatar-empty.webp` slot lets the
+ * user opt out of a portrait. Selecting one persists its index in
+ * localStorage and exposes a reactive `avatarSrc` everywhere the
+ * profile picture is rendered (ProfileView header, AppMainView header).
  */
 import { computed, ref } from 'vue'
 import { prependBaseUrl } from '@/utils/function'
 
 const LS_AVATAR = 'kanaan.avatarIndex'
 
-// Canonical fallback image. Lives in /public so Vite serves it
-// verbatim. Routed through `prependBaseUrl` so production GH-Pages
-// builds resolve under the deploy subpath instead of the origin root.
-export const DEFAULT_AVATAR_IMAGE = prependBaseUrl('images/icons/avatar.webp')
+// Canonical fallback. Slot 0 is the default avatar (`avatar-1.webp`);
+// any broken `<img>` re-points here via `onAvatarFallback`.
+export const DEFAULT_AVATAR_IMAGE = prependBaseUrl('images/avatars/avatar-1.webp')
 
-// Avatar picker slot paths. Slot 0 is the shipped default; the rest
-// reference per-illustration assets that may or may not exist yet. Any
-// 404 routes through `onAvatarFallback` and re-points at the default
-// so the picker never renders a broken image.
+// Avatar picker slot paths. Slot 0 is the default; the trailing slot is
+// the explicit "no avatar" option. Routed through `prependBaseUrl` so
+// production GH-Pages builds resolve under the deploy subpath.
 const AVATAR_SOURCES: string[] = [
   DEFAULT_AVATAR_IMAGE,
-  prependBaseUrl('images/avatars/avatar-1.webp'),
   prependBaseUrl('images/avatars/avatar-2.webp'),
   prependBaseUrl('images/avatars/avatar-3.webp'),
   prependBaseUrl('images/avatars/avatar-4.webp'),
-  prependBaseUrl('images/avatars/avatar-5.webp')
+  prependBaseUrl('images/avatars/avatar-5.webp'),
+  prependBaseUrl('images/avatars/avatar-6.webp'),
+  prependBaseUrl('images/avatars/avatar-7.webp'),
+  prependBaseUrl('images/avatars/avatar-8.webp'),
+  prependBaseUrl('images/avatars/avatar-9.webp'),
+  prependBaseUrl('images/avatars/avatar-10.webp'),
+  prependBaseUrl('images/avatars/avatar-empty.webp')
 ]
 
 function readIndex(): number {

@@ -128,9 +128,9 @@ function isCrazyGamesUrl() {
 </script>
 
 <template lang="pug">
-  div(id="app-root").min-h-screen.w-screen.app-container.root-protection.game-ui-immune
+  div(id="app-root").min-h-screen.w-screen.app-container.root-protection.game-ui-immune.relative
     RouterView(v-slot="{ Component, route }")
-      transition(name="page-playful" mode="out-in" appear)
+      transition(name="page-swipe" appear)
         component(:is="Component" :key="route.fullPath")
 </template>
 
@@ -152,37 +152,35 @@ function isCrazyGamesUrl() {
 img
   pointer-events: none
 
-// ----- Playful page transitions for a children's audiobook app -----
-.page-playful-enter-active
-  animation: page-playful-in 720ms cubic-bezier(0.34, 1.56, 0.64, 1) both
+// ----- Page swipe transition (constant speed) -----
+// Mirrors the BookReader's deck-swipe feel for global route changes:
+// the leaving page slides out to the left while the entering page
+// slides in from the right at the same constant speed (linear easing,
+// no overshoot, no fade), so the two appear glued together like a
+// single horizontal swipe.
+.page-swipe-enter-active,
+.page-swipe-leave-active
+  transition: transform 320ms linear
+  // While the two pages are mid-transition they need to overlap
+  // horizontally instead of stacking vertically — so take both out of
+  // flow. The router-view's parent (#app-root) already has `relative`.
+  // Height stays auto (no `bottom: 0`) so long pages don't get clipped
+  // to the viewport during the swipe.
+  position: absolute
+  top: 0
+  left: 0
+  width: 100%
+  will-change: transform
 
-.page-playful-leave-active
-  animation: page-playful-out 420ms ease-in both
+.page-swipe-enter-from
+  transform: translate3d(100%, 0, 0)
 
-@keyframes page-playful-in
-  0%
-    opacity: 0
-    transform: translateY(36px) scale(0.94) rotate(-1.2deg)
-    filter: blur(4px)
-  45%
-    opacity: 1
-    transform: translateY(-10px) scale(1.015) rotate(0.6deg)
-    filter: blur(0)
-  70%
-    transform: translateY(3px) scale(0.998) rotate(-0.3deg)
-  100%
-    opacity: 1
-    transform: translateY(0) scale(1) rotate(0)
-    filter: blur(0)
+.page-swipe-leave-to
+  transform: translate3d(-100%, 0, 0)
 
-@keyframes page-playful-out
-  0%
-    opacity: 1
-    transform: translateY(0) scale(1)
-  100%
-    opacity: 0
-    transform: translateY(-16px) scale(0.97)
-    filter: blur(3px)
+.page-swipe-enter-to,
+.page-swipe-leave-from
+  transform: translate3d(0, 0, 0)
 
 // ----- Extra playful transitions (showcased on /design-system-a) -----
 // 1. Balloon bounce — drops in from above with a squash-and-stretch bounce

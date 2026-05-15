@@ -188,7 +188,26 @@ function onBackendToggle(e: Event) {
               :aria-label="t('app.profile.chooseAvatar')"
               @click="openAvatar"
             )
-              ZIconography(name="camera" :size="14")
+              //- Photo camera with a crayon, signalling the avatar
+              //- portrait is editable.
+              svg(viewBox="0 0 32 32" fill="none" class="w-full h-full" aria-hidden="true")
+                //- Camera body
+                rect(x="3" y="9" width="26" height="18" rx="3.5" fill="#1a2f4a" stroke="#ffffff" stroke-width="1.4")
+                //- Top hump above the lens
+                path(d="M11 9l1.6-3h6.8L21 9z" fill="#1a2f4a" stroke="#ffffff" stroke-width="1.4" stroke-linejoin="round")
+                //- Lens outer ring
+                circle(cx="16" cy="18.5" r="5.2" fill="#0d1b2e" stroke="#ffffff" stroke-width="1.4")
+                //- Lens glass + highlight
+                circle(cx="16" cy="18.5" r="3" fill="#3a6fa8")
+                circle(cx="14.4" cy="17" r="1.1" fill="#cfe4ff")
+                //- Flash window (top-left)
+                rect(x="6" y="11.5" width="3" height="2" rx="0.5" fill="#cfe4ff")
+                //- Crayon — orange shaft + sharpened tip + tape band
+                g(transform="rotate(-32 22 11)")
+                  rect(x="14" y="9.5" width="13" height="3.6" rx="0.6" fill="#f0a040" stroke="#7a4a10" stroke-width="0.6")
+                  rect(x="22" y="9.5" width="2.4" height="3.6" fill="#7a4a10")
+                  path(d="M27 9.5l3 1.8-3 1.8z" fill="#fff2d8" stroke="#7a4a10" stroke-width="0.6" stroke-linejoin="round")
+                  path(d="M30 11.3l0.8 0.5l-0.8 0.5z" fill="#3b2410")
 
           div(class="profile-meta")
             //- View mode: name + pencil edit affordance.
@@ -445,8 +464,8 @@ button
   position: absolute
   bottom: 0
   right: 0
-  width: 28px
-  height: 28px
+  width: 34px
+  height: 34px
   border-radius: 999px
   background: linear-gradient(180deg, #21406a 0%, #142a47 100%)
   color: #ffffff
@@ -457,6 +476,9 @@ button
   cursor: pointer
   transition: transform 150ms ease-out
   box-shadow: 0 4px 10px -2px rgba(10, 26, 48, 0.5)
+  // Pad the SVG in slightly so the camera + crayon details breathe
+  // inside the navy circle.
+  padding: 3px
 
   &:hover
     transform: scale(1.08)
