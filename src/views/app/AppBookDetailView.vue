@@ -3,7 +3,6 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ZButton from '@/components/atoms/ZButton.vue'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import AAudioPlayer from '@/components/atoms/AAudioPlayer.vue'
@@ -12,7 +11,6 @@ import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
-import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -28,7 +26,6 @@ const {
 } = useModels()
 const apiBooks = useApiBooks()
 const { getPct, isCompleted } = useReadingProgress()
-const { navItems, activeNav, onNav } = useAppNav(t)
 
 const bookId = computed(() => String(route.params.bookId))
 const book = computed<ApiBook | null>(
@@ -538,8 +535,6 @@ const seriesName = computed(() => series.value?.name || '')
       )
 
     div(v-else class="not-found") {{ t('app.bookDetail.notFound') }}
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">

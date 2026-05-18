@@ -50,8 +50,8 @@ export default function useAppNav(t: ComposerTranslation): {
     { id: 'home', label: t('app.nav.home'), icon: 'home' },
     { id: 'series', label: t('app.nav.series'), icon: 'series' },
     // { id: 'hoeren', label: t('app.nav.hoeren'), icon: 'headphones' },
+    { id: 'profile', label: t('app.nav.profile'), icon: 'profile' },
     { id: 'malen', label: t('app.nav.color'), icon: 'brush' },
-    { id: 'profile', label: t('app.nav.profile'), icon: 'profile' }
   ])
 
   const activeNav = computed<string | number>(() => routeToNav(String(route.name || '')))

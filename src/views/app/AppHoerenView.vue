@@ -2,12 +2,10 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import ZPlayButton from '@/components/atoms/ZPlayButton.vue'
 import useApiBooks from '@/use/useApiBooks'
 import useModels from '@/use/useModels'
-import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -17,7 +15,6 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const apiBooks = useApiBooks()
 const { getSeriesOfBook } = useModels()
-const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -82,8 +79,6 @@ function openBook(bookId: string) {
         v-else
         class="empty-card"
       ) {{ t('app.hoeren.empty') }}
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">

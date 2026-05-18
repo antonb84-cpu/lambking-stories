@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZButton from '@/components/atoms/ZButton.vue'
 import ZBadge from '@/components/atoms/ZBadge.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
@@ -10,7 +9,6 @@ import AvatarPickerModal from '@/components/molecules/AvatarPickerModal.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
-import useAppNav from '@/use/useAppNav'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
 import useUserName from '@/use/useUserName'
 import { isMobileLandscape, isMobilePortrait } from '@/use/useUser'
@@ -24,7 +22,6 @@ const router = useRouter()
 const { lastReadId, getSeriesOfBook } = useModels()
 const apiBooks = useApiBooks()
 const { getPct } = useReadingProgress()
-const { navItems, activeNav, onNav } = useAppNav(t)
 const { avatarSrc } = useAvatar()
 const { displayName, hasCustomName } = useUserName()
 
@@ -434,8 +431,6 @@ const ENABLE_MISSION_OF_DAY = false
               ZButton(type="secondary" icon="none" size="sm") {{ t('app.main.missionDone') }}
             div(class="mission-crest")
               ZIconography(name="crown" :size="78")
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 
     AvatarPickerModal(:open="avatarOpen" @close="closeAvatarPicker")
 </template>

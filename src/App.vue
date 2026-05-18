@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { orientation } from '@/use/useUser'
@@ -11,11 +11,31 @@ import { windowWidth, windowHeight } from '@/use/useUser'
 import useUser from '@/use/useUser'
 import useCheats from '@/use/useCheats'
 import useAssets from '@/use/useAssets'
+import useAppNav from '@/use/useAppNav'
+import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import { GAME_USER_LANGUAGE } from '@/utils/constants.ts'
 
 const { initMusic, pauseMusic, continueMusic } = useMusic()
 const { userLanguage } = useUser()
-const { locale } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
+const route = useRoute()
+const { navItems, activeNav, onNav } = useAppNav(t)
+
+// Routes that render the shared ZBottomNav. Keeping the nav rendered at
+// the App level (outside the page-swipe transition wrapper) means it
+// stays mounted when navigating between any two of these routes, so it
+// no longer slides off-screen with the leaving page only to fly back in
+// with the entering one.
+const NAV_ROUTES = new Set([
+  'app-main',
+  'app-all-books',
+  'app-all-new-books',
+  'app-series',
+  'app-book',
+  'app-hoeren',
+  'app-profile'
+])
+const showAppNav = computed(() => NAV_ROUTES.has(String(route.name || '')))
 
 // Keep i18n locale + localStorage in sync with the user's stored language.
 // IDB seeds `userLanguage` after boot, so `immediate: true` updates the
@@ -39,7 +59,7 @@ useBlockPullToRefresh()
 const { resourceCache } = useAssets()
 
 
-initMusic('adventure_main-menu.mp3')
+// initMusic('adventure_main-menu.mp3')
 
 const portraitQuery = window.matchMedia('(orientation: portrait)')
 const onTouchStart = (event: any) => {
@@ -130,8 +150,18 @@ function isCrazyGamesUrl() {
 <template lang="pug">
   div(id="app-root").min-h-screen.w-screen.app-container.root-protection.game-ui-immune.relative
     RouterView(v-slot="{ Component, route }")
-      transition(name="page-swipe" appear)
+      transition(name="page-pop-scale" appear)
         component(:is="Component" :key="route.fullPath")
+
+    //- Shared bottom nav lives outside the page-swipe <transition> so it
+    //- stays mounted while the underlying pages slide past each other.
+    //- The active dot still updates immediately from the route name.
+    ZBottomNav(
+      v-if="showAppNav"
+      :items="navItems"
+      :model-value="activeNav"
+      @update:model-value="onNav"
+    )
 </template>
 
 <style lang="sass">
@@ -151,6 +181,14 @@ function isCrazyGamesUrl() {
 
 img
   pointer-events: none
+
+// The root sits behind the page-pop-scale transition. During the scale-down
+// the entering page is smaller than the viewport, so whatever lives behind
+// it (body / WebView default) becomes visible at the edges. Pin it to the
+// palette's beige so the gap blends with the app pages instead of flashing
+// black/blue on Tauri.
+#app-root
+  background-color: var(--color-bg-main)
 
 // ----- Page swipe transition (constant speed) -----
 // Mirrors the BookReader's deck-swipe feel for global route changes:
@@ -181,6 +219,44 @@ img
 .page-swipe-enter-to,
 .page-swipe-leave-from
   transform: translate3d(0, 0, 0)
+
+// ----- Pop-scale transition (active route transition) -----
+// The entering page starts at 90% and snaps up to 100% with a small
+// overshoot, giving the navigation a poppy/bouncy feel. The outgoing
+// page fades out quickly so it doesn't fight the incoming pop. Both
+// pages are absolutely positioned so they overlap during the swap —
+// the shared ZBottomNav lives outside this <transition>, so it stays
+// at full size and isn't pulled into the scaling.
+.page-pop-scale-enter-active,
+.page-pop-scale-leave-active
+  position: absolute
+  top: 0
+  left: 0
+  width: 100%
+  transform-origin: center center
+  will-change: transform, opacity
+
+.page-pop-scale-enter-active
+  animation: page-pop-scale-in 480ms cubic-bezier(0.34, 1.56, 0.64, 1) both
+
+.page-pop-scale-leave-active
+  animation: page-pop-scale-out 160ms ease-out both
+
+@keyframes page-pop-scale-in
+  0%
+    opacity: 0
+    transform: scale(0.65)
+  100%
+    opacity: 1
+    transform: scale(1)
+
+@keyframes page-pop-scale-out
+  0%
+    opacity: 1
+    transform: scale(1)
+  100%
+    opacity: 0
+    transform: scale(0.96)
 
 // ----- Extra playful transitions (showcased on /design-system-a) -----
 // 1. Balloon bounce — drops in from above with a squash-and-stretch bounce

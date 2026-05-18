@@ -2,12 +2,10 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import ZBadge from '@/components/atoms/ZBadge.vue'
 import useApiBooks from '@/use/useApiBooks'
-import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -17,7 +15,6 @@ import { prependBaseUrl } from '@/utils/function'
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const apiBooks = useApiBooks()
-const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -96,8 +93,6 @@ function goBack() {
         v-else
         class="empty-card"
       ) {{ t('app.newBooks.empty') }}
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">

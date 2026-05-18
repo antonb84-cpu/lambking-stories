@@ -2,7 +2,6 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import ZBadge from '@/components/atoms/ZBadge.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
@@ -10,7 +9,6 @@ import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useApiSeries from '@/use/useApiSeries'
 import useReadingProgress from '@/use/useReadingProgress'
-import useAppNav from '@/use/useAppNav'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -23,7 +21,6 @@ const { getSeries } = useModels()
 const apiBooks = useApiBooks()
 const apiSeries = useApiSeries()
 const { getPct } = useReadingProgress()
-const { navItems, activeNav, onNav } = useAppNav(t)
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -188,8 +185,6 @@ function goBack() {
         v-if="!books.length"
         class="empty-card"
       ) Noch keine Bücher in dieser Serie.
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 </template>
 
 <style scoped lang="sass">

@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import ZBottomNav from '@/components/atoms/ZBottomNav.vue'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import ZChip from '@/components/atoms/ZChip.vue'
@@ -13,7 +12,6 @@ import useUser from '@/use/useUser'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
 import useUserName from '@/use/useUserName'
-import useAppNav from '@/use/useAppNav'
 import useApiConfig from '@/use/useApiConfig'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
@@ -28,7 +26,6 @@ const apiBooks = useApiBooks()
 const { userLanguage, setSettingValue } = useUser()
 const { getPct } = useReadingProgress()
 const { avatarSrc } = useAvatar()
-const { navItems, activeNav, onNav } = useAppNav(t)
 const {
   useLocalBackend,
   remoteBase,
@@ -363,8 +360,6 @@ function onBackendToggle(e: Event) {
             )
               svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
                 path(d="M18 6 6 18M6 6l12 12")
-
-    ZBottomNav(:items="navItems" :model-value="activeNav" @update:model-value="onNav")
 
     AvatarPickerModal(:open="avatarOpen" @close="closeAvatar")
 </template>
