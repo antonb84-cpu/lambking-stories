@@ -46,6 +46,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: '/',
+    server: {
+      port: 5001
+    },
     define: {
       APP_VERSION: JSON.stringify(process.env.npm_package_version)
     },

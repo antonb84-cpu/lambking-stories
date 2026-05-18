@@ -10,7 +10,7 @@ import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useApiSeries from '@/use/useApiSeries'
 import useAppNav from '@/use/useAppNav'
-import { isMobileLandscape } from '@/use/useUser'
+import { isMobileLandscape, isMobilePortrait } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
@@ -162,6 +162,7 @@ function goBack() {
         v-for="series in filteredSeries"
         :key="series.seriesId"
         class="series-tile"
+        :class="{'max-h-[150px]': isMobilePortrait, 'max-h-[200px]': isMobileLandscape }"
         @click="openSeries(series.seriesId)"
       )
         //- Cover image fills the entire tile; the text column sits on
@@ -282,7 +283,7 @@ button
   border-radius: 14px
   overflow: hidden
   cursor: pointer
-  aspect-ratio: 16 / 9
+  aspect-ratio: 2 / 1
   min-height: 110px
   box-shadow: 0 10px 28px -14px rgba(58, 42, 18, 0.35)
   transition: transform 220ms ease-out, box-shadow 220ms ease-out
@@ -310,7 +311,8 @@ button
 .series-tile-fade
   position: absolute
   inset: 0
-  background: linear-gradient(108deg, $cream-bg 0%, #E6D6B5FF 26%, rgba(253, 248, 237, 0.7) 42%, rgba(253, 248, 237, 0) 65%)
+  background: linear-gradient(109deg, #132637 0%, #192e43ee 26%, rgba(44, 57, 66, 0.7) 38%, rgba(202, 39, 26, 0.1) 55%)
+  //background: linear-gradient(108deg, $cream-bg 0%, #E6D6B5FF 26%, rgba(253, 248, 237, 0.7) 42%, rgba(253, 248, 237, 0) 65%)
   pointer-events: none
 
 .series-tile-text
@@ -330,7 +332,7 @@ button
 .series-tile-name
   font-size: 18px
   font-weight: 900
-  color: $navy
+  color: white
   margin: 0
   line-height: 1.1
   display: -webkit-box
@@ -358,6 +360,7 @@ button
 
 
 .series-tile-count-row
+  color: white
   display: inline-flex
   align-items: baseline
   margin-top: 2px
