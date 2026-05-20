@@ -6,6 +6,8 @@ import ZButton from '@/components/atoms/ZButton.vue'
 import ZBadge from '@/components/atoms/ZBadge.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import AvatarPickerModal from '@/components/molecules/AvatarPickerModal.vue'
+import WelcomeSlider from '@/components/molecules/WelcomeSlider.vue'
+import KoFiButton from '@/components/molecules/KoFiButton.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useReadingProgress from '@/use/useReadingProgress'
@@ -159,10 +161,20 @@ const layoutClass = computed(() => {
 })
 
 const ENABLE_MISSION_OF_DAY = false
+
+// Welcome-banner slider — three rotating illustrations shown above the
+// search bar. Auto-advances every 6s; the user can also swipe or tap a
+// dot to jump. The second slide will host PayPal + Ko-fi donate buttons
+// once those land (see #overlay-1 slot below).
+const welcomeSlides = computed(() => [
+  prependBaseUrl('images/bg/welcome-bg-1.webp'),
+  prependBaseUrl('images/bg/welcome-bg-2.webp'),
+  prependBaseUrl('images/bg/welcome-bg-3.webp')
+])
 </script>
 
 <template lang="pug">
-  div(:class="['app-main', layoutClass, 'min-h-screen w-full pb-32', isSearching ? '!pb-16' : '']")
+  div(:class="['app-main', layoutClass, 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]', isSearching ? '!pb-[calc(4rem+env(safe-area-inset-bottom,0px))]' : '']")
     //- ===== bg_path artwork zone =====
     //- Wraps the header + (search/hero) so the image is sized to fit
     //- exactly that area; the green bottom of the path stays visible
@@ -173,6 +185,112 @@ const ENABLE_MISSION_OF_DAY = false
     )
       //- ===== Header bar — centered crown + banner; bell · avatar pinned to the right =====
       header(class="main-header")
+        //div(class="main-header-inner")
+        //  div(class="header-actions z-10 -mt-4 -mr-3")
+        //    button(
+        //      type="button"
+        //      class="header-avatar-btn"
+        //      :aria-label="t('app.profile.chooseAvatar')"
+        //      @click="openAvatarPicker"
+        //    )
+        //      img(
+        //        :src="avatarSrc"
+        //        alt="Profile"
+        //        class="header-avatar-img"
+        //        @error="onAvatarFallback"
+        //      )
+        //
+        //  label(class="search-field")
+        //    ZIconography(name="search" :size="18")
+        //    input(
+        //      type="text"
+        //      v-model="searchQuery"
+        //      :placeholder="t('app.main.searchPlaceholder')"
+        //      class="search-input"
+        //      autocomplete="off"
+        //      @keydown.esc="clearSearch"
+        //    )
+        //    button(
+        //      v-if="isSearching"
+        //      type="button"
+        //      class="search-clear-btn"
+        //      :aria-label="t('app.bookDetail.attachmentClose') || 'Clear'"
+        //      @click="clearSearch"
+        //    )
+        //      svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
+        //        path(d="M18 6 6 18M6 6l12 12")
+
+        //  old header with bg image behind it, before the new design with the bg image filling the whole header and search area
+        // this is not used for now, but kept for future readding
+        //div(class="main-header-inner")
+        //  //- Brand: stacked crown over LambKing banner, centered
+        //  div(class="brand-stack")
+        //    img(
+        //      :src="prependBaseUrl('images/icons/crown_256x256.webp')"
+        //      alt="LambKing"
+        //      class="brand-crown"
+        //      decoding="async"
+        //    )
+        //    img(
+        //      :src="prependBaseUrl('images/logo/banner_500x116.webp')"
+        //      alt="LambKing Stories"
+        //      class="brand-banner -ml-8"
+        //      decoding="async"
+        //    )
+        //
+        //  //- Right-aligned actions — anchored absolutely so they don't
+        //  //- push the centered brand stack off-axis.
+        //  div(class="header-actions")
+        //    //button(
+        //    //  type="button"
+        //    //  class="header-icon-btn"
+        //    //  aria-label="Notifications"
+        //    //)
+        //    //  ZIconography(name="bell" :size="22")
+        //    button(
+        //      type="button"
+        //      class="header-avatar-btn"
+        //      :aria-label="t('app.profile.chooseAvatar')"
+        //      @click="openAvatarPicker"
+        //    )
+        //      img(
+        //        :src="avatarSrc"
+        //        alt="Profile"
+        //        class="header-avatar-img"
+        //        @error="onAvatarFallback"
+        //      )
+        //
+        //  //- Greeting headline
+        //  div(class="greeting-block")
+        //    h1(class="greeting-title") {{ greeting }}
+        //    p(class="greeting-sub") {{ t('app.main.subtitle') }}
+        //
+        //  //- Search field — Vue-controlled input, with an X button that
+        //  //- appears as soon as the user has typed anything. Clicking it
+        //  //- (or hitting Escape on a focused field) clears the term and
+        //  //- restores the original home layout.
+        //  label(class="search-field")
+        //    ZIconography(name="search" :size="18")
+        //    input(
+        //      type="text"
+        //      v-model="searchQuery"
+        //      :placeholder="t('app.main.searchPlaceholder')"
+        //      class="search-input"
+        //      autocomplete="off"
+        //      @keydown.esc="clearSearch"
+        //    )
+        //    button(
+        //      v-if="isSearching"
+        //      type="button"
+        //      class="search-clear-btn"
+        //      :aria-label="t('app.bookDetail.attachmentClose') || 'Clear'"
+        //      @click="clearSearch"
+        //    )
+        //      svg(viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4")
+        //        path(d="M18 6 6 18M6 6l12 12")
+
+        // old header with bg image behind it, before the new design with the bg image filling the whole header and search area
+        //this is not used for now, but kept for future readding
         div(class="main-header-inner")
           //- Brand: stacked crown over LambKing banner, centered
           div(class="brand-stack")
@@ -276,45 +394,73 @@ const ENABLE_MISSION_OF_DAY = false
 
         //- ===== Continue reading hero =====
         section(v-if="!isSearching && showContinueReading && lastReadBook" class="continue-section")
-          div(class="continue-card")
-            div(class="continue-row")
-              //- Full-height portrait preview (3:4, height is the limit)
-              div(
-                class="continue-thumb"
-                @click="openBook(lastReadBook.bookId)"
-              )
-                img(
-                  :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
-                  :alt="localizedTitle(lastReadBook)"
-                  class="continue-thumb-img"
-                  loading="lazy"
-                  @error="onImgFallback"
+          // this is not used for now, but kept for future readding
+            //- ===== Welcome banner slider =====
+          //- Sits above the search bar; the avatar floats over its top-right
+          //- corner. The second slide ("Unterstütze unsere Mission") gets
+          //- PayPal + Ko-fi donate CTAs pinned to its bottom corners — the
+          //- PayPal slot is a Ko-fi link in PayPal blue until the PayPal
+          //- SDK integration lands.
+          WelcomeSlider(
+            class="welcome-banner border-8 border-solid border-border rounded-2xl overflow-hidden"
+            :images="welcomeSlides"
+            :interval-ms="6000"
+          )
+            template(#overlay-1)
+              div(class="welcome-donate-row -mb-2")
+                KoFiButton(
+                  href="https://ko-fi.com/U6U21YO0Z5"
+                  tone="paypal"
+                  label="PayPal"
+                  :compact="true"
                 )
-              div(class="continue-meta")
-                //- Badge sits in its own row above the cover/title so it never
-                //- overlaps the heading on narrow viewports.
-                div(class="continue-badge-row mb-0")
-                  ZBadge(
-                    variant="hot"
-                    position="static"
-                    size="md"
-                    class="continue-badge"
-                    :label="t('app.main.newReleased')"
-                  )
-                span(class="continue-series") {{ getSeriesOfBook(lastReadBook.bookId)?.name }}
-                h2(class="continue-title") {{ localizedTitle(lastReadBook) }}
-                span(
-                  v-if="pageCount(lastReadBook) > 0"
-                  class="continue-page"
-                ) {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
-                div(class="continue-cta")
-                  ZButton(type="primary" icon="book" size="sm" @click="openReader(lastReadBook.bookId)") {{ t('app.bookDetail.readMyself') }}
-                  ZButton(
-                    type="secondary"
-                    icon="volume"
-                    size="sm"
-                    @click="openListen(lastReadBook.bookId)"
-                  ) {{ t('app.bookDetail.listen') }}
+                KoFiButton(
+                  href="https://ko-fi.com/U6U21YO0Z5"
+                  tone="kofi"
+                  label="Ko-fi"
+                  :compact="true"
+                )
+
+          // this is unused for now, but may be used later again
+          //div(class="continue-card")
+          //  div(class="continue-row")
+          //    //- Full-height portrait preview (3:4, height is the limit)
+          //    div(
+          //      class="continue-thumb"
+          //      @click="openBook(lastReadBook.bookId)"
+          //    )
+          //      img(
+          //        :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
+          //        :alt="localizedTitle(lastReadBook)"
+          //        class="continue-thumb-img"
+          //        loading="lazy"
+          //        @error="onImgFallback"
+          //      )
+          //    div(class="continue-meta")
+          //      //- Badge sits in its own row above the cover/title so it never
+          //      //- overlaps the heading on narrow viewports.
+          //      div(class="continue-badge-row mb-0")
+          //        ZBadge(
+          //          variant="hot"
+          //          position="static"
+          //          size="md"
+          //          class="continue-badge"
+          //          :label="t('app.main.newReleased')"
+          //        )
+          //      span(class="continue-series") {{ getSeriesOfBook(lastReadBook.bookId)?.name }}
+          //      h2(class="continue-title") {{ localizedTitle(lastReadBook) }}
+          //      span(
+          //        v-if="pageCount(lastReadBook) > 0"
+          //        class="continue-page"
+          //      ) {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
+          //      div(class="continue-cta")
+          //        ZButton(type="primary" icon="book" size="sm" @click="openReader(lastReadBook.bookId)") {{ t('app.bookDetail.readMyself') }}
+          //        ZButton(
+          //          type="secondary"
+          //          icon="volume"
+          //          size="sm"
+          //          @click="openListen(lastReadBook.bookId)"
+          //        ) {{ t('app.bookDetail.listen') }}
 
     //- ===== Path overlay =====
     //- Sibling of `.bg-zone` so the bg_path artwork above ends right
@@ -472,8 +618,8 @@ button
 // itself (64px tall) — otherwise the artwork would only cover the
 // little box around the search field and leave a parchment void below.
 .bg-zone-fill
-  min-height: calc(100vh - 64px)
-  min-height: calc(100dvh - 64px)
+  min-height: calc(100vh - 64px - env(safe-area-inset-bottom, 0px))
+  min-height: calc(100dvh - 64px - env(safe-area-inset-bottom, 0px))
   margin-bottom: 0px
 
 // ===== Header =====
@@ -563,6 +709,28 @@ button
   width: 100%
   height: 100%
   object-fit: cover
+
+// ===== Welcome banner slider =====
+// Sits below the absolutely-positioned avatar so the avatar floats over
+// its top-right corner. The 4:3 source images get capped on tall layouts
+// so the banner never dominates the viewport on tablets / landscape.
+.welcome-banner
+  margin-top: 12px
+  max-height: 260px
+
+// Donate buttons on the second slide — PayPal-blue on the left, Ko-fi
+// red on the right, both pushed to the bottom corners so the slide's
+// illustrated headline keeps its full vertical breathing room. The dots
+// row sits a few pixels below this; the `bottom: 36px` clears them.
+.welcome-donate-row
+  position: absolute
+  left: 12px
+  right: 12px
+  bottom: 36px
+  display: flex
+  justify-content: space-between
+  align-items: center
+  gap: 10px
 
 // ===== Greeting =====
 .greeting-block
@@ -954,7 +1122,7 @@ button
   height: 100%
   width: auto
   max-width: 100%
-  object-fit: contain
+  object-fit: cover
 
 .resume-meta
   flex: 1
@@ -1252,6 +1420,13 @@ button
     min-width: 0
     margin-top: 16px
 
+  // No resume card → let "Neu in der Bibliothek" claim the full row
+  // instead of stranding the left column empty (the swipable cover row
+  // would otherwise hug the right edge with a dead beige column on the
+  // left).
+  .path-overlay:not(:has(.resume-section)) .new-section
+    grid-column: 1 / -1
+
   .upcoming-section
     grid-column: 1 / -1
     min-width: 0
@@ -1263,8 +1438,24 @@ button
   .header-actions
     right: 28px
 
+  // Mirror the portrait dimensions in landscape so the 4:3 800×600
+  // source images keep their natural aspect on the wider header. The
+  // max-height cap from portrait broke 4:3 here because the 64rem
+  // parent let the slider grow wide enough that the natural
+  // (width × 3/4) height exceeded 260px and got clipped into a
+  // letterboxed 1.7:1 band. Capping the *width* instead — and dropping
+  // the max-height — keeps the aspect-ratio rule in the WelcomeSlider
+  // in charge so the banner renders at a true 4:3.
+  .welcome-banner
+    max-width: 22rem
+    max-height: none
+    margin-left: auto
+    margin-right: auto
+
+  // Keep the greeting centred in landscape — left-aligning made the
+  // header read as off-axis when the LambKing brand stack above it is
+  // centred. Only the vertical spacing changes from the portrait rule.
   .greeting-block
-    text-align: left
     margin-top: 6px
 
   .greeting-title

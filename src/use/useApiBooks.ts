@@ -91,11 +91,29 @@ async function loadAllBooks(): Promise<ApiBook[]> {
   }
 }
 
+// Volume number lives in the middle segment of the bookId — the
+// AdminUI enforces a `<2-letter prefix>-<volume>-<short title>` shape
+// (e.g. `fa-1-mission-friede`, `fa-10-mission-alle-fruechte`). Plain
+// string sort puts "fa-10" right after "fa-1", so pull the number out
+// and compare it numerically with a string-key fallback for ids that
+// don't follow the pattern.
+function volumeOf(id: string): number {
+  const m = /^[a-z]+-(\d+)/i.exec(id)
+  if (!m) return Number.POSITIVE_INFINITY
+  const n = Number(m[1])
+  return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY
+}
+
 function booksOfSeries(seriesId: string): ApiBook[] {
   const list = state.all ?? Object.values(state.byId)
   return list
     .filter((b) => b.bookSeriesId === seriesId)
-    .sort((a, b) => (a.bookId < b.bookId ? -1 : a.bookId > b.bookId ? 1 : 0))
+    .sort((a, b) => {
+      const va = volumeOf(a.bookId)
+      const vb = volumeOf(b.bookId)
+      if (va !== vb) return va - vb
+      return a.bookId < b.bookId ? -1 : a.bookId > b.bookId ? 1 : 0
+    })
 }
 
 function nextBookInSeries(book: ApiBook): ApiBook | null {

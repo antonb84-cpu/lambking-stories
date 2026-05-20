@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
@@ -13,6 +13,8 @@ import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
+import { GAME_BOOK_SERIES_LAYOUT } from '@/utils/constants'
+import { getPref, setPref } from '@/use/useAppPrefs'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
@@ -98,10 +100,51 @@ function goBack() {
   if (window.history.length > 1) router.back()
   else router.push({ name: 'app-all-books' })
 }
+
+// Layout-switch state. Three modes share the same card markup; CSS
+// alone reshapes them via the `.is-<mode>` class on .book-grid. The
+// chosen mode persists per device (via IndexedDB through useAppPrefs)
+// so a parent who prefers the list view doesn't have to re-pick it on
+// every visit. List is the default — long German titles read better
+// when the row gives them full horizontal space.
+type LayoutMode = 'grid-3' | 'grid-2' | 'list'
+const LAYOUT_MODES: LayoutMode[] = ['grid-3', 'grid-2', 'list']
+
+const layoutMode = ref<LayoutMode>('list')
+
+// IDB is async, so the default ('list') paints first and the stored
+// preference (if any) swaps in once the open + get round-trips finish.
+// `userTouchedLayout` guards against a race where the user taps the
+// toggle while the read is still in flight — once they've chosen, we
+// stop overwriting their pick with whatever IDB returns.
+let userTouchedLayout = false
+let suppressLayoutPersist = true
+
+onMounted(async () => {
+  const stored = await getPref<LayoutMode>(GAME_BOOK_SERIES_LAYOUT)
+  if (
+    !userTouchedLayout
+    && stored
+    && (LAYOUT_MODES as string[]).includes(stored)
+  ) {
+    layoutMode.value = stored
+  }
+  suppressLayoutPersist = false
+})
+
+watch(layoutMode, (v) => {
+  if (suppressLayoutPersist) return
+  void setPref(GAME_BOOK_SERIES_LAYOUT, v)
+})
+
+function setLayout(mode: LayoutMode) {
+  userTouchedLayout = true
+  layoutMode.value = mode
+}
 </script>
 
 <template lang="pug">
-  div(:class="['series-detail-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['series-detail-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     //- ===== Hero image with back arrow (stretched series cover) =====
     div(class="hero")
       img(
@@ -134,9 +177,28 @@ function goBack() {
     div(class="content")
       p(class="series-desc") {{ description }}
 
-      h3(class="section-title") {{ t('app.bookSeries.books') }}
+      div(class="books-head")
+        h3(class="section-title") {{ t('app.bookSeries.books') }}
 
-      div(class="book-grid")
+        //- Layout switch — 3 icons; the active one is filled. The icons
+        //- are deliberately small and minimal so they don't distract
+        //- from the cover artwork below.
+        div(class="layout-toggle" role="group" aria-label="Card layout")
+          button(
+            v-for="mode in LAYOUT_MODES"
+            :key="mode"
+            type="button"
+            :class="['layout-toggle-btn', { 'is-active': layoutMode === mode }]"
+            :aria-pressed="layoutMode === mode ? 'true' : 'false'"
+            :aria-label="mode === 'grid-3' ? t('app.bookSeries.layoutThree') : (mode === 'grid-2' ? t('app.bookSeries.layoutTwo') : t('app.bookSeries.layoutList'))"
+            @click="setLayout(mode)"
+          )
+            ZIconography(
+              :name="mode === 'list' ? 'rows' : (mode === 'grid-2' ? 'grid-2' : 'grid-3')"
+              :size="18"
+            )
+
+      div(:class="['book-grid', `is-${layoutMode}`]")
         div(
           v-for="(book, idx) in books"
           :key="book.bookId"
@@ -160,26 +222,41 @@ function goBack() {
               :label="t('app.bookSeries.new').toUpperCase()"
             )
           div(class="book-card-meta")
-            //span(class="book-card-band") {{ bandLabel(idx) }}
+            //span(
+            //  v-if="layoutMode === 'list'"
+            //  class="book-card-band"
+            //) {{ bandLabel(idx) }}
             h4(class="book-card-title") {{ localizedTitle(book) }}
+            //div(
+            //  v-if="!isComingSoon(book) && progressPct(book) > 0"
+            //  class="book-card-progress"
+            //)
+            //  div(class="book-card-progress-track")
+            //    div(
+            //      class="book-card-progress-fill"
+            //      :style="{ width: Math.round(progressPct(book) * 100) + '%' }"
+            //    )
+            //  span(class="book-card-progress-label") {{ Math.round(progressPct(book) * 100) }} %
+            //span(
+            //  v-else-if="isComingSoon(book)"
+            //  class="book-card-soon"
+            //) {{ t('app.bookSeries.comingSoon') }}
+            //span(
+            //  v-else-if="isNew(book.releaseDate)"
+            //  class="book-card-new-tag"
+            //) {{ t('app.bookSeries.new') }}
+            //- List-view tag row — uses `book.badges` from the API (e.g.
+            //- "Achtsamkeit", "Schlaf", "15 min"). Hidden in the compact
+            //- grid modes where there's no horizontal room for chips.
             div(
-              v-if="!isComingSoon(book) && progressPct(book) > 0"
-              class="book-card-progress"
+              v-if="layoutMode === 'list' && book.badges?.length"
+              class="book-card-badges"
             )
-              div(class="book-card-progress-track")
-                div(
-                  class="book-card-progress-fill"
-                  :style="{ width: Math.round(progressPct(book) * 100) + '%' }"
-                )
-              span(class="book-card-progress-label") {{ Math.round(progressPct(book) * 100) }} %
-            span(
-              v-else-if="isComingSoon(book)"
-              class="book-card-soon"
-            ) {{ t('app.bookSeries.comingSoon') }}
-            span(
-              v-else-if="isNew(book.releaseDate)"
-              class="book-card-new-tag"
-            ) {{ t('app.bookSeries.new') }}
+              span(
+                v-for="badge in book.badges"
+                :key="badge"
+                class="book-card-badge-chip"
+              ) {{ badge }}
 
       div(
         v-if="!books.length"
@@ -301,16 +378,80 @@ button
   margin: 4px 0 0
   letter-spacing: -0.005em
 
-// `minmax(0, …)` lets the columns shrink past their min-content size so
-// long German titles can wrap inside the card instead of forcing the
-// row to overflow horizontally. Capping each track at 30% keeps the
-// three-up layout strictly inside the viewport.
-// Three equal-width tracks. `minmax(0, 1fr)` lets long German titles
-// wrap inside the card without forcing the row to overflow horizontally.
+// ===== Books header row =====
+// Title on the left, layout-toggle pinned to the right edge.
+.books-head
+  display: flex
+  align-items: center
+  justify-content: space-between
+  gap: 12px
+
+// ===== Layout toggle (3 icons) =====
+// Pill container with three icon buttons. The active mode gets a navy
+// fill so it reads at a glance from across the section header. Hit
+// area is generous (28px) even though the icon itself is only 18px.
+.layout-toggle
+  display: inline-flex
+  align-items: center
+  gap: 2px
+  padding: 3px
+  background-color: $cream-card
+  border: 1px solid $border
+  border-radius: 999px
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 5px -2px rgba(58, 42, 18, 0.12)
+
+.layout-toggle-btn
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 28px
+  height: 28px
+  border-radius: 999px
+  border: none
+  background: transparent
+  color: $brown
+  cursor: pointer
+  padding: 0
+  transition: background-color 180ms ease-out, color 180ms ease-out, transform 180ms ease-out
+  -webkit-tap-highlight-color: transparent
+
+  // ZIconography hard-codes the outline-icon color; opt back into the
+  // button's `color` so active vs inactive theming actually shows up.
+  & :deep(.z-icon-outline)
+    color: currentColor
+
+  &:hover
+    color: $navy
+    background-color: rgba(212, 168, 62, 0.18)
+
+  &:active
+    transform: scale(0.92)
+
+  &.is-active
+    color: $cream-card
+    background: linear-gradient(180deg, #233a5e 0%, #142a47 100%)
+    box-shadow: 0 2px 6px -2px rgba(10, 26, 48, 0.45)
+
+// Default tracks: three equal columns. `minmax(0, 1fr)` lets long
+// German titles wrap inside the card without forcing the row to
+// overflow horizontally. The `.is-<mode>` modifier overrides the
+// column template for the 2-col and list modes.
 .book-grid
   display: grid
-  grid-template-columns: repeat(3, minmax(0, 1fr))
   gap: 8px
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+  margin-top: 4px
+
+.book-grid.is-grid-3
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+
+.book-grid.is-grid-2
+  grid-template-columns: repeat(2, minmax(0, 1fr))
+  gap: 12px
+
+.book-grid.is-list
+  grid-template-columns: minmax(0, 1fr)
+  gap: 10px
 
 .book-card
   position: relative
@@ -391,9 +532,16 @@ button
   margin: 0
   line-height: 1.2
   display: -webkit-box
-  -webkit-line-clamp: 2
+  // Long German titles (e.g. "Selbstbeherrschung") used to overflow
+  // the narrow 3-col card; allow up to 4 wrapped lines and let the
+  // browser break inside a word as a last resort so the full title
+  // stays inside the card boundary instead of bleeding past it.
+  -webkit-line-clamp: 4
   -webkit-box-orient: vertical
   overflow: hidden
+  overflow-wrap: anywhere
+  word-break: break-word
+  hyphens: auto
 
 .book-card-progress
   display: flex
@@ -429,6 +577,102 @@ button
 .book-card-new-tag
   color: $gold
 
+// ===== 2-column grid tweaks =====
+// Same card shape as the 3-col layout, but slightly larger title size
+// and padding so the extra horizontal room is actually used.
+.is-grid-2 .book-card
+  padding: 8px 8px 12px
+  gap: 8px
+
+.is-grid-2 .book-card-title
+  font-size: 13px
+  // 2-col cards have more horizontal room than 3-col but still need
+  // to wrap long compound nouns rather than truncate with ellipsis.
+  -webkit-line-clamp: 4
+
+.is-grid-2 .book-card-progress
+  margin-top: 8px
+
+// ===== List view =====
+// Image on the left (capped at 160px tall, width follows the 3:4 cover
+// aspect ≈ 120px), text + metadata on the right. The image well drops
+// the percentage-padding height trick because the height is fixed.
+.is-list .book-card
+  flex-direction: row
+  align-items: stretch
+  gap: 14px
+  padding: 10px
+
+.is-list .book-card-img-wrap
+  flex: 0 0 auto
+  height: 160px
+  width: 120px
+  padding-bottom: 0
+  aspect-ratio: 3 / 4
+  border-radius: 10px
+
+.is-list .book-card-meta
+  flex: 1 1 auto
+  min-width: 0
+  align-items: flex-start
+  text-align: left
+  padding: 4px 4px 4px 0
+  gap: 4px
+
+.is-list .book-card-band
+  font-size: 10px
+  font-weight: 900
+  letter-spacing: 0.12em
+  text-transform: uppercase
+  color: $gold
+
+.is-list .book-card-title
+  font-size: 15px
+  font-weight: 900
+  line-height: 1.25
+  color: $navy
+  // Long German titles like "Selbstbeherrschung" can outrun the meta
+  // column — let the browser break inside a word as a last resort and
+  // drop the truncation clamp so the full title always renders.
+  display: block
+  overflow: visible
+  -webkit-line-clamp: unset
+  -webkit-box-orient: unset
+  overflow-wrap: anywhere
+  word-break: break-word
+  hyphens: auto
+
+// Badges row — pushed to the bottom of the meta column via margin-top:
+// auto so the chips visually anchor to the card base regardless of how
+// many lines the title wraps to.
+.is-list .book-card-badges
+  display: flex
+  flex-wrap: wrap
+  gap: 6px
+  margin-top: auto
+  padding-top: 8px
+
+.is-list .book-card-badge-chip
+  display: inline-flex
+  align-items: center
+  font-size: 11px
+  font-weight: 700
+  color: $brown
+  background-color: rgba(212, 168, 62, 0.12)
+  border: 1px solid rgba(212, 168, 62, 0.35)
+  border-radius: 999px
+  padding: 3px 10px
+  white-space: nowrap
+
+.is-list .book-card-progress
+  margin-top: 6px
+  width: 100%
+
+.is-list .book-card-soon,
+.is-list .book-card-new-tag
+  font-size: 12px
+  margin-top: 6px
+
 .empty-card
   text-align: center
   background: $cream-card
@@ -448,6 +692,15 @@ button
     max-width: 64rem
     grid-template-columns: 1fr 1fr
 
-  .book-grid
-    grid-template-columns: repeat(4, 1fr)
+  // Each landscape layout gets +1 column over its portrait count so the
+  // wider viewport is actually used; list mode also splits into 2 rows
+  // side-by-side instead of one comically wide row.
+  .book-grid.is-grid-3
+    grid-template-columns: repeat(4, minmax(0, 1fr))
+
+  .book-grid.is-grid-2
+    grid-template-columns: repeat(3, minmax(0, 1fr))
+
+  .book-grid.is-list
+    grid-template-columns: repeat(2, minmax(0, 1fr))
 </style>

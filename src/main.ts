@@ -46,15 +46,19 @@ const translations = mergeObjectsRecursive(
   appTranslations
 )
 
+// German is the app's primary audience, so it's the default for any
+// user without a stored preference. Returning users keep whichever
+// language they last picked via the profile toggle (localStorage), and
+// the in-tab session storage entry covers anonymous private-mode usage.
 const userLanguage = ref(
   localStorage.getItem(GAME_USER_LANGUAGE)
   || sessionStorage.getItem(GAME_USER_LANGUAGE)
-  || navigator.language?.split('-')[0]
+  || 'de'
 )
 
 const i18n: any = createI18n({
-  locale: userLanguage.value || 'en', // set locale
-  fallbackLocale: 'en', // set fallback locale
+  locale: userLanguage.value || 'de',
+  fallbackLocale: 'de',
   messages: translations,
   missingWarn: false,
   fallbackWarn: false

@@ -393,7 +393,7 @@ const seriesName = computed(() => series.value?.name || '')
 </script>
 
 <template lang="pug">
-  div(:class="['book-detail-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['book-detail-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     template(v-if="book")
       //- ===== Hero — back · centered 3:4 cover card · bookmark =====
       //- The cover floats inside the cream page (no edge bleed) so the
@@ -437,24 +437,6 @@ const seriesName = computed(() => series.value?.name || '')
           //  class="book-subtitle"
           //) {{ localization.shortDescription }}
 
-          p(class="book-subtitle") {{ localizedDescription }}
-
-          //- ===== Das erwartet dich (green check list) =====
-          div(
-            v-if="contentNoteItems.length"
-            class="awaits-block"
-          )
-            h3(class="awaits-title") {{ t('app.bookDetail.thisAwaitsYou') }}
-            ul(class="awaits-list")
-              li(
-                v-for="(line, i) in contentNoteItems"
-                :key="`note-${i}`"
-                class="awaits-item"
-              )
-                span(class="awaits-check")
-                  ZIconography(name="check" :size="14")
-                span(v-html="line.replace(/&/g, '&amp;').replace(/</g, '&lt;')")
-
           //- ===== CTAs =====
           //- Both buttons render unconditionally so the layout never
           //- collapses to a single full-width CTA. When the book has no
@@ -485,6 +467,25 @@ const seriesName = computed(() => series.value?.name || '')
                 :class="{ 'is-done': readingDone }"
                 :style="{ width: readingPctLabel }"
               )
+
+          p(class="book-subtitle") {{ localizedDescription }}
+
+          //- ===== Das erwartet dich (green check list) =====
+          div(
+            v-if="contentNoteItems.length"
+            class="awaits-block"
+          )
+            h3(class="awaits-title") {{ t('app.bookDetail.thisAwaitsYou') }}
+            ul(class="awaits-list")
+              li(
+                v-for="(line, i) in contentNoteItems"
+                :key="`note-${i}`"
+                class="awaits-item"
+              )
+                span(class="awaits-check")
+                  ZIconography(name="check" :size="14")
+                span(v-html="line.replace(/&/g, '&amp;').replace(/</g, '&lt;')")
+
 
           //- ===== Attachments =====
           section(
@@ -714,7 +715,6 @@ button
 // the other expanded to fit min-content). The overrides below neutralise
 // both so the buttons truly split the row 50/50.
 .cta-row
-  margin-top: 14px
   display: grid
   grid-template-columns: 1fr 1fr
   gap: 10px

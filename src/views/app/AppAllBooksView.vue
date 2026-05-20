@@ -126,7 +126,7 @@ function goBack() {
 </script>
 
 <template lang="pug">
-  div(:class="['serien-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['serien-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     //- ===== Header — back · crown · title =====
     header(class="serien-header")
       ZBackButton(variant="flat" class="serien-back" @click="goBack")

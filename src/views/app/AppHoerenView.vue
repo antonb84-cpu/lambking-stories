@@ -44,7 +44,7 @@ function openBook(bookId: string) {
 </script>
 
 <template lang="pug">
-  div(:class="['hoeren-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['hoeren-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     header(class="page-header")
       div(class="title-cluster")
         h1(class="page-title")

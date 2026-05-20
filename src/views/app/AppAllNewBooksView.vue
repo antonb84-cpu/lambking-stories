@@ -47,7 +47,7 @@ function goBack() {
 </script>
 
 <template lang="pug">
-  div(:class="['new-books-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['new-books-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     header(class="page-header")
       ZBackButton(variant="flat" class="page-back" @click="goBack")
       div(class="title-cluster")

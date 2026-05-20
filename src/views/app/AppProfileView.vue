@@ -146,7 +146,7 @@ function onBackendToggle(e: Event) {
 </script>
 
 <template lang="pug">
-  div(:class="['profile-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-32']")
+  div(:class="['profile-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
     //- ===== Header (back · crown · title · settings) =====
     header(class="profile-header")
       ZBackButton(variant="flat" @click="goBack")
@@ -889,4 +889,10 @@ button
 
   .favorites-section
     grid-column: 2
+
+  // Settings card is collapsed by default (toggle in the profile header).
+  // When it isn't rendered, the favorites section would otherwise lock to
+  // column 2 and leave column 1 empty; let it span both columns instead.
+  .profile-content:not(:has(.settings-card)) .favorites-section
+    grid-column: 1 / -1
 </style>

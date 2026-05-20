@@ -100,6 +100,10 @@ button
   display: flex
   flex-direction: column
   max-height: calc(100dvh - 24px)
+  // Override Tailwind's `max-w-md` (28rem) so the panel grows with the
+  // viewport on tablets and landscape phones — gives the auto-fit grid
+  // enough room to add columns instead of stacking into a tall scroll.
+  max-width: min(560px, 92vw) !important
 
 .avatar-modal-close
   position: absolute
@@ -134,10 +138,12 @@ button
 
 .avatar-modal-grid
   display: grid
-  // Auto-fit lets the grid pack as many ~84px tiles per row as the
-  // panel can hold — three columns on portrait phones (panel ~340px),
-  // five+ on tablets and landscape.
-  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr))
+  // Auto-fit packs as many ~72px tiles per row as the panel can hold:
+  // three columns on the narrowest phones (320px viewport, panel ~280px),
+  // four+ on standard phones, five+ on tablets and landscape — every
+  // tile flexes from 72px up to 1fr so they always fill the panel
+  // width responsively.
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr))
   gap: 12px
   // Scrolls inside the panel when the row count exceeds what fits in
   // the (height-capped) panel.
@@ -162,11 +168,12 @@ button
 
   // Override Tailwind `max-w-md` so the panel can stretch wider on
   // landscape phones — gives the grid room to lay out in more columns
-  // instead of stacking into a tall scroll.
+  // instead of stacking into a tall scroll. `!important` because the
+  // base rule above already needs it to win over Tailwind.
   .avatar-modal-panel
     padding: 14px 14px 12px
     max-height: calc(100dvh - 16px)
-    max-width: min(720px, 92vw)
+    max-width: min(720px, 92vw) !important
 
 .avatar-option
   position: relative

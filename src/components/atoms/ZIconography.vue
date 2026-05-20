@@ -13,6 +13,9 @@ type IconName =
   | 'brush'        // outline nav (Malen)
   | 'pencil'       // outline nav alias
   | 'grid'         // outline nav alias
+  | 'grid-3'       // layout switch — 3-column grid
+  | 'grid-2'       // layout switch — 2-column grid
+  | 'rows'         // layout switch — list (image-left rows)
   | 'settings'     // outline (gear)
   | 'camera'       // outline (photo picker)
   | 'bell'         // outline (notifications)
@@ -212,6 +215,56 @@ withDefaults(defineProps<Props>(), {
       rect(x="14" y="3" width="7" height="7" rx="1.5")
       rect(x="3" y="14" width="7" height="7" rx="1.5")
       rect(x="14" y="14" width="7" height="7" rx="1.5")
+
+    //- Layout switch — 3 narrow columns
+    svg(
+      v-else-if="name === 'grid-3'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      rect(x="3" y="4" width="4.5" height="16" rx="1.2")
+      rect(x="9.75" y="4" width="4.5" height="16" rx="1.2")
+      rect(x="16.5" y="4" width="4.5" height="16" rx="1.2")
+
+    //- Layout switch — 2 wide columns
+    svg(
+      v-else-if="name === 'grid-2'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.7"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      rect(x="4" y="4" width="7" height="16" rx="1.5")
+      rect(x="13" y="4" width="7" height="16" rx="1.5")
+
+    //- Layout switch — list (image-left rows)
+    svg(
+      v-else-if="name === 'rows'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.6"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="w-full h-full z-icon-outline"
+    )
+      rect(x="3" y="4" width="5" height="4" rx="1")
+      line(x1="10" y1="5" x2="21" y2="5")
+      line(x1="10" y1="7" x2="18" y2="7")
+      rect(x="3" y="10" width="5" height="4" rx="1")
+      line(x1="10" y1="11" x2="21" y2="11")
+      line(x1="10" y1="13" x2="18" y2="13")
+      rect(x="3" y="16" width="5" height="4" rx="1")
+      line(x1="10" y1="17" x2="21" y2="17")
+      line(x1="10" y1="19" x2="18" y2="19")
 
     //- Settings (gear)
     svg(

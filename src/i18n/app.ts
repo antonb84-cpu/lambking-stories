@@ -51,7 +51,11 @@ export default {
         books: 'Books in series',
         bandLabel: 'Band {n}',
         comingSoon: 'Coming soon',
-        new: 'New'
+        new: 'New',
+        layoutThree: '3-column grid',
+        layoutTwo: '2-column grid',
+        layoutList: 'List view',
+        pagesShort: '{n} pages'
       },
       bookDetail: {
         story: 'Story',
@@ -119,7 +123,8 @@ export default {
         finished: 'Done',
         congratsTitle: 'You did it!',
         congratsSub: 'You finished the story.',
-        nextStoryWaiting: 'The next story is waiting for you!'
+        nextStoryWaiting: 'The next story is waiting for you!',
+        openColoring: 'Open coloring page'
       },
       awards: {
         title: 'Awards',
@@ -208,7 +213,11 @@ export default {
         books: 'Bücher der Serie',
         bandLabel: 'Band {n}',
         comingSoon: 'Demnächst',
-        new: 'Neu'
+        new: 'Neu',
+        layoutThree: '3-Spalten-Raster',
+        layoutTwo: '2-Spalten-Raster',
+        layoutList: 'Listenansicht',
+        pagesShort: '{n} Seiten'
       },
       bookDetail: {
         story: 'Geschichte',
@@ -276,7 +285,8 @@ export default {
         finished: 'Fertig',
         congratsTitle: 'Geschafft!',
         congratsSub: 'Du hast die Geschichte zu Ende gelesen.',
-        nextStoryWaiting: 'Die nächste Geschichte wartet auf dich!'
+        nextStoryWaiting: 'Die nächste Geschichte wartet auf dich!',
+        openColoring: 'Ausmalbild öffnen'
       },
       awards: {
         title: 'Auszeichnungen',

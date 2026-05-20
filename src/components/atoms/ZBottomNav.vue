@@ -79,21 +79,18 @@ button
   background: transparent
   border: none
 
-// Dark navy bar like the LambKing bottom nav. Sized in absolute pixels
-// so a Chrome/Samsung Internet URL-bar collapse during scroll cannot
-// change the safe-area inset (or the `md:` breakpoint) and resize the
-// nav. The whole bar is exactly 64px tall — no env() inset.
+// Dark navy bar — interactive area is exactly 64px so a Chrome/Samsung
+// Internet URL-bar collapse cannot resize the buttons. The bar's
+// background extends down into the safe area (iOS home-indicator,
+// Android gesture pill) so page content never bleeds through that strip.
 .z-bottom-nav
   background: linear-gradient(180deg, #21406a 0%, #142a47 100%)
   border-top: 1px solid #0a1a30
   box-shadow: 0 -4px 20px -8px rgba(10, 26, 48, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08)
+  bottom: 0
   padding-top: 8px
-  padding-bottom: 8px
-  height: 64px
-  // iOS home-indicator clearance: lift the (still-fixed-size) bar
-  // above the gesture area instead of padding inside it. Android
-  // returns 0 here so this is a no-op there.
-  bottom: env(safe-area-inset-bottom, 0px)
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px))
+  height: calc(64px + env(safe-area-inset-bottom, 0px))
 
 .z-bottom-nav-inner
   height: 100%

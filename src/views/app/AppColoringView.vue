@@ -369,7 +369,13 @@ function fitCanvas() {
   requestAnimationFrame(() => {
     const bg = bgCanvas.value, wrap = canvasWrap.value, m = mainEl.value
     if (!bg || !wrap || !m) return
-    const r = m.getBoundingClientRect()
+    // Use `clientWidth`/`clientHeight` instead of `getBoundingClientRect`
+    // because the global page-pop-scale route transition wraps every
+    // mounted view in a transient `transform: scale(0.65 → 1)`. The bounding
+    // rect reports the *transformed* size, so an image that finishes
+    // loading mid-animation would lock the canvas at 65% of the final
+    // layout. `clientWidth` reads the layout box unaffected by transforms.
+    const r = { width: m.clientWidth, height: m.clientHeight }
     if (r.width <= 0 || r.height <= 0) {
       if (fitRetry < 4) {
         fitRetry++
@@ -378,14 +384,14 @@ function fitCanvas() {
       return
     }
     fitRetry = 0
-    fitCanvasInner(bg, wrap, r)
+    fitCanvasInner(bg, wrap, r as DOMRect)
   })
 }
 
 function fitCanvasInner(bg: HTMLCanvasElement, wrap: HTMLDivElement, r: DOMRect) {
-  // Edge-to-edge fit per the latest spec — no inner gutter. The canvas
-  // wrap already has overflow:hidden, so the bg/draw bitmaps clip cleanly
-  // to the device frame.
+  // Contain-fit dimensions — the largest the unscaled artwork can be
+  // while staying entirely inside the canvas area. Centering is then
+  // handled inside applyTransform based on whether we're in fullscreen.
   const aw = r.width
   const ah = r.height
   const ratio = bg.width / bg.height
@@ -409,24 +415,17 @@ function fitCanvasInner(bg: HTMLCanvasElement, wrap: HTMLDivElement, r: DOMRect)
 function applyTransform() {
   const wrap = canvasWrap.value, m = mainEl.value
   if (!wrap || !m) return
-  const r = m.getBoundingClientRect()
-  const baseLeft = (r.width - zoom.baseW) / 2
-  // Top-anchor with a small breathing margin instead of vertical centering.
-  // On portrait phones a square coloring sheet fits by width and leaves
-  // ~25 % of the column empty — splitting it equally above and below makes
-  // the page look hollow. Tucking the canvas near the header so the empty
-  // space accumulates above the bottom nav reads as deliberate framing,
-  // and the canvas itself ends up visually larger inside the page.
-  const slack = r.height - zoom.baseH
-  // Top-anchored, no margin — the canvas tucks under the header edge so the
-  // artwork uses the full vertical space the device gives us. When the
-  // canvas already exactly fills the column (no slack), `slack === 0` and
-  // this collapses to 0 anyway; negative slack only happens during zoom-in
-  // and is handled separately by `clampPan`.
-  const baseTop = Math.max(0, slack <= 0 ? slack / 2 : 0)
-  const x = baseLeft + zoom.panX
-  const y = baseTop + zoom.panY
-  wrap.style.transform = `translate(${x}px, ${y}px) scale(${zoom.scale})`
+  // Layout-box dims so the math survives the route-transition's
+  // page-pop-scale transform (see fitCanvas).
+  const r = { width: m.clientWidth, height: m.clientHeight }
+  // transform-origin is 0,0 on the wrap, so the visible size is the
+  // scaled dims; centring the scaled box puts the artwork in the
+  // geometric middle of the canvas area in every mode.
+  const sw = zoom.baseW * zoom.scale
+  const sh = zoom.baseH * zoom.scale
+  const baseLeft = (r.width - sw) / 2
+  const baseTop = (r.height - sh) / 2
+  wrap.style.transform = `translate(${baseLeft + zoom.panX}px, ${baseTop + zoom.panY}px) scale(${zoom.scale})`
 }
 
 function clampPan() {
@@ -437,17 +436,28 @@ function clampPan() {
     zoom.panY = 0
     return
   }
-  const r = m.getBoundingClientRect()
+  // Layout-box dims (see fitCanvas note).
+  const aw = m.clientWidth
+  const ah = m.clientHeight
   const sw = zoom.baseW * zoom.scale
   const sh = zoom.baseH * zoom.scale
-  const maxX = Math.max(0, (sw - r.width) / 2 + 40)
-  const maxY = Math.max(0, (sh - r.height) / 2 + 40)
+  const maxX = Math.max(0, (sw - aw) / 2 + 40)
+  const maxY = Math.max(0, (sh - ah) / 2 + 40)
   zoom.panX = Math.max(-maxX, Math.min(maxX, zoom.panX))
   zoom.panY = Math.max(-maxY, Math.min(maxY, zoom.panY))
 }
 
 function onResize() {
   fitCanvas()
+  // Keep the floating toolbox inside the viewport after a rotation /
+  // window resize. Without this re-clamp, a toolbox positioned at the
+  // right edge in landscape ends up off-screen once the device flips
+  // to portrait (narrower width), so the kid can't grab it any more
+  // to drag it back into view.
+  if (minibarVisible.value && minibarRoot.value) {
+    const r = minibarRoot.value.getBoundingClientRect()
+    clampMinibar(r.left, r.top)
+  }
 }
 
 // ── Cursor ring --------------------------------------------------------------
@@ -1026,7 +1036,13 @@ async function shareCanvas() {
 
 function showMinibar() {
   if (minibarVisible.value) return
-  minibarPos.value = { left: window.innerWidth - 68, top: window.innerHeight - 68 }
+  // Default position sits just above the sticky fullscreen toggle in
+  // the bottom-right corner so the two don't visually fight on first
+  // open. The toolbox stays freely draggable afterwards.
+  minibarPos.value = {
+    left: window.innerWidth - 68,
+    top: window.innerHeight - 68 - 64
+  }
   minibarVisible.value = true
 }
 
@@ -1186,6 +1202,11 @@ function exitFullscreen() {
   void nextTick(fitCanvas)
 }
 
+function toggleFullscreen() {
+  if (isFullscreen.value) exitFullscreen()
+  else enterFullscreen()
+}
+
 // ── File upload --------------------------------------------------------------
 
 function pickFile() {
@@ -1236,6 +1257,8 @@ onBeforeRouteLeave((_to, _from, next) => {
   next(false)
 })
 
+let mainResizeObserver: ResizeObserver | null = null
+
 onMounted(() => {
   bgCtx = bgCanvas.value?.getContext('2d') ?? null
   drawCtx = drawCanvas.value?.getContext('2d', { willReadFrequently: true }) ?? null
@@ -1250,6 +1273,18 @@ onMounted(() => {
   document.addEventListener('touchcancel', onDocTouchEnd)
   document.addEventListener('pointerdown', onOutsidePointerDown, { capture: true })
 
+  // Observe the canvas main area so the artwork re-fits whenever the
+  // area's size changes — covers initial layout settle (deferred
+  // address-bar collapse, dvh recalc), fullscreen toggles, and any
+  // future chrome that shrinks/grows the row. Catches cases the 4-frame
+  // retry in `fitCanvas` would otherwise give up on.
+  if (typeof ResizeObserver !== 'undefined' && mainEl.value) {
+    mainResizeObserver = new ResizeObserver(() => {
+      if (hasImage.value) fitCanvas()
+    })
+    mainResizeObserver.observe(mainEl.value)
+  }
+
   updateCursorRing()
 
   if (querySource.value && querySourceType.value) {
@@ -1257,6 +1292,8 @@ onMounted(() => {
   }
 })
 onBeforeUnmount(() => {
+  mainResizeObserver?.disconnect()
+  mainResizeObserver = null
   window.removeEventListener('resize', onResize)
   window.removeEventListener('orientationchange', onResize)
   window.removeEventListener('beforeunload', onBeforeUnload)
@@ -1575,6 +1612,39 @@ watch([querySource, querySourceType], ([url, type]) => {
               path(d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7")
             | {{ t('app.coloring.fullscreenExit') }}
 
+    //- ───────── Sticky fullscreen toggle ─────────
+    //- Lives outside the grid so it stays pinned to the bottom-right of
+    //- the viewport in both the normal and fullscreen layouts. The same
+    //- button toggles in either direction.
+    button(
+      type="button"
+      class="ac-fs-floating"
+      :class="{ 'is-on': isFullscreen }"
+      :aria-label="isFullscreen ? t('app.coloring.fullscreenExit') : t('app.coloring.fullscreen')"
+      :title="isFullscreen ? t('app.coloring.fullscreenExit') : t('app.coloring.fullscreen')"
+      @click="toggleFullscreen"
+    )
+      svg(
+        v-if="!isFullscreen"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      )
+        path(d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3")
+      svg(
+        v-else
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      )
+        path(d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7")
+
     div(ref="cursorRing" class="ac-cursor-ring")
 
     input(
@@ -1647,15 +1717,29 @@ $text-l: #a08962
   height: 100dvh
 
 .ac-app.is-fullscreen
-  background: #142a47
+  // Keep the cream parchment palette in fullscreen — the only thing
+  // fullscreen really does is hand the canvas the full viewport and
+  // let the header float over the artwork as a sticky overlay.
+  background: $p-bg
 
 .ac-app.is-fullscreen .ac-hdr
-  display: none
+  // Take the header out of the grid flow so .ac-main can stretch to
+  // the full viewport, then float it back on top as a translucent
+  // strip so the back / undo / save controls are still reachable.
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  z-index: 50
+  background: transparent
+  //backdrop-filter: blur(10px)
+  -webkit-backdrop-filter: blur(10px)
+  border-bottom: 0px solid rgba(230, 214, 181, 0.5)
 
 // Cream parchment header — same surface as the rest of the app so the
 // coloring screen reads as a continuation of LambKing's design.
 .ac-hdr
-  background: linear-gradient(180deg, #faf2dc 0%, #f3e6c4 100%)
+  background: transparent
   border-bottom: 1px solid $p-bdr
   display: flex
   align-items: center
@@ -1798,8 +1882,16 @@ $text-l: #a08962
   padding: 0
 
 .ac-app.is-fullscreen .ac-main
+  // Lift .ac-main out of the grid in fullscreen so it covers the entire
+  // viewport directly — the `auto 1fr` grid was sometimes leaving an
+  // implicit-sized first track even though the header is absolutely
+  // positioned, which pushed the canvas wrap down by ~50 px and left a
+  // dead cream strip across the bottom of the artwork. inset:0 makes
+  // the box edge-to-edge with the .ac-app (which is itself fixed inset:0).
+  position: absolute
+  inset: 0
   padding: 0
-  background: #142a47
+  background: $p-bg
 
 .ac-main.drop-over::after
   content: '🎨'
@@ -1874,7 +1966,9 @@ $text-l: #a08962
 .ac-canvas-wrap
   position: relative
   display: none
-  border-radius: 12px
+  // No border-radius — coloring sheets should sit edge-to-edge with
+  // square corners so the kid's lines reach the paper boundary instead
+  // of being clipped into a rounded mask.
   overflow: hidden
   box-shadow: 0 8px 40px rgba(33, 64, 106, 0.22)
   transform-origin: 0 0
@@ -1949,6 +2043,48 @@ $text-l: #a08962
 
   &.eraser-cursor
     border-color: rgba(192, 82, 106, 0.75)
+
+// Sticky fullscreen toggle — pinned to the bottom-right of the
+// viewport in every layout so the kid can flip in and out at any time.
+// Sits below the toolbox z-layer so a dragged toolbox can park on top
+// of it instead of being permanently obscured by it.
+.ac-fs-floating
+  position: fixed
+  right: calc(env(safe-area-inset-right, 0px) + 16px)
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px)
+  z-index: 350
+  width: 44px
+  height: 44px
+  border-radius: 999px
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  background: rgba(253, 248, 237, 0.92)
+  border: 1px solid $p-bdr
+  color: $text
+  cursor: pointer
+  box-shadow: 0 8px 22px -8px rgba(10, 26, 48, 0.45), 0 2px 6px -2px rgba(58, 42, 18, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.55)
+  backdrop-filter: blur(8px)
+  -webkit-backdrop-filter: blur(8px)
+  transition: transform 150ms ease-out, background-color 150ms ease-out
+  -webkit-tap-highlight-color: transparent
+
+  &:hover
+    background: #ffffff
+    transform: translateY(-1px)
+
+  &:active
+    transform: scale(0.94)
+
+  &.is-on
+    background: linear-gradient(180deg, $p 0%, $p-dark 100%)
+    color: #ffffff
+    border-color: $p-dark
+    box-shadow: 0 8px 22px -6px rgba(10, 26, 48, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18)
+
+  svg
+    width: 22px
+    height: 22px
 
 .ac-minibar
   position: fixed

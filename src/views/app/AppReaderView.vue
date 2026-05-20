@@ -14,6 +14,7 @@ import { useRoute, useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 import ABookCard from '@/components/atoms/ABookCard.vue'
 import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
+import ZButton from '@/components/atoms/ZButton.vue'
 import SwipeHintHand, { hasSeenSwipeHint } from '@/components/molecules/SwipeHintHand.vue'
 import useApiBooks from '@/use/useApiBooks'
 import useBookCache from '@/use/useBookCache'
@@ -488,6 +489,26 @@ watch(achievementBadge, async (u) => {
   if (u) await ensureBlob(u)
 })
 
+// ----- Coloring attachment (finish-page CTA) -----
+// Surface the book's first coloring sheet on the celebration page so a reader
+// who just finished the story can jump straight into the coloring app — same
+// deep-link the BookDetail attachments row uses.
+const firstColoringAttachment = computed(() => {
+  const raw = book.value?.attachments
+  if (!Array.isArray(raw)) return null
+  return raw.find((a) => a && typeof a === 'object' && a.type === 'coloring' && a.data) ?? null
+})
+
+function openColoring() {
+  const att = firstColoringAttachment.value
+  if (!att?.data) return
+  const isPdf = /\.pdf(?:\?.*)?$/i.test(att.data)
+  router.push({
+    name: 'app-coloring',
+    query: { source: att.data, type: isPdf ? 'pdf' : 'image' }
+  })
+}
+
 // ----- Next volume in series -----
 
 const nextBook = computed(() => (book.value ? apiBooks.nextBookInSeries(book.value) : null))
@@ -633,6 +654,15 @@ function goBack() {
                 )
                 div(v-else class="celebration-burst" aria-hidden="true") 🎉
                 h3(class="celebration-title") {{ t('app.reader.congratsTitle') }}
+
+                //- Open the book's first coloring sheet in the coloring app
+                //- (only when the book ships at least one coloring attachment).
+                ZButton(
+                  v-if="firstColoringAttachment"
+                  type="secondary"
+                  class="coloring-cta"
+                  @click="openColoring"
+                ) {{ t('app.reader.openColoring') }}
 
                 div(
                   v-if="nextBook"
@@ -927,8 +957,15 @@ function goBack() {
 .celebration-frame
   background: radial-gradient(circle at 50% 30%, #fff5d8 0%, #fce8c8 60%, #f7d49a 100%)
   display: flex
+  flex-direction: column
   align-items: center
-  justify-content: center
+  // Scroll vertically when the badge + coloring CTA + next-volume card
+  // overflow the viewport (small / landscape screens). Centering is handled
+  // by `margin: auto` on `.celebration-inner` instead of `justify-content`
+  // so the top is never clipped when the content is taller than the frame —
+  // the standard flexbox-overflow-centering fix.
+  overflow-y: auto
+  -webkit-overflow-scrolling: touch
   // p-5 on mobile, p-6 on tablets+ — only the vertical axis was oversized
   // (90px / 100px). Side gutters stay at 22px so the badge + next-volume
   // card keep their breathing room.
@@ -941,6 +978,12 @@ function goBack() {
 .celebration-inner
   width: 100%
   max-width: 520px
+  // Auto top/bottom margins center the block vertically when it fits and
+  // collapse to 0 when it overflows, keeping the whole card scrollable.
+  // `flex-shrink: 0` stops the frame from squishing the content instead of
+  // letting it overflow into the scroll area.
+  margin: auto 0
+  flex-shrink: 0
   text-align: center
   display: flex
   flex-direction: column
@@ -965,6 +1008,15 @@ function goBack() {
   font-size: 17px
   color: #4a3b1c
   font-weight: 600
+
+// Coloring-sheet CTA on the finish page — shrink to its content (and recenter
+// via the inner's align-items) instead of stretching the full 520px column.
+.coloring-cta
+  width: auto
+
+  :deep(.z-button)
+    width: auto
+    min-width: 0
 
 .next-volume
   margin-top: 22px
