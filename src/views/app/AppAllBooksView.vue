@@ -159,7 +159,7 @@ function goBack() {
         v-for="series in filteredSeries"
         :key="series.seriesId"
         class="series-tile"
-        :class="{'max-h-[150px]': isMobilePortrait, 'max-h-[200px]': isMobileLandscape }"
+        :class="{'max-h-[180px]': isMobilePortrait, 'max-h-[200px]': isMobileLandscape }"
         @click="openSeries(series.seriesId)"
       )
         //- Cover image fills the entire tile; the text column sits on
@@ -284,7 +284,7 @@ button
   border-radius: 14px
   overflow: hidden
   cursor: pointer
-  aspect-ratio: 2 / 1
+  aspect-ratio: 2.5 / 1
   min-height: 110px
   box-shadow: 0 10px 28px -14px rgba(58, 42, 18, 0.35)
   transition: transform 220ms ease-out, box-shadow 220ms ease-out
