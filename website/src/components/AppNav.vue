@@ -8,21 +8,29 @@
             path(d="M12 11 C8 11 6 8 6 5 C9 5 12 7 12 11")
             path(d="M12 11 C16 11 18 8 18 5 C15 5 12 7 12 11")
             circle(cx="12", cy="22", r="1.2", fill="currentColor")
-        .logo-text SenfkornGeschichten
+        .logo-text LambKing
       .nav-links
         a.nav-link(href="#books") Bücher
         a.nav-link(href="#app") App
         a.nav-link(href="#about") Über Anton
         a.nav-link(href="#faq") FAQ
         a.nav-cta(v-if="newsletterEnabled", href="#newsletter") Newsletter
+        a.paypal-button(
+          href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W",
+          target="_blank",
+          rel="noopener noreferrer",
+          title="Unterstütze uns"
+        )
+          img.paypal-img(src="/paypal.webp", alt="PayPal")
+          span.kofi-text Unterstütze uns
         a.kofi-button(
           href="https://ko-fi.com/U6U21YO0Z5",
           target="_blank",
           rel="noopener noreferrer",
-          title="Unterstütze mich auf hier"
+          title="Unterstütze uns"
         )
           img.kofi-img(src="https://storage.ko-fi.com/cdn/cup-border.png", alt="Ko-fi")
-          span.kofi-text Unterstütze mich auf hier
+          span.kofi-text Unterstütze uns
 </template>
 
 <script setup lang="ts">
@@ -111,7 +119,7 @@ const newsletterEnabled = runtime.newsletterEnabled
   }
 }
 
-.kofi-button {
+.kofi-button, .paypal-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -129,6 +137,16 @@ const newsletterEnabled = runtime.newsletterEnabled
     filter: brightness(0.95);
     transform: translateY(-1px);
   }
+}
+
+.paypal-button {
+  background: linear-gradient(180deg, #2c8bd9 0%, #1a4d8f 100%)
+}
+
+.paypal-img {
+  width: 18px;
+  height: 18px;
+  display: block;
 }
 
 .kofi-img {

@@ -2,11 +2,12 @@
   section.section.about-section#about
     .wrap.about-inner
       .about-portrait
-        .about-portrait-placeholder
-          svg(viewBox="0 0 56 56", stroke-linecap="round", stroke-linejoin="round")
-            circle(cx="28", cy="22", r="8")
-            path(d="M12 48 C12 38 20 34 28 34 C36 34 44 38 44 48")
-          | [Foto von Anton]
+        img(src="/AntonBernt.webp", alt="Foto von Anton")
+        //.about-portrait-placeholder
+        //  svg(viewBox="0 0 56 56", stroke-linecap="round", stroke-linejoin="round")
+        //    circle(cx="28", cy="22", r="8")
+        //    path(d="M12 48 C12 38 20 34 28 34 C36 34 44 38 44 48")
+        //  | [Foto von Anton]
 
       .about-text
         .section-eyebrow Über den Autor

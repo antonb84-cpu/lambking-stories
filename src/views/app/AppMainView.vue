@@ -409,7 +409,7 @@ const welcomeSlides = computed(() => [
             template(#overlay-1)
               div(class="welcome-donate-row -mb-2")
                 KoFiButton(
-                  href="https://ko-fi.com/U6U21YO0Z5"
+                  href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W"
                   tone="paypal"
                   label="PayPal"
                   :compact="true"
@@ -712,11 +712,16 @@ button
 
 // ===== Welcome banner slider =====
 // Sits below the absolutely-positioned avatar so the avatar floats over
-// its top-right corner. The 4:3 source images get capped on tall layouts
-// so the banner never dominates the viewport on tablets / landscape.
+// its top-right corner. The 800×600 source images are 4:3, and the
+// WelcomeSlider's own `aspect-ratio: 4 / 3` keeps the banner at that
+// shape. A `max-height` here re-broke that: on wider phones the natural
+// (width × 3/4) height exceeded the cap, so the height clamped while the
+// width stayed full, and `object-fit: cover` cropped the bottom of the
+// image (cutting off the donate buttons). The `.main-content` column
+// already caps the width at 28rem, so we let the aspect-ratio rule and
+// drop the height cap — same fix already applied in landscape below.
 .welcome-banner
   margin-top: 12px
-  max-height: 260px
 
 // Donate buttons on the second slide — PayPal-blue on the left, Ko-fi
 // red on the right, both pushed to the bottom corners so the slide's

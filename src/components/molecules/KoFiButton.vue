@@ -31,34 +31,41 @@ withDefaults(defineProps<Props>(), {
     :class="['kofi-btn', `is-${tone}`, { 'is-compact': compact }]"
     :aria-label="`Donate via ${label}`"
   )
-    span(class="kofi-btn-icon" aria-hidden="true")
+    span(v-if="tone === 'kofi'" class="kofi-btn-icon" aria-hidden="true")
       //- Mug + steam — recognisable as a coffee-tip icon at 18-20px sizes.
-      span(v-if="tone === 'kofi'")
+      span
         img.kofi-img(class="mt-[2px]" src="https://storage.ko-fi.com/cdn/cup-border.png", alt="Ko-fi")
-      svg(v-else viewBox="0 0 24 24" class="w-full h-full")
-        path(
-          d="M5 10h11a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-1.2"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        )
-        path(
-          d="M5 10v6a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-6z"
-          fill="currentColor"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linejoin="round"
-        )
-        path(
-          d="M8 3c-.6 1-.6 2 0 3M11 3c-.6 1-.6 2 0 3M14 3c-.6 1-.6 2 0 3"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          opacity="0.75"
-        )
+    span(v-if="tone === 'paypal'" class="kofi-btn-icon -mb-1" aria-hidden="true")
+      span
+        section(style="font-size: 0.75rem;")
+          img(
+            src="/images/icons/paypal.webp"
+            alt="paypal"
+            style="height:0.875rem;vertical-align:middle;")
+      //svg(v-else viewBox="0 0 24 24" class="w-full h-full")
+      //  path(
+      //    d="M5 10h11a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-1.2"
+      //    fill="none"
+      //    stroke="currentColor"
+      //    stroke-width="1.8"
+      //    stroke-linecap="round"
+      //    stroke-linejoin="round"
+      //  )
+      //  path(
+      //    d="M5 10v6a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3v-6z"
+      //    fill="currentColor"
+      //    stroke="currentColor"
+      //    stroke-width="1.6"
+      //    stroke-linejoin="round"
+      //  )
+      //  path(
+      //    d="M8 3c-.6 1-.6 2 0 3M11 3c-.6 1-.6 2 0 3M14 3c-.6 1-.6 2 0 3"
+      //    fill="none"
+      //    stroke="currentColor"
+      //    stroke-width="1.6"
+      //    stroke-linecap="round"
+      //    opacity="0.75"
+      //  )
     span(class="kofi-btn-label") {{ label }}
 </template>
 

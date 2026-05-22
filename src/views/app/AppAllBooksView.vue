@@ -264,6 +264,12 @@ button
   padding: 6px 20px 0
   display: flex
   flex-direction: column
+  // In mobile portrait the tile's height is capped (`max-h-[150px]`)
+  // and its 2:1 aspect ratio derives a definite width (~300px) that's
+  // narrower than the column. A flex item that can't stretch falls back
+  // to flex-start, leaving an awkward gap on the right — centre it so
+  // the narrower tile sits optically balanced in the column instead.
+  align-items: center
   gap: 14px
 
 // Full-bleed image card. The cover (uploaded via the AdminUI dropzone
@@ -388,6 +394,9 @@ button
   .serien-content
     max-width: 64rem
     display: grid
+    // Reset the portrait `align-items: center` so grid cells stretch as
+    // before — two tiles per row at full cell height.
+    align-items: stretch
     grid-template-columns: 1fr 1fr
     gap: 14px
 

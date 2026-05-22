@@ -11,6 +11,14 @@
         span.b-logo-text SenfkornGeschichten
 
       .b-header-actions
+        a.paypal-button(
+          href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W",
+          target="_blank",
+          rel="noopener noreferrer",
+          title="Unterstütze uns"
+        )
+          img.b-kofi-img(src="/paypal.webp", alt="PayPal")
+          span.b-kofi-text Unterstütze uns
         a.b-kofi(
           href="https://ko-fi.com/U6U21YO0Z5",
           target="_blank",
@@ -18,8 +26,8 @@
           title="Unterstütze mich auf hier"
         )
           img.b-kofi-img(src="https://storage.ko-fi.com/cdn/cup-border.png", alt="Ko-fi")
-          span.b-kofi-text Unterstütze mich auf hier
-        a.b-cta(v-if="buyUrl", :href="buyUrl", target="_blank", rel="noopener") buy
+          span.b-kofi-text Unterstütze uns
+        a.b-cta(v-if="buyUrl", :href="buyUrl", target="_blank", rel="noopener") kaufe jetzt
 </template>
 
 <script setup lang="ts">
@@ -98,7 +106,7 @@ defineProps<{ buyUrl: string }>()
   gap: 12px;
 }
 
-.b-kofi {
+.b-kofi, .paypal-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -116,6 +124,10 @@ defineProps<{ buyUrl: string }>()
     filter: brightness(0.95);
     transform: translateY(-1px);
   }
+}
+
+.paypal-button {
+  background: linear-gradient(180deg, #2c8bd9 0%, #1a4d8f 100%)
 }
 
 .b-kofi-img {
