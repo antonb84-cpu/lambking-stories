@@ -26,7 +26,8 @@ export default {
         missionDone: 'Done!',
         missionSub: 'Be a peacemaker today.',
         searchResultsTitle: 'Search results',
-        searchEmpty: 'No books found.'
+        searchEmpty: 'No books found.',
+        discoverBooks: 'Discover'
       },
       allBooks: {
         title: 'Series',
@@ -188,7 +189,8 @@ export default {
         missionDone: 'Geschafft!',
         missionSub: 'Sei heute ein Friedensstifter.',
         searchResultsTitle: 'Suchergebnisse',
-        searchEmpty: 'Keine Bücher gefunden.'
+        searchEmpty: 'Keine Bücher gefunden.',
+        discoverBooks: 'Entdecke'
       },
       allBooks: {
         title: 'Serien',

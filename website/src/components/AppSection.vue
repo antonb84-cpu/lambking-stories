@@ -54,7 +54,7 @@
 
       .app-visual
         .phone-frame
-          img.w-full.h-full(src="/app-example.webp" class="")
+          img.w-full.h-full(src="/app-example.webp" class="rounded-[32px]")
           //.phone-screen
           //  .status-bar
           //    span 9:41

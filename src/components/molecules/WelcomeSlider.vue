@@ -176,18 +176,19 @@ onUnmounted(() => {
         )
         //- Per-slide overlay slot — use #overlay-0, #overlay-1, etc. to
         //- mount content (badges, donate buttons, …) on a specific slide.
-        div(class="welcome-slide-overlay")
+        div(class="welcome-slide-overlay relative")
           slot(:name="`overlay-${i}`")
 
     div(
       v-if="images.length > 1"
-      class="welcome-slider-dots"
+      class="welcome-slider-dots -mb-2"
       aria-label="Slide navigation"
     )
       button(
         v-for="(_, i) in images"
         :key="i"
         type="button"
+        class=""
         :class="['welcome-slider-dot', { 'is-active': currentIndex === i }]"
         :aria-label="`Show slide ${i + 1}`"
         :aria-current="currentIndex === i ? 'true' : undefined"

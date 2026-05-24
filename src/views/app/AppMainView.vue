@@ -76,6 +76,15 @@ function openAllSeries() {
   router.push({ name: 'app-all-books' })
 }
 
+// CTA on the first welcome slide — sends the user to the book list on the
+// public LambKing web edition. Opened in a new tab (noopener) like the
+// donate links, rather than the in-app router, since it's an external URL.
+const WEBSITE_BOOKS_URL = 'https://konstantinsteinmiller.github.io/little-bible-stories/lamb-king/#books'
+
+function openWebsite() {
+  window.open(WEBSITE_BOOKS_URL, '_blank', 'noopener,noreferrer')
+}
+
 const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
 
 // Active when the user has typed something into the search field; the
@@ -130,9 +139,6 @@ const upcomingBooks = computed<ApiBook[]>(() => {
     .filter((b) => new Date(b.releaseDate).getTime() > now)
     .slice(0, 6)
 })
-
-// Continue-reading hero gating: only show when we have something to resume
-const showContinueReading = computed(() => !!lastReadBook.value)
 
 // Greeting line. The design shows a personalised salute — until we have a
 // real "name" field we fall back to the i18n default.
@@ -392,20 +398,28 @@ const welcomeSlides = computed(() => [
               ZIconography(name="search" :size="36")
             p(class="search-empty-text") {{ t('app.main.searchEmpty') }}
 
-        //- ===== Continue reading hero =====
-        section(v-if="!isSearching && showContinueReading && lastReadBook" class="continue-section")
-          // this is not used for now, but kept for future readding
-            //- ===== Welcome banner slider =====
-          //- Sits above the search bar; the avatar floats over its top-right
-          //- corner. The second slide ("Unterstütze unsere Mission") gets
-          //- PayPal + Ko-fi donate CTAs pinned to its bottom corners — the
-          //- PayPal slot is a Ko-fi link in PayPal blue until the PayPal
-          //- SDK integration lands.
+        //- ===== Welcome banner slider =====
+        //- Shown to everyone (including first-time visitors) whenever the
+        //- user isn't searching — it is NOT gated on reading history. The
+        //- second slide ("Unterstütze unsere Mission") gets PayPal + Ko-fi
+        //- donate CTAs pinned to its bottom corners; the first slide hosts
+        //- the "Discover" CTA to the public web edition.
+        section(v-if="!isSearching" class="continue-section")
           WelcomeSlider(
             class="welcome-banner border-8 border-solid border-border rounded-2xl overflow-hidden"
             :images="welcomeSlides"
             :interval-ms="6000"
           )
+            template(#overlay-2)
+              div(class="welcome-cta-row scale-[62%] -mb-4")
+                ZButton(
+                  type="primary"
+                  icon="book"
+                  size="sm"
+                  class="-mb-1 -mr-24"
+                  @click="openWebsite"
+                ) {{ t('app.main.discoverBooks') }}
+
             template(#overlay-1)
               div(class="welcome-donate-row -mb-2")
                 KoFiButton(
@@ -736,6 +750,18 @@ button
   justify-content: space-between
   align-items: center
   gap: 10px
+
+// CTA on the first slide — centred above the dots row (`bottom: 36px`
+// clears them) and width-capped so the primary button doesn't stretch
+// edge-to-edge across the banner.
+.welcome-cta-row
+  position: absolute
+  left: 50%
+  bottom: 36px
+  transform: translateX(-50%)
+  width: min(78%, 260px)
+  display: flex
+  justify-content: center
 
 // ===== Greeting =====
 .greeting-block

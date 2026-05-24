@@ -10,7 +10,10 @@ const OFFLINE_STATUSES = new Set([502, 503, 504])
 
 async function performFetchBooks(): Promise<BookDTO[]> {
   const res = await fetch(`${runtime.apiBaseUrl}/api/books`, {
-    headers: { Accept: 'application/json' }
+    headers: {
+      Accept: 'application/json',
+      ...(runtime.clientKey ? { 'X-Client-Key': runtime.clientKey } : {})
+    }
   })
   if (OFFLINE_STATUSES.has(res.status)) {
     const err = new Error(`offline:${res.status}`) as Error & { __offline: true }

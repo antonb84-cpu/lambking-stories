@@ -7,5 +7,10 @@ const truthy = (v: string | undefined): boolean =>
 // dev proxy (`/api` → lbs-be) when CORS isn't available.
 export const runtime = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? 'https://lbs-be.onrender.com',
-  newsletterEnabled: truthy(import.meta.env.VITE_NEWSLETTER_ENABLED)
+  newsletterEnabled: truthy(import.meta.env.VITE_NEWSLETTER_ENABLED),
+  // Sent as `X-Client-Key` on the gated public-read endpoints. The server's
+  // `requireClientKey` validates it against its CLIENT_KEYS map; when the
+  // value is empty (key not configured for this build) the header is
+  // omitted and the server falls back to its unkeyed behaviour.
+  clientKey: (import.meta.env.VITE_CLIENT_KEY ?? '').trim()
 }

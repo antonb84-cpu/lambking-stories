@@ -264,12 +264,12 @@ button
   padding: 6px 20px 0
   display: flex
   flex-direction: column
-  // In mobile portrait the tile's height is capped (`max-h-[150px]`)
-  // and its 2:1 aspect ratio derives a definite width (~300px) that's
-  // narrower than the column. A flex item that can't stretch falls back
-  // to flex-start, leaving an awkward gap on the right — centre it so
-  // the narrower tile sits optically balanced in the column instead.
-  align-items: center
+  // Stretch tiles to the full column width. With a definite width the
+  // tile's `aspect-ratio: 2.5 / 1` derives the height (~163px at the
+  // 28rem cap, under the `max-h-[180px]` clamp), so the cover image
+  // fills the card edge-to-edge instead of leaving parchment gaps on
+  // either side.
+  align-items: stretch
   gap: 14px
 
 // Full-bleed image card. The cover (uploaded via the AdminUI dropzone
