@@ -15,6 +15,7 @@ import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { markdownToHtml } from '@/utils/markdownToHtml'
+import { isColoringCategory } from '@/utils/coloringBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -40,6 +41,9 @@ const localization = computed(() => {
 })
 const localizedTitle = computed(() => localization.value?.title || '')
 const localizedDescription = computed(() => localization.value?.description || '')
+// Coloring books have no audio — the "Anhören" CTA is hidden and listen mode
+// is never entered for them.
+const isColoring = computed(() => isColoringCategory(book.value?.category))
 const contentNotes = computed(() => localization.value?.contentNotes?.trim() || '')
 const contentNotesHtml = computed(() =>
   contentNotes.value ? markdownToHtml(contentNotes.value) : ''
@@ -76,6 +80,12 @@ type ViewMode = 'detail' | 'listen'
 // player directly (used by the "Anhören" CTA on the Weiterlesen
 // hero). Defaults to the standard detail screen otherwise.
 const mode = ref<ViewMode>(route.query.mode === 'listen' ? 'listen' : 'detail')
+
+// A coloring book can never enter listen mode, even via a `?mode=listen`
+// deep link — there is no audio to play.
+watch(isColoring, (coloring) => {
+  if (coloring) mode.value = 'detail'
+}, { immediate: true })
 
 const audioEl = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
@@ -443,9 +453,10 @@ const seriesName = computed(() => series.value?.name || '')
           //- audio file, `onListen` still flips the view into listen mode
           //- and shows the empty player — the editor can confirm in
           //- AdminUI whether the upload is missing.
-          div(class="cta-row")
+          div(class="cta-row" :class="{ 'is-single': isColoring }")
             ZButton(type="primary" icon="book" @click="onRead") {{ t('app.bookDetail.readMyself') }}
             ZButton(
+              v-if="!isColoring"
               type="secondary"
               icon="volume"
               :is-disabled="!audioSrc"
@@ -719,6 +730,11 @@ button
   grid-template-columns: 1fr 1fr
   gap: 10px
   align-items: stretch
+
+  // Coloring books drop the "Anhören" CTA, so the single "Lesen" button
+  // claims the full row instead of leaving an empty half.
+  &.is-single
+    grid-template-columns: 1fr
 
 .cta-row > :deep(div)
   transform: none !important

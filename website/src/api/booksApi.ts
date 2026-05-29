@@ -1,6 +1,7 @@
 import type { BookDTO } from '@/types/book'
 import { runtime } from '@/config/runtime'
 import { enqueueServerRetry, markServerDown } from '@/composables/useServerStatus'
+import { isColoringCategory } from '@/utils/coloringBook'
 
 interface ListResponse {
   books: BookDTO[]
@@ -24,7 +25,9 @@ async function performFetchBooks(): Promise<BookDTO[]> {
     throw new Error(`Books request failed: ${res.status} ${res.statusText}`)
   }
   const data: ListResponse = await res.json()
-  return data.books ?? []
+  // Coloring books (Ausmalbücher) are app-only — never surface them on the
+  // public website.
+  return (data.books ?? []).filter((b) => !isColoringCategory(b.category))
 }
 
 export async function fetchBooks(): Promise<BookDTO[]> {

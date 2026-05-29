@@ -2,7 +2,7 @@
   section.section.about-section#about
     .wrap.about-inner
       .about-portrait
-        img(src="/AntonBernt.webp", alt="Foto von Anton")
+        img.object-fill(src="/AntonBernt.webp", alt="Foto von Anton")
         //.about-portrait-placeholder
         //  svg(viewBox="0 0 56 56", stroke-linecap="round", stroke-linejoin="round")
         //    circle(cx="28", cy="22", r="8")
@@ -50,8 +50,7 @@
 
 .about-portrait {
   width: 100%;
-  max-width: 380px;
-  aspect-ratio: 4 / 5;
+  max-width: 280px;
   background: var(--cream-dark);
   border-radius: 24px;
   display: flex;

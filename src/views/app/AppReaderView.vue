@@ -16,11 +16,13 @@ import ABookCard from '@/components/atoms/ABookCard.vue'
 import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
 import ZButton from '@/components/atoms/ZButton.vue'
 import SwipeHintHand, { hasSeenSwipeHint } from '@/components/molecules/SwipeHintHand.vue'
+import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
 import useApiBooks from '@/use/useApiBooks'
 import useBookCache from '@/use/useBookCache'
 import useReadingProgress from '@/use/useReadingProgress'
 import type { ApiBook, ApiLocalizedPage, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
+import { isColoringCategory } from '@/utils/coloringBook'
 import { hasVerticalCenter, markdownToHtml, renderInline } from '@/utils/markdownToHtml'
 import { onImgFallback, PLACEHOLDER_IMAGE } from '@/utils/placeholder'
 
@@ -75,6 +77,19 @@ const localization = computed(() => {
 })
 
 const pages = computed<ApiLocalizedPage[]>(() => localization.value?.content ?? [])
+
+// Coloring books (Ausmalbücher): each content page is a single image that
+// fills the viewport and can be tapped to open in the coloring app.
+const isColoring = computed(() => isColoringCategory(book.value?.category))
+
+// First image URL on a page — used in coloring mode to render the page as a
+// single full-bleed image. Matches markdown `![alt](url)` and raw `<img>`.
+const PAGE_IMG_RE = /!\[[^\]]*\]\(([^)\s]+)\)|<img[^>]+src=["']([^"']+)["']/i
+
+function firstImageUrl(text?: string): string {
+  const m = PAGE_IMG_RE.exec(text ?? '')
+  return m ? (m[1] ?? m[2] ?? '') : ''
+}
 
 const coverImage = computed<string>(() => {
   const b = book.value
@@ -230,10 +245,20 @@ function getX(e: MouseEvent | TouchEvent): number {
   return (e as MouseEvent).clientX
 }
 
+function getY(e: MouseEvent | TouchEvent): number {
+  if ('touches' in e) return e.touches[0]?.clientY ?? 0
+  return (e as MouseEvent).clientY
+}
+
+// Where the current pointer gesture began — lets the coloring-image click
+// handler tell a tap (open the menu) apart from a swipe (change page).
+const gestureStart = ref<{ x: number; y: number } | null>(null)
+
 function startSwipe(e: MouseEvent | TouchEvent) {
   if (isAnimating.value) finalizeAnimation()
   measureStage()
   dragStartX.value = getX(e)
+  gestureStart.value = { x: getX(e), y: getY(e) }
   isDragging.value = true
   dragActivated.value = false
   dragActivationOrigin.value = 0
@@ -270,9 +295,14 @@ function duringSwipe(e: MouseEvent | TouchEvent) {
   dragOffset.value = effective
 }
 
-function endSwipe() {
+const TAP_MAX_DISTANCE = 10
+
+function endSwipe(e?: Event) {
   if (dragStartX.value === null) return
   const delta = dragOffset.value
+  const start = gestureStart.value
+  // A tap never activates the drag and barely moves — distinct from a swipe.
+  const wasTap = !dragActivated.value && Math.abs(delta) <= TAP_MAX_DISTANCE
   isDragging.value = false
   dragStartX.value = null
 
@@ -280,6 +310,22 @@ function endSwipe() {
   let shift: -1 | 0 | 1 = 0
   if (delta < -SWIPE_THRESHOLD && currentIndex.value < lastIdx) shift = 1
   else if (delta > SWIPE_THRESHOLD && currentIndex.value > 0) shift = -1
+
+  // Tap on a coloring-book page → open the context menu so this page can be
+  // sent to the coloring app. Handled here (not via a separate @click) because
+  // the synthesized click is swallowed behind the swipe layer. preventDefault
+  // suppresses the ghost mouse events a touch emits, which would otherwise
+  // close+reopen the freshly opened menu.
+  if (wasTap && shift === 0 && isColoring.value && start) {
+    const entry = displayEntries.value[currentIndex.value]
+    if (entry && entry.kind === 'page') {
+      const url = firstImageUrl(entry.page.text)
+      if (url) {
+        e?.preventDefault()
+        openColoringMenuAt(start.x, start.y, url)
+      }
+    }
+  }
 
   animateToShift(shift)
   onUserGesture()
@@ -509,6 +555,75 @@ function openColoring() {
   })
 }
 
+// ----- Tap an image in a coloring book -----
+// Opens the same context menu the BookDetail attachments use, letting the
+// reader drop the tapped page straight into the coloring app while paging
+// through the whole coloring book.
+const colorMenuAnchor = ref<{ rect: DOMRect } | null>(null)
+const colorMenuImageUrl = ref<string>('')
+
+// Build a zero-size anchor rect at the tap point. We avoid `new DOMRect()`
+// because its constructor isn't reliably present in every WebView the app
+// ships into; the context menu only reads top/bottom/left/width/height.
+function pointRect(x: number, y: number): DOMRect {
+  return {
+    x, y, top: y, bottom: y, left: x, right: x, width: 0, height: 0,
+    toJSON() {
+      return {}
+    }
+  } as unknown as DOMRect
+}
+
+function openColoringMenuAt(x: number, y: number, url: string) {
+  if (!url) return
+  colorMenuImageUrl.value = url
+  colorMenuAnchor.value = { rect: pointRect(x, y) }
+}
+
+function closeColoringMenu() {
+  colorMenuAnchor.value = null
+  colorMenuImageUrl.value = ''
+}
+
+function coloringImageDownloadName(url: string): string {
+  try {
+    const u = new URL(url, window.location.origin)
+    const last = u.pathname.split('/').filter(Boolean).pop()
+    if (last) return last
+  } catch {
+  }
+  return `${(localization.value?.title || 'ausmalbild').replace(/\s+/g, '-')}.png`
+}
+
+function saveColoringImageToPhone() {
+  const url = colorMenuImageUrl.value
+  if (!url) {
+    closeColoringMenu()
+    return
+  }
+  const a = document.createElement('a')
+  a.href = url
+  a.download = coloringImageDownloadName(url)
+  a.target = '_blank'
+  a.rel = 'noopener'
+  a.click()
+  closeColoringMenu()
+}
+
+function openTappedImageInColoring() {
+  const url = colorMenuImageUrl.value
+  if (!url) {
+    closeColoringMenu()
+    return
+  }
+  const isPdf = /\.pdf(?:\?.*)?$/i.test(url)
+  router.push({
+    name: 'app-coloring',
+    query: { source: url, type: isPdf ? 'pdf' : 'image' }
+  })
+  closeColoringMenu()
+}
+
 // ----- Next volume in series -----
 
 const nextBook = computed(() => (book.value ? apiBooks.nextBookInSeries(book.value) : null))
@@ -629,9 +744,21 @@ function goBack() {
             //- Content page
             div(
               v-else-if="slot.entry.kind === 'page'"
-              class="page-frame content-frame"
+              class="page-frame"
+              :class="isColoring ? 'coloring-frame' : 'content-frame'"
             )
-              div(class="page-inner")
+              //- Coloring book: one full-bleed image per page. Tapping it
+              //- opens the context menu to drop it into the coloring app.
+              img(
+                v-if="isColoring"
+                :src="resolved(firstImageUrl(slot.entry.page.text)) || PLACEHOLDER_IMAGE"
+                :alt="slot.entry.page.title || ''"
+                class="coloring-page-img"
+                draggable="false"
+                @dragstart.prevent
+                @error="onImgFallback"
+              )
+              div(v-else class="page-inner")
                 h1(
                   v-if="slot.entry.page.title && slot.entry.page.title.trim()"
                   class="page-title"
@@ -708,6 +835,15 @@ function goBack() {
         class="page-counter"
         aria-live="polite"
       ) {{ counterText }}
+
+    //- Context menu for a tapped coloring-book image (Teleports to body).
+    AttachmentContextMenu(
+      :anchor="colorMenuAnchor"
+      :show-coloring-option="true"
+      @close="closeColoringMenu"
+      @save-to-phone="saveColoringImageToPhone"
+      @use-in-coloring="openTappedImageInColoring"
+    )
 </template>
 
 <style scoped lang="sass">
@@ -833,6 +969,25 @@ function goBack() {
   display: flex
   align-items: stretch
   justify-content: center
+
+// Coloring-book page: the single image fills the whole viewport with no
+// padding. `object-fit: contain` keeps the artwork from stretching, so it
+// spans full width or full height (whichever the aspect ratio allows). The
+// floating back button / pager / counter overlay on top.
+.coloring-frame
+  background: #fffdf7
+  padding: 0
+  align-items: center
+  justify-content: center
+
+.coloring-page-img
+  width: 100%
+  height: 100%
+  object-fit: contain
+  display: block
+  cursor: pointer
+  -webkit-user-drag: none
+  -webkit-tap-highlight-color: transparent
 
 .page-inner
   width: 100%

@@ -55,6 +55,20 @@
         </div>
       </div>
       <div
+        v-else-if="coloring && currentDisplay?.kind === 'page'"
+        class="coloring-page"
+        :style="{ transform: `translateX(${offset}px)` }"
+      >
+        <img
+          v-if="coloringImage"
+          :src="coloringImage"
+          class="coloring-full"
+          alt=""
+          draggable="false"
+          @dragstart.prevent
+        />
+      </div>
+      <div
         v-else
         class="page"
         :style="{ transform: `translateX(${offset}px)` }"
@@ -87,7 +101,14 @@ import type { BookPage } from '@/types'
 import { hasVerticalCenter, markdownToHtml, renderInline } from '@/utils/markdownToHtml'
 import AchievementBadge from '@/components/atoms/AchievementBadge.vue'
 
-const props = defineProps<{ pages: BookPage[]; coverImage?: string; achievementBadge?: string }>()
+const props = defineProps<{
+  pages: BookPage[]
+  coverImage?: string
+  achievementBadge?: string
+  // Coloring books (Ausmalbücher): every content page is a single image that
+  // fills the whole screen — no padding, no title/body text.
+  coloring?: boolean
+}>()
 const currentPageIndex = ref(0)
 const offset = ref(0)
 const dragStartX = ref<number | null>(null)
@@ -132,6 +153,17 @@ const renderedTitle = computed(() => {
   const current = currentDisplay.value
   if (!current || current.kind !== 'page') return ''
   return renderInline(current.page.title)
+})
+
+// First image URL on the current page — used only in coloring mode, where a
+// page is rendered as a single full-bleed image. Matches both markdown
+// `![alt](url)` and raw `<img src="…">` forms.
+const COLORING_IMG_RE = /!\[[^\]]*\]\(([^)\s]+)\)|<img[^>]+src=["']([^"']+)["']/i
+const coloringImage = computed(() => {
+  const current = currentDisplay.value
+  if (!current || current.kind !== 'page') return ''
+  const m = COLORING_IMG_RE.exec(current.page.text ?? '')
+  return m ? (m[1] ?? m[2] ?? '') : ''
 })
 
 // Mirrors the AppReaderView marker class — when the page contains a
@@ -228,6 +260,30 @@ const endSwipe = () => {
   max-height: 100%;
   object-fit: contain;
   border-radius: 18px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Coloring-book page: the image fills the whole screen with no padding,
+ * contained (never stretched) so its aspect ratio is preserved. Mirrors the
+ * BookReader's coloring-frame. */
+.coloring-page {
+  position: absolute;
+  inset: 0;
+  transition: transform 120ms ease-out;
+  background: #fffdf7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.coloring-full {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   display: block;
   pointer-events: none;
   user-select: none;

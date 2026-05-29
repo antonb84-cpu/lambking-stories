@@ -36,6 +36,7 @@
           :pages="previewPages"
           :cover-image="previewCoverImage"
           :achievement-badge="previewAchievementBadge"
+          :coloring="isColoringBook"
         />
       </div>
     </aside>
@@ -73,6 +74,7 @@ import { useCategoryStore } from '@/stores/categories'
 import { useBookDraftStore } from '@/stores/bookDraft'
 import { useToastStore } from '@/stores/toast'
 import { booksApi } from '@/api/books'
+import { isColoringCategory } from '@/utils/coloringBook'
 import type { BookDTO } from '@/types'
 
 const series = useSeriesStore()
@@ -96,6 +98,7 @@ const previewAchievementBadge = computed(() => {
   if (!ab) return ''
   return ab[draft.activeLocale] || ab.de || ab.en || ''
 })
+const isColoringBook = computed(() => isColoringCategory(draft.book.category))
 
 onMounted(async () => {
   // Recover an unsaved new-book draft *before* fetching the catalogue —
