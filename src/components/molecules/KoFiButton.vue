@@ -77,7 +77,7 @@ withDefaults(defineProps<Props>(), {
   padding: 9px 16px
   border-radius: 999px
   font-size: 13px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.02em
   text-decoration: none
   color: #ffffff

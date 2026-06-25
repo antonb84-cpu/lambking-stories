@@ -144,7 +144,7 @@ onUnmounted(() => {
   background: var(--cream, #faf4ea);
 
   h2 {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 22px;
     font-weight: 500;
     letter-spacing: -0.01em;

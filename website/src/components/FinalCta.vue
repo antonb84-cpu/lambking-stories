@@ -64,10 +64,10 @@
 }
 
 h2 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 56px;
   line-height: 1.02;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: -0.028em;
   margin-bottom: 24px;
 
@@ -139,7 +139,7 @@ h2 {
 }
 
 .final-option h3 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -158,7 +158,7 @@ h2 {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--coral);
   margin-top: auto;
 

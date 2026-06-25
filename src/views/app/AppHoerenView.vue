@@ -108,7 +108,7 @@ $border: #e6d6b5
   align-items: center
   gap: 8px
   font-size: 22px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
 
@@ -122,7 +122,7 @@ $border: #e6d6b5
 
 .page-breadcrumb
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.18em
   color: $brown
   text-transform: uppercase
@@ -174,14 +174,14 @@ $border: #e6d6b5
 
 .audio-series
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $brown
   text-transform: uppercase
   letter-spacing: 0.06em
 
 .audio-title
   font-size: 15px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
   line-height: 1.2

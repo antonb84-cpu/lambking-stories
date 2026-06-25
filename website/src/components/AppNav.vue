@@ -82,9 +82,9 @@ const newsletterEnabled = runtime.newsletterEnabled
 }
 
 .logo-text {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -111,7 +111,7 @@ const newsletterEnabled = runtime.newsletterEnabled
   padding: 9px 18px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   transition: background 0.15s;
 
   &:hover {

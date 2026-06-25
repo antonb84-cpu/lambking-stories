@@ -83,12 +83,12 @@ const onUp = () => (pressed.value = false)
 <style scoped lang="sass">
 button
   -webkit-tap-highlight-color: transparent
-  font-family: 'PoetsenOne', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+  font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
 
 // PRIMARY: deep navy "Lesen" button — solid, bold, dark
 .z-btn-primary
   color: #ffffff
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.02em
   background: linear-gradient(180deg, #21406a 0%, #142a47 100%)
   box-shadow: 0 5px 0 -1px #0a1a30, 0 10px 22px -8px rgba(10, 26, 48, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -2px 0 rgba(0, 0, 0, 0.25)
@@ -104,7 +104,7 @@ button
 // SECONDARY: crimson/wine-red "Anhören" button
 .z-btn-secondary
   color: #ffffff
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.02em
   background: linear-gradient(180deg, #b94535 0%, #8e2f23 100%)
   box-shadow: 0 5px 0 -1px #5b1a12, 0 10px 22px -8px rgba(91, 26, 18, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 0 -2px 0 rgba(0, 0, 0, 0.22)

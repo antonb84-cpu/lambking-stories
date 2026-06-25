@@ -47,7 +47,7 @@ const { open: openImprint } = useImprintModal()
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 15px;
   font-weight: 500;
   color: var(--cream);

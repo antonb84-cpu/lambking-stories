@@ -657,7 +657,7 @@ function pagesToMarkdown(pages: BookPage[]): string {
   padding: 5px 10px;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #44403c;
   background: transparent;
   transition: background 140ms ease, color 140ms ease;
@@ -768,7 +768,7 @@ function pagesToMarkdown(pages: BookPage[]): string {
 
 .prose-wrap :deep(.ProseMirror h2) {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0.5rem 0;
   padding-left: 1.5rem;
   position: relative;

@@ -341,7 +341,7 @@ button
 
 .hero-title
   font-size: 26px
-  font-weight: 900
+  font-weight: 700
   color: #ffffff
   margin: 0
   letter-spacing: -0.005em
@@ -373,7 +373,7 @@ button
 
 .section-title
   font-size: 16px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 4px 0 0
   letter-spacing: -0.005em
@@ -520,14 +520,14 @@ button
 
 .book-card-band
   font-size: 12px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   letter-spacing: 0.01em
   line-height: 1.15
 
 .book-card-title
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $navy
   margin: 0
   line-height: 1.2
@@ -564,13 +564,13 @@ button
 
 .book-card-progress-label
   font-size: 10px
-  font-weight: 900
+  font-weight: 700
   color: #4a7332
   font-variant-numeric: tabular-nums
 
 .book-card-soon, .book-card-new-tag
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $brown
   margin-top: 4px
 
@@ -621,14 +621,14 @@ button
 
 .is-list .book-card-band
   font-size: 10px
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.12em
   text-transform: uppercase
   color: $gold
 
 .is-list .book-card-title
   font-size: 15px
-  font-weight: 900
+  font-weight: 700
   line-height: 1.25
   color: $navy
   // Long German titles like "Selbstbeherrschung" can outrun the meta

@@ -245,7 +245,7 @@ async function uploadPreview(i: number, file: File) {
 
 .att-type {
   font-size: 11.5px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 3px 10px;

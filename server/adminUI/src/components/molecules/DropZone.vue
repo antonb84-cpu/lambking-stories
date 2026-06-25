@@ -332,7 +332,7 @@ defineExpose({ reset: dd.reset })
 
 .drop-label {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: #2a1f10;
   letter-spacing: -0.005em;
 }
@@ -353,7 +353,7 @@ defineExpose({ reset: dd.reset })
 
 .drop-filename-hint {
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: #1d4ed8;
   background: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.25);
@@ -361,7 +361,7 @@ defineExpose({ reset: dd.reset })
   border-radius: 999px;
   margin-top: 2px;
   letter-spacing: 0.01em;
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
 }
 
 @keyframes pulse {

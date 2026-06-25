@@ -417,7 +417,7 @@ button
   align-items: center
   gap: 8px
   font-size: 22px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
 
@@ -490,7 +490,7 @@ button
 
 .profile-name
   font-size: 19px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
 
@@ -533,7 +533,7 @@ button
   flex: 1
   min-width: 0
   font-size: 17px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   padding: 4px 10px
   background-color: $cream-card
@@ -582,7 +582,7 @@ button
   font-size: 12px
   color: $brown
   margin: 0
-  font-weight: 600
+  font-weight: 700
 
 .level-row
   display: flex
@@ -596,7 +596,7 @@ button
 
 .level-text
   font-size: 12px
-  font-weight: 900
+  font-weight: 700
   color: $navy
 
 .level-xp
@@ -664,7 +664,7 @@ button
 
 .quick-label
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $navy
   text-align: center
   line-height: 1.2
@@ -682,7 +682,7 @@ button
 
 .card-section-title
   font-size: 14px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
   display: flex
@@ -753,9 +753,9 @@ button
 
 .backend-host-line
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $navy
-  font-family: 'PoetsenOne', ui-monospace, monospace
+  font-family: 'Nunito', ui-monospace, monospace
   word-break: break-all
 
 .backend-hint
@@ -776,7 +776,7 @@ button
 .count-pill
   display: inline-block
   font-size: 11px
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.08em
   color: $navy
   background-color: $cream-card
@@ -834,7 +834,7 @@ button
 
 .favorites-title
   font-size: 14px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
   line-height: 1.2

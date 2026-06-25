@@ -29,8 +29,8 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped lang="sass">
 .z-badge
-  font-family: 'PoetsenOne', "Nunito", "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", system-ui, sans-serif
-  font-weight: 900
+  font-family: 'Nunito', "Nunito", "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", system-ui, sans-serif
+  font-weight: 700
   font-stretch: condensed
   letter-spacing: 0.08em
   line-height: 1

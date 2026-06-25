@@ -1008,7 +1008,7 @@ function goBack() {
 
 .page-title
   font-size: 20px
-  font-weight: 900
+  font-weight: 700
   line-height: 1.18
   color: #1a2f4a
   margin: 0
@@ -1017,7 +1017,7 @@ function goBack() {
   font-size: 18px
   line-height: 1.5
   color: #1a2f4a
-  font-weight: 600
+  font-weight: 400
   letter-spacing: 0.005em
   flex: 1 1 auto
   min-height: 0
@@ -1030,7 +1030,7 @@ function goBack() {
 
 
 .page-body :deep(strong)
-  font-weight: 800
+  font-weight: 700
   color: #0e2440
 
 .page-body :deep(em)
@@ -1040,7 +1040,7 @@ function goBack() {
 .page-body :deep(h2),
 .page-body :deep(h3)
   font-size: 20px
-  font-weight: 900
+  font-weight: 700
   color: #1a2f4a
   line-height: 1.2
   margin: 0.4em 0 0.2em
@@ -1156,13 +1156,13 @@ function goBack() {
 
 .celebration-title
   font-size: 32px
-  font-weight: 900
+  font-weight: 700
   color: #1a2f4a
 
 .celebration-sub
   font-size: 17px
   color: #4a3b1c
-  font-weight: 600
+  font-weight: 700
 
 // Coloring-sheet CTA on the finish page — shrink to its content (and recenter
 // via the inner's align-items) instead of stretching the full 520px column.
@@ -1183,7 +1183,7 @@ function goBack() {
 
 .next-label
   font-size: 16px
-  font-weight: 800
+  font-weight: 700
   color: #5a3b14
 
 .pager

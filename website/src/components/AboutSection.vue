@@ -75,7 +75,7 @@
   z-index: 1;
   text-align: center;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   padding: 20px;
 
   svg {
@@ -90,7 +90,7 @@
 }
 
 .about-quote {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 30px;
   font-style: italic;
   line-height: 1.25;
@@ -101,7 +101,7 @@
   &::before {
     content: '„';
     color: var(--coral);
-    font-weight: 500;
+    font-weight: 400;
     margin-right: 2px;
   }
 
@@ -135,7 +135,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 18px;
   font-style: italic;
   font-weight: 500;
@@ -145,7 +145,7 @@
   font-size: 14px;
 
   strong {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 17px;
     font-weight: 500;
     color: var(--ink);

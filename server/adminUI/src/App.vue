@@ -188,7 +188,7 @@ onMounted(checkAuth)
 
 .server-banner-warning {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
   background: rgba(0, 0, 0, 0.18);
   padding: 4px 10px;
@@ -234,7 +234,7 @@ onMounted(checkAuth)
 
 .app-header-title {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.015em;
   color: #ffffff;
   line-height: 1.1;

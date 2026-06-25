@@ -84,7 +84,7 @@ function switchTo(l: 'de' | 'en') {
   border: none;
   background: transparent;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #5d6d7e;
   border-radius: 999px;
   cursor: pointer;

@@ -72,7 +72,7 @@ defineEmits<{ stay: []; discard: [] }>()
 .cd-title {
   margin: 0 0 8px;
   font-size: 1.1rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #1c1917;
 }
 
@@ -93,7 +93,7 @@ defineEmits<{ stay: []; discard: [] }>()
 .cd-stay,
 .cd-discard {
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.88rem;
   border: none;
   cursor: pointer;

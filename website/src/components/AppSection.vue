@@ -192,7 +192,7 @@ import BookCover from './BookCover.vue'
 }
 
 .app-feature-text strong {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 17px;
   font-weight: 500;
   color: var(--ink);
@@ -246,7 +246,7 @@ import BookCover from './BookCover.vue'
 }
 
 .store-btn-bottom {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -287,7 +287,7 @@ import BookCover from './BookCover.vue'
   align-items: center;
   justify-content: space-between;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
   flex-shrink: 0;
 }
@@ -305,7 +305,7 @@ import BookCover from './BookCover.vue'
 
   strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
     display: block;
     margin-top: 1px;
@@ -316,7 +316,7 @@ import BookCover from './BookCover.vue'
   background: var(--coral-soft);
   color: var(--coral-dark);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 4px 8px;
   border-radius: 999px;
   display: inline-flex;
@@ -340,7 +340,7 @@ import BookCover from './BookCover.vue'
 }
 
 .section-mini {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -377,13 +377,13 @@ import BookCover from './BookCover.vue'
 .hero-label-mini {
   font-size: 8.5px;
   color: var(--s-fruchtagenten);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .hero-title-mini {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 13px;
   font-weight: 500;
   margin: 2px 0 5px;
@@ -421,7 +421,7 @@ import BookCover from './BookCover.vue'
   background: var(--navy);
   color: var(--cream);
   font-size: 9.5px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 6px 12px;
   border-radius: 7px;
   border: none;
@@ -468,7 +468,7 @@ import BookCover from './BookCover.vue'
 }
 
 .series-count {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 14px;
   font-style: italic;
   line-height: 1;
@@ -477,7 +477,7 @@ import BookCover from './BookCover.vue'
     font-size: 8px;
     opacity: 0.7;
     font-style: normal;
-    font-family: 'PoetsenOne', sans-serif;
+    font-family: 'Nunito', sans-serif;
     margin-left: 2px;
   }
 }

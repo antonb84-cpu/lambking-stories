@@ -105,7 +105,7 @@ function progressPct() {
   left: 10px
   padding: 3px 10px
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.06em
   text-transform: uppercase
   color: #fff
@@ -118,7 +118,7 @@ function progressPct() {
 
 .card-title
   font-size: 17px
-  font-weight: 900
+  font-weight: 700
   color: #1a1a1a
   line-height: 1.25
   text-align: left
@@ -126,7 +126,7 @@ function progressPct() {
 .card-subtitle
   margin-top: 4px
   font-size: 13px
-  font-weight: 600
+  font-weight: 700
   color: #6b5a3e
   text-align: left
 

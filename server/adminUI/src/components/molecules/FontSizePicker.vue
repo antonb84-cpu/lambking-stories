@@ -119,7 +119,7 @@ function commitCustom() {
   padding: 4px 8px;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #44403c;
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(140, 110, 80, 0.35);
@@ -136,7 +136,7 @@ function commitCustom() {
   padding: 4px 6px;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(52, 152, 219, 0.5);

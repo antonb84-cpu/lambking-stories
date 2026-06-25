@@ -305,7 +305,7 @@ const endSwipe = () => {
 
 .page-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
   color: #2a2a2a;
 }
@@ -364,7 +364,7 @@ const endSwipe = () => {
 .page-body :deep(h1),
 .page-body :deep(h2),
 .page-body :deep(h3) {
-  font-weight: 800;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 0.5em 0 0.25em;
   line-height: 1.2;
@@ -452,7 +452,7 @@ const endSwipe = () => {
 
 .celebration-title {
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 4px 0 0;
 }
@@ -460,7 +460,7 @@ const endSwipe = () => {
 .celebration-sub {
   font-size: 12px;
   color: #5a4a26;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -475,7 +475,7 @@ const endSwipe = () => {
 
 .next-label {
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   color: #5a3b14;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -521,7 +521,7 @@ const endSwipe = () => {
   left: 8px;
   padding: 2px 8px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #fff;
@@ -537,7 +537,7 @@ const endSwipe = () => {
 
 .next-card-title {
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 0;
   line-height: 1.25;
@@ -546,7 +546,7 @@ const endSwipe = () => {
 .next-card-subtitle {
   margin: 2px 0 0;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: #6b5a3e;
 }
 
@@ -584,7 +584,7 @@ const endSwipe = () => {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
   color: #fff;
   background: rgba(30, 50, 70, 0.55);

@@ -116,9 +116,9 @@ const { open: openImprint } = useImprintModal()
 }
 
 .logo-text {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--cream);
 }
@@ -132,7 +132,7 @@ const { open: openImprint } = useImprintModal()
 }
 
 .footer-col h4 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 15px;
   font-weight: 500;
   margin-bottom: 16px;

@@ -236,7 +236,7 @@ button
 
 .serien-title
   font-size: 24px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   letter-spacing: -0.01em
   margin: 0
@@ -332,7 +332,7 @@ button
 
 .series-tile-name
   font-size: 18px
-  font-weight: 900
+  font-weight: 700
   color: white
   margin: 0
   line-height: 1.1
@@ -343,7 +343,7 @@ button
 
 .series-tile-sub
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $gold
   letter-spacing: 0.04em
   margin: 0
@@ -368,7 +368,7 @@ button
 
 .series-tile-count
   font-size: 12px
-  font-weight: 900
+  font-weight: 700
   color: $gold
 
 .empty-card
@@ -381,7 +381,7 @@ button
 
 .empty-title
   font-size: 16px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0 0 6px
 

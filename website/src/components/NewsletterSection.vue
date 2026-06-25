@@ -56,7 +56,7 @@ const { open: openPrivacy } = usePrivacyModal()
 }
 
 h2 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 38px;
   font-weight: 500;
   letter-spacing: -0.02em;
@@ -111,7 +111,7 @@ p {
   padding: 14px 26px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s;

@@ -121,7 +121,7 @@ const books = [
 }
 
 .hero-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 72px;
   line-height: 1.02;
   font-weight: 500;

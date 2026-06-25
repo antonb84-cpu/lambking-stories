@@ -169,7 +169,7 @@ const styleObj = computed(() => ({
   cursor: pointer
   text-align: left
   font-size: 14px
-  font-weight: 600
+  font-weight: 700
   color: #1a1a1a
   -webkit-tap-highlight-color: transparent
   transition: background 120ms ease, color 120ms ease

@@ -115,7 +115,7 @@ const priceLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 22px;
   color: var(--ink-soft);
   padding: 24px;
@@ -124,7 +124,7 @@ const priceLabel = computed(() => {
 
 .featured-b-eyebrow {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--coral);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -132,7 +132,7 @@ const priceLabel = computed(() => {
 }
 
 h2 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 34px;
   line-height: 1.1;
   font-weight: 500;
@@ -198,7 +198,7 @@ h2 {
 }
 
 .price {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 28px;
   font-weight: 500;
   color: var(--ink);
@@ -206,7 +206,7 @@ h2 {
 
   small {
     display: block;
-    font-family: 'PoetsenOne', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-size: 12px;
     color: var(--ink-soft);
     font-weight: 500;
@@ -249,7 +249,7 @@ h2 {
   color: #7a5f1f;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   align-self: flex-start;
   transition: background 0.15s;
 

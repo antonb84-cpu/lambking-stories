@@ -58,7 +58,7 @@ const purchasable = (b: BookDTO) =>
   margin-bottom: 36px;
 
   h2 {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 28px;
     font-weight: 500;
     letter-spacing: -0.02em;
@@ -111,7 +111,7 @@ const purchasable = (b: BookDTO) =>
   padding: 12px 14px 16px;
 
   .title {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 14.5px;
     font-weight: 500;
     line-height: 1.2;

@@ -96,12 +96,12 @@ const onUp = () => (pressed.value = false)
 <style scoped lang="sass">
 button
   -webkit-tap-highlight-color: transparent
-  font-family: 'PoetsenOne', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+  font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
 
 // PRIMARY: vibrant grape purple pill, bold white text
 .a-btn-primary
   color: #ffffff
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.02em
   background: linear-gradient(180deg, #8a3ffc 0%, #6929c4 100%)
   box-shadow: 0 8px 0 -2px #3d1676, 0 12px 24px -6px rgba(61, 22, 118, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.18)

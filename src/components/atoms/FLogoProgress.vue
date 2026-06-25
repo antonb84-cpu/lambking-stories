@@ -52,7 +52,7 @@ const maskStyle = computed(() => {
 
 <style scoped lang="sass">
 .loading-text
-  font-family: 'PoetsenOne', serif
+  font-family: 'Nunito', serif
   font-size: 2rem
   color: white
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5)

@@ -1755,7 +1755,7 @@ $text-l: #a08962
   flex-shrink: 0
 
 .ac-title
-  font-weight: 900
+  font-weight: 700
   font-size: 1.05rem
   color: $text
   flex-shrink: 0
@@ -1775,7 +1775,7 @@ $text-l: #a08962
   border: 1px solid $p-bdr
   color: $text
   font-size: 0.9rem
-  font-weight: 800
+  font-weight: 700
   cursor: pointer
   transition: background 0.13s, transform 0.1s
 
@@ -1904,7 +1904,7 @@ $text-l: #a08962
   align-items: center
   justify-content: center
   font-size: 1rem
-  font-weight: 800
+  font-weight: 700
   color: $p
   z-index: 50
   pointer-events: none
@@ -1935,7 +1935,7 @@ $text-l: #a08962
   margin-bottom: 14px
 
 .ac-upload-title
-  font-weight: 900
+  font-weight: 700
   font-size: 1.3rem
   margin-bottom: 6px
 
@@ -1955,7 +1955,7 @@ $text-l: #a08962
   border: none
   cursor: pointer
   font: inherit
-  font-weight: 800
+  font-weight: 700
   font-size: 0.92rem
   box-shadow: 0 4px 16px rgba(33, 64, 106, 0.38)
 
@@ -2167,7 +2167,7 @@ $text-l: #a08962
 
 .ac-mb-label
   font-size: 0.68rem
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.08em
   text-transform: uppercase
   color: $p
@@ -2228,7 +2228,7 @@ $text-l: #a08962
   cursor: pointer
   font: inherit
   font-size: 0.58rem
-  font-weight: 800
+  font-weight: 700
   color: $text-m
 
   svg
@@ -2261,14 +2261,14 @@ $text-l: #a08962
   display: flex
   justify-content: space-between
   font-size: 0.65rem
-  font-weight: 800
+  font-weight: 700
   color: $text-l
   text-transform: uppercase
   letter-spacing: 0.04em
 
   b
     color: $p
-    font-weight: 900
+    font-weight: 700
 
 input[type=range]
   -webkit-appearance: none
@@ -2314,7 +2314,7 @@ input[type=range]::-moz-range-thumb
   cursor: pointer
   font: inherit
   font-size: 0.68rem
-  font-weight: 800
+  font-weight: 700
   color: $text-m
 
   &:disabled
@@ -2342,7 +2342,7 @@ input[type=range]::-moz-range-thumb
   cursor: pointer
   font: inherit
   font-size: 0.74rem
-  font-weight: 800
+  font-weight: 700
   display: flex
   align-items: center
   justify-content: center
@@ -2430,7 +2430,7 @@ input[type=range]::-moz-range-thumb
 .ac-confirm-title
   margin: 0 0 8px
   font-size: 1.15rem
-  font-weight: 900
+  font-weight: 700
   color: $text
 
 .ac-confirm-body
@@ -2448,7 +2448,7 @@ input[type=range]::-moz-range-thumb
 .ac-confirm-stay,
 .ac-confirm-leave
   font: inherit
-  font-weight: 800
+  font-weight: 700
   font-size: 0.88rem
   border: none
   cursor: pointer

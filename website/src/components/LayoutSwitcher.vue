@@ -43,9 +43,9 @@ const { layout, setLayout } = useLayout()
   border: none;
   background: transparent;
   color: rgba(250, 244, 234, 0.55);
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   font-style: italic;
   border-radius: 999px;
   cursor: pointer;

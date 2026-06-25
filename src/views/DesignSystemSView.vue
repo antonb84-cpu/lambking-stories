@@ -155,7 +155,7 @@ const sComponentNames = [
 
 .ds-s-card-title
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.08em
   text-transform: uppercase
   color: #7F8C8D
@@ -163,7 +163,7 @@ const sComponentNames = [
 
 .ds-s-card-title-light
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.08em
   text-transform: uppercase
   color: rgba(255, 255, 255, 0.85)

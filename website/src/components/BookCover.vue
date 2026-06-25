@@ -80,7 +80,7 @@ defineProps<{
 }
 
 .bc-number {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 42px;
   font-style: italic;
   font-weight: 500;
@@ -91,7 +91,7 @@ defineProps<{
 }
 
 .bc-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 17px;
   font-weight: 500;
   line-height: 1.1;

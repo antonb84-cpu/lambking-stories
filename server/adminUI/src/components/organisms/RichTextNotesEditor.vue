@@ -225,7 +225,7 @@ const wrapSelectionInVCenter = () => wrapSelectionWithTag('vcenter')
   padding: 5px 10px;
   border-radius: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #44403c;
   background: transparent;
   transition: background 140ms ease, color 140ms ease;

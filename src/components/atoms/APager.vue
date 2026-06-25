@@ -171,7 +171,7 @@ const skipForward = () => go(props.modelValue + props.skip)
   left: 50%
   transform: translateX(-50%)
   font-size: 8px
-  font-weight: 900
+  font-weight: 700
   line-height: 1
 
   @media (min-width: 768px)
@@ -185,7 +185,7 @@ const skipForward = () => go(props.modelValue + props.skip)
   border-radius: 999px
   background-color: var(--color-bg-active-pill)
   border: 1px solid rgba(126, 58, 242, 0.15)
-  font-weight: 900
+  font-weight: 700
   color: var(--color-text-link)
 
 .a-pager-current
@@ -193,7 +193,7 @@ const skipForward = () => go(props.modelValue + props.skip)
 
 .a-pager-sep
   opacity: 0.5
-  font-weight: 800
+  font-weight: 700
 
 .a-pager-total
   font-size: 12px

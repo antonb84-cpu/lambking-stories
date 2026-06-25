@@ -51,7 +51,7 @@ defineEmits<{ cancel: []; confirm: [] }>()
 .cd-title {
   margin: 0 0 8px;
   font-size: 1.15rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.05em;
   color: #b02828;
   text-transform: uppercase;
@@ -68,7 +68,7 @@ defineEmits<{ cancel: []; confirm: [] }>()
   margin: 0 0 18px;
   font-size: 0.85rem;
   color: #44403c;
-  font-family: 'PoetsenOne', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'Nunito', ui-monospace, SFMono-Regular, Menlo, monospace;
   background: rgba(0, 0, 0, 0.04);
   padding: 6px 10px;
   border-radius: 8px;
@@ -85,7 +85,7 @@ defineEmits<{ cancel: []; confirm: [] }>()
 .cd-cancel,
 .cd-confirm {
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.88rem;
   border: none;
   cursor: pointer;

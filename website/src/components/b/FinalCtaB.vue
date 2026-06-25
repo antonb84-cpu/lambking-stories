@@ -48,7 +48,7 @@ const priceLabel = computed(() => {
 }
 
 h2 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 44px;
   line-height: 1.05;
   font-weight: 500;

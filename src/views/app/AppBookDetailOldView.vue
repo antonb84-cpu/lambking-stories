@@ -241,7 +241,7 @@ watch(bookId, () => {
   align-items: center
   gap: 6px
   font-size: 12px
-  font-weight: 800
+  font-weight: 700
   text-transform: uppercase
   letter-spacing: 0.1em
   color: var(--color-text-link)
@@ -271,14 +271,14 @@ watch(bookId, () => {
 
 .page-index
   font-size: 10px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.14em
   text-transform: uppercase
   color: var(--color-text-secondary)
 
 .page-title
   font-size: 15px
-  font-weight: 800
+  font-weight: 700
   color: var(--color-text-primary)
 
 .page-text

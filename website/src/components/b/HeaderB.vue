@@ -77,9 +77,9 @@ defineProps<{ buyUrl: string }>()
 }
 
 .b-logo-text {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 

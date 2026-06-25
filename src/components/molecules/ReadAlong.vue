@@ -298,7 +298,7 @@ watch(currentSentence, () => {
 
 .subtitle-current
   font-size: 17px
-  font-weight: 800
+  font-weight: 700
   line-height: 1.55
   color: var(--color-text-secondary)
 
@@ -313,12 +313,12 @@ watch(currentSentence, () => {
 
 .subtitle-placeholder
   color: var(--color-text-secondary)
-  font-weight: 600
+  font-weight: 700
   font-style: italic
 
 .subtitle-next
   font-size: 14px
-  font-weight: 600
+  font-weight: 700
   line-height: 1.5
   color: rgba(138, 116, 170, 0.7)
 

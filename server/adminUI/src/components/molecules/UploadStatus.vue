@@ -34,7 +34,7 @@ defineProps<{
   margin-top: 6px;
   border-radius: 10px;
   font-size: 12.5px;
-  font-weight: 800;
+  font-weight: 700;
   max-width: 100%;
   line-height: 1.25;
   letter-spacing: 0.005em;
@@ -64,7 +64,7 @@ defineProps<{
 }
 
 .upload-status .label {
-  font-weight: 800;
+  font-weight: 700;
   white-space: normal;
   /* Cap so a pathological filename can't push the layout, but allow wrap so
    * a long error message reads as full text instead of "…" + invisible. */

@@ -58,7 +58,7 @@ const onUp = () => (pressed.value = false)
 <style scoped lang="sass">
 .z-chip
   border-radius: 999px
-  font-family: 'PoetsenOne', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+  font-family: 'Nunito', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
   letter-spacing: 0.01em
   line-height: 1
   border: 1px solid transparent

@@ -130,7 +130,7 @@ button
 
 .avatar-modal-title
   font-size: 18px
-  font-weight: 900
+  font-weight: 700
   color: #1a2f4a
   text-align: center
   margin: 0 0 16px

@@ -103,7 +103,7 @@ const isPdf = computed(() => !previewSrc.value)
   left: 6px
   padding: 2px 8px
   font-size: 10px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.05em
   text-transform: uppercase
   color: #fff

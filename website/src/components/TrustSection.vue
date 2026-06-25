@@ -91,7 +91,7 @@
 }
 
 h2 {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 44px;
   line-height: 1.1;
   font-weight: 500;
@@ -149,7 +149,7 @@ h2 {
 }
 
 .trust-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.01em;

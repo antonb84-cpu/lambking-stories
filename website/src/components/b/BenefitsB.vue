@@ -61,7 +61,7 @@
 
   .label {
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--coral);
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -69,7 +69,7 @@
   }
 
   h2 {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 42px;
     line-height: 1.1;
     font-weight: 500;
@@ -102,7 +102,7 @@
   padding: 24px;
 
   h3 {
-    font-family: 'PoetsenOne', serif;
+    font-family: 'Nunito', serif;
     font-size: 18px;
     font-weight: 500;
     letter-spacing: -0.01em;

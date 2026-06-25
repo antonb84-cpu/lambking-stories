@@ -267,7 +267,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
   gap: 6px;
   padding: 8px 10px 4px;
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #8a6d3b;
@@ -321,7 +321,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
 }
 
 .bb-item-id {
-  font-family: 'PoetsenOne', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'Nunito', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
   color: #2471a3;
   flex-shrink: 0;

@@ -138,7 +138,7 @@ button
 
 .page-title
   font-size: 24px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   letter-spacing: -0.01em
   margin: 0
@@ -154,7 +154,7 @@ button
 
 .page-breadcrumb
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   letter-spacing: 0.18em
   color: $brown
   text-transform: uppercase
@@ -193,14 +193,14 @@ button
 
 .book-tile-band
   font-size: 11px
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.12em
   text-transform: uppercase
   color: $gold
 
 .book-tile-name
   font-size: 14px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
   line-height: 1.2

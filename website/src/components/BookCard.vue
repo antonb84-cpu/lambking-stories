@@ -187,7 +187,7 @@ const seriesTagClass = computed(() => {
   padding: 5px 11px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   z-index: 2;
 
@@ -206,7 +206,7 @@ const seriesTagClass = computed(() => {
 
 .book-series-tag {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--coral);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -226,7 +226,7 @@ const seriesTagClass = computed(() => {
 }
 
 .book-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -269,7 +269,7 @@ const seriesTagClass = computed(() => {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 10px;
   align-self: flex-start;
 
@@ -293,14 +293,14 @@ const seriesTagClass = computed(() => {
 }
 
 .book-price {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--ink);
   line-height: 1;
 
   small {
-    font-family: 'PoetsenOne', sans-serif;
+    font-family: 'Nunito', sans-serif;
     font-size: 11px;
     color: var(--ink-soft);
     font-weight: 500;
@@ -315,7 +315,7 @@ const seriesTagClass = computed(() => {
   padding: 11px 18px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -340,7 +340,7 @@ const seriesTagClass = computed(() => {
   justify-content: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: #7a5f1f;
   background: var(--gold-soft);
   border-radius: 0 0 20px 20px;

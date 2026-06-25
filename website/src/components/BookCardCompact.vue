@@ -164,7 +164,7 @@ const seriesTagClass = computed(() => {
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   z-index: 2;
 
@@ -183,7 +183,7 @@ const seriesTagClass = computed(() => {
 
 .compact-series {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--coral);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -203,7 +203,7 @@ const seriesTagClass = computed(() => {
 }
 
 .compact-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 16px;
   font-weight: 500;
   line-height: 1.2;
@@ -223,7 +223,7 @@ const seriesTagClass = computed(() => {
 }
 
 .compact-price {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 15px;
   font-weight: 500;
   color: var(--ink);
@@ -236,7 +236,7 @@ const seriesTagClass = computed(() => {
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -260,7 +260,7 @@ const seriesTagClass = computed(() => {
   padding: 5px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: #7a5f1f;
   background: var(--gold-soft);
   margin-left: auto;

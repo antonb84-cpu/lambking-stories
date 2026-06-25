@@ -83,7 +83,7 @@ const priceLabel = computed(() => {
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--coral-dark);
   margin-bottom: 18px;
 
@@ -96,7 +96,7 @@ const priceLabel = computed(() => {
 }
 
 .hero-b-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 56px;
   line-height: 1.02;
   font-weight: 500;
@@ -174,7 +174,7 @@ const priceLabel = computed(() => {
 
 .hero-b-secondary {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink-soft);
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -232,7 +232,7 @@ const priceLabel = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 22px;
   color: var(--ink-soft);
   padding: 24px;

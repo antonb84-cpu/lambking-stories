@@ -59,7 +59,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 }
 
 .sticky-title {
-  font-family: 'PoetsenOne', serif;
+  font-family: 'Nunito', serif;
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;

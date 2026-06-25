@@ -770,7 +770,7 @@ button
 
 .greeting-title
   font-size: 26px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   letter-spacing: -0.01em
   line-height: 1.1
@@ -844,7 +844,7 @@ button
   padding: 0 9px
   border-radius: 999px
   font-size: 11px
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.04em
   color: $navy
   background-color: $cream-card
@@ -902,14 +902,14 @@ button
 
 .search-tile-series
   font-size: 10px
-  font-weight: 800
+  font-weight: 700
   text-transform: uppercase
   letter-spacing: 0.08em
   color: $brown
 
 .search-tile-title
   font-size: 13px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
   line-height: 1.2
@@ -955,7 +955,7 @@ button
 
 .section-title
   font-size: 17px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   letter-spacing: -0.005em
 
@@ -964,7 +964,7 @@ button
   align-items: center
   gap: 4px
   font-size: 12px
-  font-weight: 800
+  font-weight: 700
   color: $navy
   background: transparent
   border: none
@@ -1041,14 +1041,14 @@ button
 
 .continue-series
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   text-transform: uppercase
   letter-spacing: 0.16em
   color: #d4a83e
 
 .continue-title
   font-size: 15px
-  font-weight: 900
+  font-weight: 700
   line-height: 1.2
   margin: 0
   color: #ffffff
@@ -1164,7 +1164,7 @@ button
 
 .resume-title
   font-size: 15px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   line-height: 1.15
   display: -webkit-box
@@ -1197,7 +1197,7 @@ button
 
 .resume-progress-pct
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $navy
   font-variant-numeric: tabular-nums
 
@@ -1261,7 +1261,7 @@ button
 
 .new-tile-title
   font-size: 11px
-  font-weight: 800
+  font-weight: 700
   color: $navy
   line-height: 1.25
   display: -webkit-box
@@ -1346,7 +1346,7 @@ button
   align-items: center
   gap: 6px
   font-size: 11px
-  font-weight: 900
+  font-weight: 700
   letter-spacing: 0.16em
   text-transform: uppercase
   color: $gold

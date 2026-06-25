@@ -325,7 +325,7 @@ function triggerDance() {
 
 .ds-a-card-title
   font-size: 12px
-  font-weight: 800
+  font-weight: 700
   text-transform: uppercase
   letter-spacing: 0.14em
   color: #6929c4

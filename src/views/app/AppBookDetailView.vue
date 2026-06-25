@@ -652,13 +652,13 @@ button
 
 .series-eyebrow
   font-size: 12px
-  font-weight: 800
+  font-weight: 700
   color: $brown
   letter-spacing: 0.06em
 
 .book-band-title
   font-size: 22px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   line-height: 1.15
   margin: 0
@@ -668,7 +668,7 @@ button
   font-size: 14px
   color: $brown
   margin: -2px 0 0
-  font-weight: 600
+  font-weight: 700
 
 .book-desc
   font-size: 14px
@@ -685,7 +685,7 @@ button
 
 .awaits-title
   font-size: 15px
-  font-weight: 900
+  font-weight: 700
   color: $navy
   margin: 0
 
@@ -759,7 +759,7 @@ button
   justify-content: space-between
   gap: 12px
   font-size: 12px
-  font-weight: 800
+  font-weight: 700
   color: $brown
   text-transform: uppercase
   letter-spacing: 0.05em
