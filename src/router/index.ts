@@ -16,6 +16,7 @@ const DesignSystemZView = () => import(/* webpackChunkName: "design-system-z" */
 const AppAllBooksView = () => import('@/views/app/AppAllBooksView.vue')
 const AppAllNewBooksView = () => import('@/views/app/AppAllNewBooksView.vue')
 const AppBookSeriesView = () => import('@/views/app/AppBookSeriesView.vue')
+const AppCategoryView = () => import('@/views/app/AppCategoryView.vue')
 const AppBookDetailView = () => import('@/views/app/AppBookDetailView.vue')
 const AppReaderView = () => import('@/views/app/AppReaderView.vue')
 const AppHoerenView = () => import('@/views/app/AppHoerenView.vue')
@@ -33,6 +34,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/app/all-books', name: 'app-all-books', component: AppAllBooksView },
   { path: '/app/new-books', name: 'app-all-new-books', component: AppAllNewBooksView },
   { path: '/app/series/:seriesId', name: 'app-series', component: AppBookSeriesView },
+  { path: '/app/categories/:category', name: 'app-category', component: AppCategoryView },
   { path: '/app/book/:bookId', name: 'app-book', component: AppBookDetailView },
   { path: '/app/book/:bookId/reader', name: 'app-reader', component: AppReaderView },
   { path: '/app/hoeren', name: 'app-hoeren', component: AppHoerenView },

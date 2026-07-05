@@ -223,6 +223,23 @@ Basic auth.
 
 Basic auth.
 
+### POST /api/categories/:name/icon
+
+Basic auth. `multipart/form-data` with a `file` field (webp/jpeg/png, 5 MB cap).
+Saves the image under `uploads/category-icons/` and writes the absolute URL onto
+the category's `icon` field in one round trip.
+
+**200**
+
+```json
+{
+  "category": {
+    "name": "Abenteuer",
+    "icon": "https://<host>/uploads/category-icons/<hash>-<ts>.png"
+  }
+}
+```
+
 ---
 
 ## Uploads

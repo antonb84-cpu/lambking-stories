@@ -5,7 +5,7 @@ import mime from 'mime-types'
 import { env } from '../config/env.js'
 import { HttpError } from '../utils/httpError.js'
 
-export type ImageKind = 'cover' | 'preview' | 'content' | 'achievement'
+export type ImageKind = 'cover' | 'preview' | 'content' | 'achievement' | 'category-icon'
 
 const IMAGE_MIME_TO_EXT: Record<string, string> = {
   'image/webp': 'webp',
@@ -21,7 +21,8 @@ export const IMAGE_DIR_MAP: Record<ImageKind, string> = {
   cover: 'covers',
   preview: 'previews',
   content: 'content-images',
-  achievement: 'achievement-badges'
+  achievement: 'achievement-badges',
+  'category-icon': 'category-icons'
 }
 
 export const MAX_AUDIO_BYTES = 50 * 1024 * 1024

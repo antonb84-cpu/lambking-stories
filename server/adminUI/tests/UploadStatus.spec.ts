@@ -11,12 +11,18 @@ describe('UploadStatus', () => {
   it('renders filename with check on success', () => {
     const w = mount(UploadStatus, { props: { status: { ok: true, filename: 'apple.ogg' } } })
     expect(w.text()).toContain('apple.ogg')
-    expect(w.html()).toContain('text-emerald')
+    // Success state is signalled via the semantic `is-ok` class (scoped
+    // CSS handles the green styling) and the filename label.
+    expect(w.find('.upload-status').classes()).toContain('is-ok')
+    expect(w.find('.label.filename').exists()).toBe(true)
   })
 
   it('renders error message on failure', () => {
     const w = mount(UploadStatus, { props: { status: { ok: false, message: 'zu groß' } } })
     expect(w.text()).toContain('zu groß')
-    expect(w.html()).toContain('text-rose')
+    // Error state is signalled via the semantic `is-err` class (scoped
+    // CSS handles the red styling) and the error label.
+    expect(w.find('.upload-status').classes()).toContain('is-err')
+    expect(w.find('.label.error').exists()).toBe(true)
   })
 })

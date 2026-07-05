@@ -27,7 +27,12 @@ export default {
         missionSub: 'Be a peacemaker today.',
         searchResultsTitle: 'Search results',
         searchEmpty: 'No books found.',
-        discoverBooks: 'Discover'
+        discoverBooks: 'Discover',
+        categories: 'Categories'
+      },
+      categories: {
+        books: 'Books',
+        empty: 'No books in this category yet.'
       },
       allBooks: {
         title: 'Series',
@@ -56,7 +61,8 @@ export default {
         layoutThree: '3-column grid',
         layoutTwo: '2-column grid',
         layoutList: 'List view',
-        pagesShort: '{n} pages'
+        pagesShort: '{n} pages',
+        empty: 'No books in this series yet.'
       },
       bookDetail: {
         story: 'Story',
@@ -190,7 +196,12 @@ export default {
         missionSub: 'Sei heute ein Friedensstifter.',
         searchResultsTitle: 'Suchergebnisse',
         searchEmpty: 'Keine Bücher gefunden.',
-        discoverBooks: 'Entdecke'
+        discoverBooks: 'Entdecke',
+        categories: 'Kategorien'
+      },
+      categories: {
+        books: 'Bücher',
+        empty: 'Noch keine Bücher in dieser Kategorie.'
       },
       allBooks: {
         title: 'Serien',
@@ -219,7 +230,8 @@ export default {
         layoutThree: '3-Spalten-Raster',
         layoutTwo: '2-Spalten-Raster',
         layoutList: 'Listenansicht',
-        pagesShort: '{n} Seiten'
+        pagesShort: '{n} Seiten',
+        empty: 'Noch keine Bücher in dieser Serie.'
       },
       bookDetail: {
         story: 'Geschichte',

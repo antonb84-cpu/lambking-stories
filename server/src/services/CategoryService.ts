@@ -19,6 +19,15 @@ export const CategoryService = {
     return doc.toJSON()
   },
 
+  async update(name: string, input: { icon?: string }) {
+    const doc = await Category.findOneAndUpdate({ name }, input, {
+      new: true,
+      runValidators: true
+    }).exec()
+    if (!doc) throw HttpError.notFound(`Category "${name}" not found`)
+    return doc.toJSON()
+  },
+
   async remove(name: string) {
     if (isReservedCategory(name)) {
       throw HttpError.forbidden(`Category "${name}" is reserved and cannot be deleted`)

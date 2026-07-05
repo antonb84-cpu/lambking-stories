@@ -664,6 +664,7 @@ onBeforeUnmount(() => {
 // ----- Counter / dots -----
 
 const currentEntry = computed(() => displayEntries.value[currentIndex.value] ?? null)
+const isEndPage = computed(() => currentEntry.value?.kind === 'celebration')
 const realPageCount = computed(() => displayEntries.value.filter((e) => e.kind === 'page').length)
 const counterText = computed(() => {
   const entry = currentEntry.value
@@ -676,6 +677,11 @@ const counterText = computed(() => {
 function goBack() {
   if (window.history.length > 1) router.back()
   else router.push({ name: 'app-book', params: { bookId: bookId.value } })
+}
+
+// Replace (not push) so the finished book does not sit in the back stack.
+function goToBookDetail() {
+  router.replace({ name: 'app-book', params: { bookId: bookId.value } })
 }
 </script>
 
@@ -829,9 +835,16 @@ function goBack() {
           @click="gotoIndex(i)"
         )
 
-      //- Bottom-right counter.
+      //- Bottom-right counter. On the closing page it becomes the "done"
+      //- button that returns to the book detail page.
+      button(
+        v-if="book && isEndPage"
+        type="button"
+        class="page-counter is-action"
+        @click="goToBookDetail"
+      ) {{ counterText }}
       div(
-        v-if="book"
+        v-else-if="book"
         class="page-counter"
         aria-live="polite"
       ) {{ counterText }}
@@ -1235,6 +1248,20 @@ function goBack() {
   -webkit-backdrop-filter: blur(6px)
   pointer-events: none
   font-variant-numeric: tabular-nums
+
+  &.is-action
+    pointer-events: auto
+    cursor: pointer
+    border: none
+    padding: 8px 16px
+    font-family: inherit
+    transition: transform 0.15s ease, background 0.15s ease
+
+    &:hover
+      background: rgba(30, 50, 70, 0.75)
+
+    &:active
+      transform: scale(0.95)
 
 .loading-state
   position: absolute

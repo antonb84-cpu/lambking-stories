@@ -405,6 +405,15 @@ textarea.glass:focus,
   cursor: progress;
 }
 
+/* Square variant for the category-icon dropzone — same states as the
+ * 16:9 series cover, just a 1:1 thumb since icons render as small
+ * squares next to the category name in the app. */
+.tax-chip .chip-cover.is-square {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
 .tax-chip .chip-cover-input {
   position: absolute;
   inset: 0;

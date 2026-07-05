@@ -10,6 +10,7 @@ import WelcomeSlider from '@/components/molecules/WelcomeSlider.vue'
 import KoFiButton from '@/components/molecules/KoFiButton.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
+import useApiCategories from '@/use/useApiCategories'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
 import useUserName from '@/use/useUserName'
@@ -23,6 +24,7 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { lastReadId, getSeriesOfBook } = useModels()
 const apiBooks = useApiBooks()
+const apiCategories = useApiCategories()
 const { getPct } = useReadingProgress()
 const { avatarSrc } = useAvatar()
 const { displayName, hasCustomName } = useUserName()
@@ -31,6 +33,9 @@ const searchQuery = ref('')
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
+  // Category records carry the editor-uploaded icons for the category
+  // list section at the bottom of the page.
+  void apiCategories.loadAll()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
@@ -139,6 +144,38 @@ const upcomingBooks = computed<ApiBook[]>(() => {
     .filter((b) => new Date(b.releaseDate).getTime() > now)
     .slice(0, 6)
 })
+
+// ===== Category filter list =====
+// One row per category (icon · name · book count · chevron), shown
+// below the last section. Rows navigate to the Categories page which
+// lists the category's books. Categories without any visible book are
+// skipped so kids never land on an empty page — this also drops the
+// reserved "NO SHOW" category, whose books the API hides anyway.
+interface CategoryRow {
+  name: string
+  icon: string
+  count: number
+}
+
+const categoryRows = computed<CategoryRow[]>(() => {
+  void apiCategories.state.all
+  const counts: Record<string, number> = {}
+  for (const b of allBooks.value) {
+    if (!b.category) continue
+    counts[b.category] = (counts[b.category] ?? 0) + 1
+  }
+  const rows: CategoryRow[] = []
+  for (const c of apiCategories.state.all ?? []) {
+    const count = counts[c.name] ?? 0
+    if (!count) continue
+    rows.push({ name: c.name, icon: c.icon || '', count })
+  }
+  return rows
+})
+
+function openCategory(name: string) {
+  router.push({ name: 'app-category', params: { category: name } })
+}
 
 // Greeting line. The design shows a personalised salute — until we have a
 // real "name" field we fall back to the i18n default.
@@ -578,6 +615,37 @@ const welcomeSlides = computed(() => [
                   @error="onImgFallback"
                 )
               span(class="upcoming-tile-title") {{ localizedTitle(book) }}
+
+        //- ===== Kategorien =====
+        //- One tappable row per category: icon · name · book count ·
+        //- chevron. Navigates to the Categories page with the books of
+        //- the picked category.
+        section(v-if="categoryRows.length" class="category-section")
+          div(class="section-head")
+            h3(class="section-title") {{ t('app.main.categories') }}
+
+          div(class="category-list")
+            button(
+              v-for="cat in categoryRows"
+              :key="cat.name"
+              type="button"
+              class="category-row"
+              @click="openCategory(cat.name)"
+            )
+              span(class="category-row-icon-wrap" aria-hidden="true")
+                img(
+                  v-if="cat.icon"
+                  :src="cat.icon"
+                  alt=""
+                  class="category-row-icon"
+                  loading="lazy"
+                  @error="onImgFallback"
+                )
+                ZIconography(v-else name="library" :size="20")
+              span(class="category-row-name") {{ cat.name }}
+              span(class="category-row-count") {{ cat.count }}
+              span(class="category-row-chevron" aria-hidden="true")
+                ZIconography(name="chevron-right" :size="16")
 
         //- ===== Mission of the Day — built but hidden until gamification
         //-       lands. Flip ENABLE_MISSION_OF_DAY to true once ready. =====
@@ -1319,6 +1387,81 @@ button
   -webkit-box-orient: vertical
   overflow: hidden
 
+// ===== Kategorien list =====
+// Full-width tappable rows (reference: category filter design) —
+// icon in a soft square well on the left, bold navy name, count and
+// chevron pinned to the right edge.
+.category-section
+  margin-top: 24px
+
+.category-list
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.category-row
+  display: flex
+  align-items: center
+  gap: 12px
+  width: 100%
+  padding: 12px 14px
+  background-color: $cream-card
+  border: 1px solid $border
+  border-radius: 14px
+  cursor: pointer
+  text-align: left
+  font-family: inherit
+  box-shadow: 0 6px 16px -10px rgba(58, 42, 18, 0.3)
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out
+
+  &:hover
+    transform: translateY(-2px)
+    box-shadow: 0 12px 22px -10px rgba(212, 168, 62, 0.4)
+
+  &:active
+    transform: scale(0.98)
+
+.category-row-icon-wrap
+  flex: 0 0 auto
+  display: inline-flex
+  align-items: center
+  justify-content: center
+  width: 34px
+  height: 34px
+  background: transparent
+  overflow: hidden
+  scale: 170%
+
+.category-row-icon
+  width: 30px
+  height: 30px
+  object-fit: contain
+  display: block
+
+.category-row-name
+  flex: 1
+  min-width: 0
+  font-size: 14px
+  font-weight: 700
+  color: $navy
+  line-height: 1.2
+  overflow: hidden
+  text-overflow: ellipsis
+  white-space: nowrap
+
+.category-row-count
+  flex: 0 0 auto
+  font-size: 13px
+  font-weight: 700
+  color: $brown
+  font-variant-numeric: tabular-nums
+
+.category-row-chevron
+  flex: 0 0 auto
+  display: inline-flex
+  align-items: center
+  color: $navy
+
 // ===== Mission of the day =====
 .mission-section
   margin-top: 26px
@@ -1461,6 +1604,17 @@ button
   .upcoming-section
     grid-column: 1 / -1
     min-width: 0
+
+  // Category rows span the full grid row; a 2-col row grid keeps them
+  // from stretching comically wide in landscape.
+  .category-section
+    grid-column: 1 / -1
+    min-width: 0
+
+  .category-list
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 10px
 
   .main-header-inner
     max-width: 64rem

@@ -96,6 +96,9 @@ export interface SeriesDTO {
 
 export interface CategoryDTO {
   name: string
+  // Optional square icon image, uploaded via the CategoryManager
+  // dropzone. Empty string / undefined means "not yet set".
+  icon?: string
 }
 
 // Books in this category are filtered out of the public Book app listing.

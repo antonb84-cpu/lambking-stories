@@ -69,7 +69,8 @@ export function createApp(): Express {
   // CORS picks one of two policies per request:
   //
   //   1. Permissive (origin: *, no creds) for the public read endpoints
-  //      (`GET /books`, `GET /book/:id`) when the caller carries an
+  //      (`GET /books`, `GET /book/:id`, `GET /book-series`,
+  //      `GET /categories`) when the caller carries an
   //      `X-Client-Key` header — or when the preflight announces it via
   //      `Access-Control-Request-Headers`. The Tauri Android WebView runs
   //      from `https://tauri.localhost` (and iOS from `tauri://localhost`),
@@ -86,7 +87,11 @@ export function createApp(): Express {
   // The actual key validation runs later in `requireClientKey` on the
   // route itself; CORS just needs to know which policy to apply, which is
   // a header-presence check rather than a full validation.
-  const publicReadPath = (p: string) => p === '/books' || p.startsWith('/book/')
+  // Exact matches only for `/book-series` and `/categories` — their
+  // write/upload subpaths (`/categories/:name/icon`, `/book-series/:id/cover`)
+  // stay behind the strict credentialed allowlist.
+  const publicReadPath = (p: string) =>
+    p === '/books' || p.startsWith('/book/') || p === '/book-series' || p === '/categories'
   app.use(
     '/api',
     cors((req, cb) => {

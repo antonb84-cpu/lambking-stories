@@ -2,7 +2,11 @@ import { Schema, model, type InferSchemaType, type Model } from 'mongoose'
 
 const CategorySchema = new Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true }
+    name: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+    // Small square icon image shown next to the category name in the
+    // public app's category list. Uploaded via the AdminUI dropzone
+    // embedded in each category chip. Empty string means "not yet set".
+    icon: { type: String, default: '' }
   },
   { timestamps: true }
 )

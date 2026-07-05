@@ -21,5 +21,12 @@ export const useCategoryStore = defineStore('categories', () => {
     items.value = items.value.filter((c) => c.name !== name)
   }
 
-  return { items, load, add, remove }
+  const uploadIcon = async (name: string, file: File) => {
+    const updated = await categoriesApi.uploadIcon(name, file)
+    const idx = items.value.findIndex((c) => c.name === name)
+    if (idx >= 0) items.value.splice(idx, 1, updated)
+    return updated
+  }
+
+  return { items, load, add, remove, uploadIcon }
 })

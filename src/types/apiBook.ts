@@ -93,6 +93,18 @@ export interface ApiSeriesListResponse {
   series: ApiSeries[]
 }
 
+// Public-facing category payload as served by `GET /api/categories`.
+// `icon` is the URL of the small square icon uploaded via the AdminUI
+// dropzone (empty string when not yet set).
+export interface ApiCategory {
+  name: string
+  icon?: string
+}
+
+export interface ApiCategoryListResponse {
+  categories: ApiCategory[]
+}
+
 export interface ApiBookResponse {
   book: ApiBook
   cacheHit?: boolean
