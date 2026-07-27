@@ -31,6 +31,16 @@ onMounted(() => {
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
 
+// Backdrop — a tall artwork for portrait, a wide one for landscape. The swap
+// itself happens in CSS (`@media (orientation: …)`); we only feed the
+// base-url-corrected `url()` values in as custom properties, because the
+// files live in `public/` and a bare `url(…)` inside the SFC style block
+// would be resolved by Vite as a bundled asset.
+const backdropVars = computed(() => ({
+  '--series-bg-portrait': `url(${prependBaseUrl('images/bg/series_portrait.webp')})`,
+  '--series-bg-landscape': `url(${prependBaseUrl('images/bg/series_landscape.webp')})`
+}))
+
 // Derive series tiles directly from the API books. Series metadata
 // (display name + tagline) comes from the static `useModels.getSeries`
 // catalog when available; otherwise we fall back to the raw seriesId so
@@ -126,7 +136,10 @@ function goBack() {
 </script>
 
 <template lang="pug">
-  div(:class="['serien-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
+  div(
+    :class="['serien-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']"
+    :style="backdropVars"
+  )
     //- ===== Header — back · crown · title =====
     header(class="serien-header")
       ZBackButton(variant="flat" class="serien-back" @click="goBack")
@@ -204,9 +217,47 @@ $border: #e6d6b5
 button
   -webkit-tap-highlight-color: transparent
 
+// The backdrop artwork lives on a viewport-pinned ::before layer instead of
+// on the page box: the page scrolls (and is taller than the screen), so a
+// plain background would scroll away and be sized against the whole document
+// rather than the screen. `cover` keeps it filling the viewport edge-to-edge
+// at every aspect ratio, with the beige palette colour underneath as a
+// paint-in fallback while the artwork loads.
+//
+// `position: relative` + `z-index: 0` makes .serien-page its own stacking
+// context so the `z-index: -1` layer stays above #app-root's opaque
+// background (which would otherwise hide it) while still sitting behind the
+// page content.
 .serien-page
-  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  position: relative
+  z-index: 0
+  background: transparent
   color: $navy
+
+.serien-page::before
+  content: ''
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  // Sized instead of `inset: 0` on purpose: during the page-pop-scale route
+  // animation the transform on .serien-page turns it into the containing
+  // block for this fixed layer, and `bottom: 0` would then stretch the
+  // artwork over the full document height and snap back when the animation
+  // ends. A viewport-height box looks identical in both states.
+  height: 100vh
+  height: 100dvh
+  z-index: -1
+  pointer-events: none
+  background-color: $cream-bg
+  background-image: var(--series-bg-portrait)
+  background-repeat: no-repeat
+  background-position: center
+  background-size: cover
+
+@media (orientation: landscape)
+  .serien-page::before
+    background-image: var(--series-bg-landscape)
 
 .serien-header
   position: relative
@@ -220,6 +271,7 @@ button
   position: absolute
   top: calc(max(env(safe-area-inset-top), 0.75rem))
   left: 12px
+  --back-icon-color: #1a2f4a !important
 
 .title-cluster
   display: flex
@@ -312,7 +364,7 @@ button
 .series-tile-fade
   position: absolute
   inset: 0
-  background: linear-gradient(109deg, #132637 0%, #192e43ee 26%, rgba(44, 57, 66, 0.7) 38%, rgba(202, 39, 26, 0.1) 55%)
+  background: linear-gradient(109deg, #132637 0%, #192e4377 26%, rgba(44, 57, 66, 0.5) 38%, rgba(202, 39, 26, 0.1) 55%)
   //background: linear-gradient(108deg, $cream-bg 0%, #E6D6B5FF 26%, rgba(253, 248, 237, 0.7) 42%, rgba(253, 248, 237, 0) 65%)
   pointer-events: none
 

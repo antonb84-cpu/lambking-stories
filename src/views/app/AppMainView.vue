@@ -224,7 +224,7 @@ const welcomeSlides = computed(() => [
     //- right above where the .path-overlay rises up.
     div(
       :class="['bg-zone', { 'bg-zone-fill': isSearching }]"
-      :style="{ backgroundImage: `url(${prependBaseUrl('images/bg/bg_path.webp')})` }"
+      :style="{ backgroundImage: `url(${prependBaseUrl('images/bg/main_portrait.webp')})` }"
     )
       //- ===== Header bar — centered crown + banner; bell · avatar pinned to the right =====
       header(class="main-header")
@@ -337,16 +337,16 @@ const welcomeSlides = computed(() => [
         div(class="main-header-inner")
           //- Brand: stacked crown over LambKing banner, centered
           div(class="brand-stack")
-            img(
-              :src="prependBaseUrl('images/icons/crown_256x256.webp')"
-              alt="LambKing"
-              class="brand-crown"
-              decoding="async"
-            )
+            //img(
+            //  :src="prependBaseUrl('images/icons/crown_256x256.webp')"
+            //  alt="LambKing"
+            //  class="brand-crown"
+            //  decoding="async"
+            //)
             img(
               :src="prependBaseUrl('images/logo/banner_500x116.webp')"
               alt="LambKing Stories"
-              class="brand-banner -ml-8"
+              class="brand-banner -ml-2"
               decoding="async"
             )
 
@@ -448,17 +448,17 @@ const welcomeSlides = computed(() => [
             :interval-ms="6000"
           )
             template(#overlay-2)
-              div(class="welcome-cta-row scale-[62%] -mb-4")
+              div(class="welcome-cta-row scale-[62%] -mb-6")
                 ZButton(
                   type="primary"
                   icon="book"
                   size="sm"
-                  class="-mb-1 -mr-24"
+                  class="-mb-1 -mr-10"
                   @click="openWebsite"
                 ) {{ t('app.main.discoverBooks') }}
 
             template(#overlay-1)
-              div(class="welcome-donate-row -mb-2")
+              div(class="welcome-donate-row -mb-4")
                 KoFiButton(
                   href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W"
                   tone="paypal"

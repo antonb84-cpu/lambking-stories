@@ -75,7 +75,7 @@ withDefaults(defineProps<Props>(), {
   align-items: center
   gap: 8px
   padding: 9px 16px
-  border-radius: 999px
+  border-radius: 8px
   font-size: 13px
   font-weight: 700
   letter-spacing: 0.02em

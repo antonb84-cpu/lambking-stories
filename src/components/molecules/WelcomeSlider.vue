@@ -9,7 +9,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   intervalMs: 6000,
-  aspectRatio: '4 / 3'
+  aspectRatio: '9 / 5'
 })
 
 const currentIndex = ref(0)
@@ -228,7 +228,8 @@ onUnmounted(() => {
 .welcome-slide-img
   width: 100%
   height: 100%
-  object-fit: cover
+  object-fit: fill
+  background: #1a2f4a
   display: block
   pointer-events: none
 

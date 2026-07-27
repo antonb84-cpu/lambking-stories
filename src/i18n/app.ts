@@ -8,6 +8,12 @@ export default {
         color: 'Color',
         profile: 'My Area'
       },
+      welcome: {
+        cta: 'Let\'s go!',
+        // The heading and subtitle are part of the artwork, so the alt text
+        // repeats them for screen readers.
+        artAlt: 'Welcome! Discover children\'s stories that strengthen faith and bring God\'s good news to life.'
+      },
       main: {
         hello: 'Hello, Explorer!',
         helloName: 'Hello, {name}!',
@@ -176,6 +182,12 @@ export default {
         hoeren: 'Hören',
         color: 'Malen',
         profile: 'Mein Bereich'
+      },
+      welcome: {
+        cta: 'Los geht\'s!',
+        // Überschrift und Untertitel stecken im Bild — der Alt-Text
+        // wiederholt sie für Screenreader.
+        artAlt: 'Willkommen! Entdecke Kindergeschichten, die Glauben stärken und Gottes gute Botschaft lebendig machen.'
       },
       main: {
         hello: 'Hallo, Entdecker!',

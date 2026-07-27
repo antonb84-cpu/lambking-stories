@@ -1,9 +1,21 @@
 export const isProduction = import.meta.env.VITE_NODE_ENV === 'production'
 export const isWeb = import.meta.env.VITE_PLATTFORM === 'web'
-let baseURL = import.meta.env.BASE_URL
-baseURL = baseURL.slice(0, baseURL.length - 1)
-// console.log('baseURL: ', baseURL, isProduction)
-export const prependBaseUrl = (url: string): string => (isProduction ? `${baseURL}/${url}` : url)
+
+// Vite always defines `BASE_URL` for the active build target and always
+// normalises it with a trailing slash: '/' for `pnpm dev` and the Tauri
+// build, '/little-bible-stories/' for GH-Pages main, './' for the Electron
+// renderer. It is the only input this helper needs.
+//
+// It deliberately does NOT key off `isProduction` any more: `.env*` is
+// gitignored, so `VITE_NODE_ENV` is undefined inside the Pages workflow and
+// esbuild folded the old ternary down to an identity function. Every path
+// then stayed relative and was resolved against whatever context consumed it
+// — the route URL for `<img src>`/inline styles, and the chunk stylesheet in
+// `/assets/` for `url()` values handed to CSS custom properties, which is
+// where `/little-bible-stories/assets/images/bg/…` 404s came from.
+const baseURL = import.meta.env.BASE_URL || '/'
+
+export const prependBaseUrl = (url: string): string => `${baseURL}${url.replace(/^\/+/, '')}`
 export const repeat = (n: number, callback: (_: any, i: number) => string): string[] => [...new Array(n)].map(callback)
 export const repeatPages = (n: number, callback: (_: any, i: number) => any): any[] => [...new Array(n)].map(callback)
 

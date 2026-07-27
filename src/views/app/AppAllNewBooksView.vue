@@ -23,6 +23,16 @@ onMounted(() => {
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 const THREE_MONTHS_MS = 1000 * 60 * 60 * 24 * 90
 
+// Backdrop — a tall artwork for portrait, a wide one for landscape. The swap
+// itself happens in CSS (`@media (orientation: …)`); we only feed the
+// base-url-corrected `url()` values in as custom properties, because the
+// files live in `public/` and a bare `url(…)` inside the SFC style block
+// would be resolved by Vite as a bundled asset.
+const backdropVars = computed(() => ({
+  '--series-bg-portrait': `url(${prependBaseUrl('images/bg/series_portrait.webp')})`,
+  '--series-bg-landscape': `url(${prependBaseUrl('images/bg/series_landscape.webp')})`
+}))
+
 function localizedTitle(book: ApiBook): string {
   return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
 }
@@ -47,7 +57,10 @@ function goBack() {
 </script>
 
 <template lang="pug">
-  div(:class="['new-books-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
+  div(
+    :class="['new-books-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']"
+    :style="backdropVars"
+  )
     header(class="page-header")
       ZBackButton(variant="flat" class="page-back" @click="goBack")
       div(class="title-cluster")
@@ -106,9 +119,47 @@ $border: #e6d6b5
 button
   -webkit-tap-highlight-color: transparent
 
+// The backdrop artwork lives on a viewport-pinned ::before layer instead of
+// on the page box: the page scrolls (and is taller than the screen), so a
+// plain background would scroll away and be sized against the whole document
+// rather than the screen. `cover` keeps it filling the viewport edge-to-edge
+// at every aspect ratio, with the beige palette colour underneath as a
+// paint-in fallback while the artwork loads.
+//
+// `position: relative` + `z-index: 0` makes .new-books-page its own stacking
+// context so the `z-index: -1` layer stays above #app-root's opaque
+// background (which would otherwise hide it) while still sitting behind the
+// page content.
 .new-books-page
-  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  position: relative
+  z-index: 0
+  background: transparent
   color: $navy
+
+.new-books-page::before
+  content: ''
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  // Sized instead of `inset: 0` on purpose: during the page-pop-scale route
+  // animation the transform on .new-books-page turns it into the containing
+  // block for this fixed layer, and `bottom: 0` would then stretch the
+  // artwork over the full document height and snap back when the animation
+  // ends. A viewport-height box looks identical in both states.
+  height: 100vh
+  height: 100dvh
+  z-index: -1
+  pointer-events: none
+  background-color: $cream-bg
+  background-image: var(--series-bg-portrait)
+  background-repeat: no-repeat
+  background-position: center
+  background-size: cover
+
+@media (orientation: landscape)
+  .new-books-page::before
+    background-image: var(--series-bg-landscape)
 
 .page-header
   position: relative

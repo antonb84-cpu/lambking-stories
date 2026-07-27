@@ -22,7 +22,7 @@ export function sortByPriority(books: BookDTO[]): BookDTO[] {
     const linkDiff = (hasSalesLink(b) ? 1 : 0) - (hasSalesLink(a) ? 1 : 0)
     if (linkDiff !== 0) return linkDiff
     return releaseTs(b) - releaseTs(a)
-  })
+  }).filter(book => hasSalesLink(book))
 }
 
 // "All books" modal: just newest release first, no sales-link bias —

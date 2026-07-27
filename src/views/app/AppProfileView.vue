@@ -39,6 +39,16 @@ onMounted(() => {
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 
+// Backdrop — a tall artwork for portrait, a wide one for landscape. The swap
+// itself happens in CSS (`@media (orientation: …)`); we only feed the
+// base-url-corrected `url()` values in as custom properties, because the
+// files live in `public/` and a bare `url(…)` inside the SFC style block
+// would be resolved by Vite as a bundled asset.
+const backdropVars = computed(() => ({
+  '--profile-bg-portrait': `url(${prependBaseUrl('images/bg/profile_portrait.webp')})`,
+  '--profile-bg-landscape': `url(${prependBaseUrl('images/bg/profile_landscape.webp')})`
+}))
+
 function localizedTitle(book: ApiBook): string {
   return book.localizations?.[lang.value]?.title || book.localizations?.de?.title || ''
 }
@@ -146,10 +156,17 @@ function onBackendToggle(e: Event) {
 </script>
 
 <template lang="pug">
-  div(:class="['profile-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']")
+  div(
+    :class="['profile-page', isMobileLandscape ? 'is-landscape' : '', 'min-h-screen w-full pb-[calc(8rem+env(safe-area-inset-bottom,0px))]']"
+    :style="backdropVars"
+  )
     //- ===== Header (back · crown · title · settings) =====
     header(class="profile-header")
-      ZBackButton(variant="flat" @click="goBack")
+      ZBackButton(
+        class="profile-back-btn"
+        variant="flat"
+        @click="goBack"
+      )
       div(class="title-cluster")
         div(class="brand-stack flex flex-col items-center justify-center gap-0")
           img(
@@ -328,7 +345,7 @@ function onBackendToggle(e: Event) {
         class="favorites-section"
       )
         h3(class="card-section-title")
-          span {{ t('app.profile.favorites') }}
+          span.text-white {{ t('app.profile.favorites') }}
           span(class="count-pill") {{ watchListBooks.length }}
 
         div(
@@ -375,9 +392,48 @@ $border: #e6d6b5
 button
   -webkit-tap-highlight-color: transparent
 
+// The backdrop artwork lives on a viewport-pinned ::before layer instead of
+// on the page box: the page scrolls (and is taller than the screen), so a
+// plain background would scroll away and be sized against the whole document
+// rather than the screen. `contain` keeps the artwork whole — no edge ever
+// crops it — and the leftover strip on the short axis falls back to the
+// palette's beige.
+//
+// `position: relative` + `z-index: 0` makes .profile-page its own stacking
+// context so the `z-index: -1` layer stays above #app-root's opaque
+// background (which would otherwise hide it) while still sitting behind the
+// page content. Nothing inside the page is fixed or z-indexed, and the
+// avatar modal teleports to <body>, so the new context traps nothing.
 .profile-page
-  background: radial-gradient(ellipse at top, #faf2dc 0%, #f3e6c4 60%, #e8d29a 100%)
+  position: relative
+  z-index: 0
+  background: transparent
   color: $navy
+
+.profile-page::before
+  content: ''
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  // Sized instead of `inset: 0` on purpose: during the page-pop-scale route
+  // animation the transform on .profile-page turns it into the containing
+  // block for this fixed layer, and `bottom: 0` would then stretch the
+  // artwork over the full document height and snap back when the animation
+  // ends. A viewport-height box looks identical in both states.
+  height: 100vh
+  height: 100dvh
+  z-index: -1
+  pointer-events: none
+  background-color: $cream-bg
+  background-image: var(--profile-bg-portrait)
+  background-repeat: no-repeat
+  background-position: center
+  background-size: cover
+
+@media (orientation: landscape)
+  .profile-page::before
+    background-image: var(--profile-bg-landscape)
 
 .profile-header
   padding: max(env(safe-area-inset-top), 0.75rem) 20px 8px
@@ -406,11 +462,22 @@ button
   &:active
     transform: scale(0.92)
 
+// Fill the cog silhouette (and only that — the button itself stays
+// transparent) so the navy outline reads against the backdrop artwork's sky
+// instead of sitting directly on it. The hub circle is drawn after the cog
+// path in ZIconography, so it keeps its own outline on top of the white.
+.header-btn :deep(.z-icon-outline path)
+  fill: #ffffff
+
 .title-cluster
   flex: 1
   display: flex
   align-items: center
   justify-content: center
+
+
+.profile-back-btn
+  --back-icon-color: #1a2f4a !important
 
 .page-title
   display: inline-flex
@@ -418,7 +485,7 @@ button
   gap: 8px
   font-size: 22px
   font-weight: 700
-  color: $navy
+  color: white
   margin: 0
 
 .profile-content

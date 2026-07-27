@@ -26,6 +26,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
+import { prependBaseUrl } from '@/utils/function'
 import * as pdfjsLib from 'pdfjs-dist'
 // `?worker&inline` makes Vite inline the worker source into the chunk as
 // a blob — no separate asset file (which the production obfuscator drops),
@@ -57,6 +58,18 @@ const querySourceType = computed<'image' | 'pdf' | ''>(() => {
   if (querySource.value) return 'image'
   return ''
 })
+
+// ── Backdrop -----------------------------------------------------------------
+
+// Two artworks — a tall one for portrait, a wide one for landscape. The
+// swap itself happens in CSS (`@media (orientation: …)`); we only feed the
+// base-url-corrected `url()` values in as custom properties, because the
+// files live in `public/` and a bare `url(…)` inside the SFC style block
+// would be resolved by Vite as a bundled asset.
+const backdropVars = computed(() => ({
+  '--ac-bg-portrait': `url(${prependBaseUrl('images/bg/ausmalen_portrait.webp')})`,
+  '--ac-bg-landscape': `url(${prependBaseUrl('images/bg/ausmalen_landscape.webp')})`
+}))
 
 // ── Tool & paint state -------------------------------------------------------
 
@@ -1316,6 +1329,7 @@ watch([querySource, querySourceType], ([url, type]) => {
   div(
     class="ac-app"
     :class="{ 'is-fullscreen': isFullscreen }"
+    :style="backdropVars"
   )
     header(class="ac-hdr")
       //- Shared back button matches the rest of the app (parchment glyph
@@ -1704,23 +1718,30 @@ $text-l: #a08962
 // no edge padding. The header sits flush at the top (the safe-area inset
 // only adds the iOS notch reserve, nothing else); the canvas main area
 // fills the rest edge-to-edge so kids paint right up to the device frame.
+// The backdrop illustration is `contain`-fitted so it is *never* cropped by
+// a viewport edge, whatever the screen ratio — the leftover strip on the
+// short axis falls back to the cream parchment colour. The two artworks
+// (tall / wide) come in as custom properties from the component so the
+// production base-url stays correct; the orientation swap is pure CSS.
 .ac-app
   position: fixed
   inset: 0
   display: grid
   grid-template-rows: auto 1fr
-  background: $p-bg
+  background-color: $p-bg
+  background-image: var(--ac-bg-portrait)
+  background-repeat: no-repeat
+  background-position: center
+  background-size: cover
   color: $text
   user-select: none
   overflow: hidden
   height: 100vh
   height: 100dvh
 
-.ac-app.is-fullscreen
-  // Keep the cream parchment palette in fullscreen — the only thing
-  // fullscreen really does is hand the canvas the full viewport and
-  // let the header float over the artwork as a sticky overlay.
-  background: $p-bg
+@media (orientation: landscape)
+  .ac-app
+    background-image: var(--ac-bg-landscape)
 
 .ac-app.is-fullscreen .ac-hdr
   // Take the header out of the grid flow so .ac-main can stretch to
@@ -1753,6 +1774,8 @@ $text-l: #a08962
 // need the position marker.
 .ac-back-btn
   flex-shrink: 0
+  //color: $text!important
+  --back-icon-color: #1a2f4a !important
 
 .ac-title
   font-weight: 700
@@ -1875,10 +1898,12 @@ $text-l: #a08962
     border-color: $p-dark
     box-shadow: 0 4px 10px -4px rgba(10, 26, 48, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18)
 
+// Transparent so the .ac-app backdrop illustration shows through the whole
+// canvas area (the canvas wrap itself only covers the artwork's own box).
 .ac-main
   position: relative
   overflow: hidden
-  background: $p-bg
+  background: transparent
   padding: 0
 
 .ac-app.is-fullscreen .ac-main
@@ -1891,7 +1916,7 @@ $text-l: #a08962
   position: absolute
   inset: 0
   padding: 0
-  background: $p-bg
+  background: transparent
 
 .ac-main.drop-over::after
   content: '🎨'
@@ -1922,6 +1947,7 @@ $text-l: #a08962
   padding: 28px 22px
   background: #fff
   border-radius: 24px
+  opacity: 0.8
   box-shadow: 0 8px 32px rgba(33, 64, 106, 0.22)
 
 .ac-upload-icon

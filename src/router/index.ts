@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import AppMainView from '@/views/app/AppMainView.vue'
+import AppWelcomeView from '@/views/app/AppWelcomeView.vue'
 import useUser, { isWeb } from '@/use/useUser'
 
 // Lazy-loaded design-system routes. These views pull in every A/S/F atom
@@ -25,7 +26,11 @@ const AppColoringView = () => import('@/views/app/AppColoringView.vue')
 const AppProfileView = () => import('@/views/app/AppProfileView.vue')
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', name: 'main-menu', redirect: '/app' },
+  // The welcome screen is the app's front door on every launch; its single
+  // CTA continues to `app-main`. Eager-loaded for the same reason
+  // AppMainView is — the landing route shouldn't wait on a chunk fetch.
+  { path: '/', name: 'main-menu', redirect: '/welcome' },
+  { path: '/welcome', name: 'app-welcome', component: AppWelcomeView },
   { path: '/design-system', name: 'design-system', component: DesignSystemView },
   { path: '/design-system-s', name: 'design-system-s', component: DesignSystemSView },
   { path: '/design-system-a', name: 'design-system-a', component: DesignSystemAView },
