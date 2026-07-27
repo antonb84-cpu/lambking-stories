@@ -39,7 +39,11 @@
               :key="b.bookId"
               type="button"
               class="bb-item"
-              :class="{ 'bb-item-active': b.bookId === selected }"
+              :class="{
+                'bb-item-active': b.bookId === selected,
+                'bb-item-hidden': isHidden(b)
+              }"
+              :title="isHidden(b) ? `Kategorie „${HIDDEN_CATEGORY}“ — in der App ausgeblendet` : undefined"
               @mousedown.prevent
               @click="onPick(b.bookId)"
             >
@@ -65,7 +69,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { ChevronDown, Search } from 'lucide-vue-next'
-import type { BookDTO, SeriesDTO } from '@/types'
+import { HIDDEN_CATEGORY, type BookDTO, type SeriesDTO } from '@/types'
 
 const props = defineProps<{
   books: BookDTO[]
@@ -87,6 +91,14 @@ function titleOf(b: BookDTO): string {
 
 function labelOf(b: BookDTO): string {
   return `${b.bookId} — ${titleOf(b)}`
+}
+
+// Books parked in the reserved "NO SHOW" category are filtered out of the
+// public Book app (`?all=true` is what brings them back into this list), so
+// the dropdown flags them red — otherwise a parked book is indistinguishable
+// from a live one here.
+function isHidden(b: BookDTO): boolean {
+  return b.category === HIDDEN_CATEGORY
 }
 
 const selectedBook = computed(() =>
@@ -320,11 +332,34 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
   font-weight: 700;
 }
 
+/* "NO SHOW" books — red row so parked entries stand out from live ones.
+ * Declared after .bb-item:hover / .bb-item-active (equal specificity) so the
+ * red wins in every combination; the active+hover pair carries an extra
+ * class and outranks the plain hidden hover on its own. */
+.bb-item-hidden {
+  background: rgba(214, 48, 49, 0.14);
+  color: #8e1f1f;
+}
+
+.bb-item-hidden:hover {
+  background: rgba(214, 48, 49, 0.24);
+}
+
+.bb-item-hidden.bb-item-active,
+.bb-item-hidden.bb-item-active:hover {
+  background: rgba(214, 48, 49, 0.34);
+}
+
 .bb-item-id {
   font-family: 'Nunito', ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
   color: #2471a3;
   flex-shrink: 0;
+}
+
+/* The blue id clashes with the red row — retint it to match. */
+.bb-item-hidden .bb-item-id {
+  color: #b02828;
 }
 
 .bb-item-title {
