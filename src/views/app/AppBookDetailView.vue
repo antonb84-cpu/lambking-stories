@@ -10,6 +10,8 @@ import AttachmentTile from '@/components/molecules/AttachmentTile.vue'
 import AttachmentContextMenu from '@/components/molecules/AttachmentContextMenu.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
+import useApiSeries from '@/use/useApiSeries'
+import useCatalogNames from '@/use/useCatalogNames'
 import useReadingProgress from '@/use/useReadingProgress'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, ApiBookAttachment, Locale } from '@/types/apiBook'
@@ -22,10 +24,12 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const route = useRoute()
 const router = useRouter()
 const {
-  getSeriesOfBook, isInWatchList, toggleWatchList, setLastRead,
+  isInWatchList, toggleWatchList, setLastRead,
   getPlaybackState, setPlaybackState
 } = useModels()
 const apiBooks = useApiBooks()
+const apiSeries = useApiSeries()
+const { seriesNameOfBook } = useCatalogNames()
 const { getPct, isCompleted } = useReadingProgress()
 
 const bookId = computed(() => String(route.params.bookId))
@@ -61,7 +65,6 @@ const contentNoteItems = computed<string[]>(() => {
   return lines
 })
 
-const series = computed(() => (book.value ? getSeriesOfBook(book.value.bookId) : undefined))
 const inWatchList = computed(() => (book.value ? isInWatchList(book.value.bookId) : false))
 
 async function fetchBook() {
@@ -220,6 +223,8 @@ function savePlayback() {
 onMounted(() => {
   ensureAudio()
   void fetchBook()
+  // Series records back the name shown in the eyebrow above the title.
+  void apiSeries.loadAll()
 })
 onUnmounted(() => {
   savePlayback()
@@ -399,7 +404,9 @@ watch(currentTime, (v, prev) => {
   if (Math.floor(v / 3) !== Math.floor(prev / 3)) savePlayback()
 })
 
-const seriesName = computed(() => series.value?.name || '')
+// Eyebrow above the book title — the series this story belongs to, in the
+// active language (the API only carries the German name).
+const seriesName = computed(() => seriesNameOfBook(book.value))
 </script>
 
 <template lang="pug">

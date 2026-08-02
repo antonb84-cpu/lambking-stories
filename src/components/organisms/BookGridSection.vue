@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import ZBadge from '@/components/atoms/ZBadge.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
+import useCatalogNames from '@/use/useCatalogNames'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -27,6 +28,7 @@ const props = defineProps<{
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
+const { badgeLabel } = useCatalogNames()
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
 
@@ -144,8 +146,10 @@ function setLayout(mode: LayoutMode) {
         div(class="book-card-meta")
           h4(class="book-card-title") {{ localizedTitle(book) }}
           //- List-view tag row — uses `book.badges` from the API (e.g.
-          //- "Achtsamkeit", "Schlaf", "15 min"). Hidden in the compact
-          //- grid modes where there's no horizontal room for chips.
+          //- "Abenteuer", "ab 7 Jahren", "15min"). The API stores them in
+          //- German only, so each chip goes through `badgeLabel` for its
+          //- localized form. Hidden in the compact grid modes where
+          //- there's no horizontal room for chips.
           div(
             v-if="layoutMode === 'list' && book.badges?.length"
             class="book-card-badges"
@@ -154,7 +158,7 @@ function setLayout(mode: LayoutMode) {
               v-for="badge in book.badges"
               :key="badge"
               class="book-card-badge-chip"
-            ) {{ badge }}
+            ) {{ badgeLabel(badge) }}
 
     div(
       v-if="!props.books.length"

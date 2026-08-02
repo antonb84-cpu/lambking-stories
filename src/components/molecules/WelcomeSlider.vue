@@ -224,6 +224,11 @@ onUnmounted(() => {
   flex: 0 0 100%
   width: 100%
   height: 100%
+  // Makes the slide a query container so overlay copy can be sized in
+  // `cqw` — text laid over the artwork has to scale with the banner, not
+  // with the viewport, or it drifts off the illustration's clear areas at
+  // the desktop width cap.
+  container-type: inline-size
 
 .welcome-slide-img
   width: 100%
@@ -245,10 +250,17 @@ onUnmounted(() => {
   justify-content: flex-end
   // Leave room at the bottom so per-slide content doesn't collide with
   // the navigation dots.
-  padding: 16px 18px 44px
+  padding: 4px 4px 4px
 
 .welcome-slide-overlay > :deep(*)
   pointer-events: auto
+
+// Opt-out for overlay content that covers a large part of the slide (the
+// headline block). Without it the copy swallows the swipe that drives the
+// slider. Same specificity as the rule above, declared after it, so the
+// opt-out wins regardless of which component's styles are injected first.
+.welcome-slide-overlay > :deep([data-swipe-through])
+  pointer-events: none
 
 .welcome-slider-dots
   position: absolute

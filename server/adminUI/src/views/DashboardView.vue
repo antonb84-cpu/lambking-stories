@@ -13,7 +13,7 @@
         <header class="panel-header">
           <div>
             <h2 class="panel-title">Taxonomien</h2>
-            <p class="panel-subtitle">Buchreihen &amp; Kategorien verwalten.</p>
+            <p class="panel-subtitle">Buchreihen (Bild 2.5:1) &amp; Kategorien verwalten. (Bild 1:1)</p>
           </div>
         </header>
         <div class="taxonomy-split">
@@ -73,6 +73,7 @@ import { useSeriesStore } from '@/stores/series'
 import { useCategoryStore } from '@/stores/categories'
 import { useBookDraftStore } from '@/stores/bookDraft'
 import { useToastStore } from '@/stores/toast'
+import { useRecentBooks } from '@/composables/useRecentBooks'
 import { booksApi } from '@/api/books'
 import { isColoringCategory } from '@/utils/coloringBook'
 import type { BookDTO } from '@/types'
@@ -81,6 +82,7 @@ const series = useSeriesStore()
 const categories = useCategoryStore()
 const draft = useBookDraftStore()
 const toast = useToastStore()
+const { touchBook, forgetBook } = useRecentBooks()
 const books = ref<BookDTO[]>([])
 
 const previewPages = computed(() => draft.activeLocalization.content)
@@ -137,7 +139,11 @@ async function onSelect(bookId: string) {
       return
     }
     const b = books.value.find((x) => x.bookId === bookId)
-    if (b) draft.load(b)
+    if (!b) return
+    draft.load(b)
+    // Recorded here rather than in the emit handler so a switch the user
+    // aborts at the discard modal never lands in the recent list.
+    touchBook(b.bookId)
   }
   if (draft.isDirty) {
     pendingSelection = action
@@ -199,6 +205,7 @@ async function confirmDelete() {
   try {
     await booksApi.remove(id)
     books.value = books.value.filter((b) => b.bookId !== id)
+    forgetBook(id)
     draft.reset()
     toast.success(`Buch „${id}" gelöscht`)
   } catch (err) {
@@ -207,6 +214,7 @@ async function confirmDelete() {
 }
 
 async function onSaved(saved: BookDTO) {
+  touchBook(saved.bookId)
   const idx = books.value.findIndex((x) => x.bookId === saved.bookId)
   if (idx >= 0) books.value.splice(idx, 1, saved)
   else books.value = [...books.value, saved]

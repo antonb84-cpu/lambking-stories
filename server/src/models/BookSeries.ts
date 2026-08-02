@@ -15,7 +15,14 @@ const BookSeriesSchema = new Schema(
     // Single non-localised banner image (16:9). Uploaded via the
     // AdminUI dropzone embedded in each series chip; surfaced by the
     // public app on the SeriesView hero. Empty string means "not yet set".
-    coverImage: { type: String, default: '' }
+    coverImage: { type: String, default: '' },
+    // Display position for the app's series list and the AdminUI chips —
+    // lower sorts first. Assigned automatically on create (next free
+    // integer, so a new series lands last) and rewritten as a contiguous
+    // 1..n run whenever the editor moves one, which keeps the numbers
+    // gap-free and free of ties. 0 means "never ordered"; the startup
+    // backfill in `config/series.ts` replaces those with real positions.
+    sortOrder: { type: Number, default: 0, index: true }
   },
   { timestamps: true }
 )

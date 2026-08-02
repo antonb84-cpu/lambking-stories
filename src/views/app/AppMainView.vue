@@ -11,6 +11,8 @@ import KoFiButton from '@/components/molecules/KoFiButton.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useApiCategories from '@/use/useApiCategories'
+import useApiSeries from '@/use/useApiSeries'
+import useCatalogNames from '@/use/useCatalogNames'
 import useReadingProgress from '@/use/useReadingProgress'
 import useAvatar, { onAvatarFallback } from '@/use/useAvatar'
 import useUserName from '@/use/useUserName'
@@ -22,9 +24,11 @@ import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
-const { lastReadId, getSeriesOfBook } = useModels()
+const { lastReadId } = useModels()
 const apiBooks = useApiBooks()
 const apiCategories = useApiCategories()
+const apiSeries = useApiSeries()
+const { seriesNameOfBook, categoryName } = useCatalogNames()
 const { getPct } = useReadingProgress()
 const { avatarSrc } = useAvatar()
 const { displayName, hasCustomName } = useUserName()
@@ -36,6 +40,8 @@ onMounted(() => {
   // Category records carry the editor-uploaded icons for the category
   // list section at the bottom of the page.
   void apiCategories.loadAll()
+  // Series records supply the name shown on search result tiles.
+  void apiSeries.loadAll()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
@@ -108,7 +114,10 @@ const searchResults = computed<ApiBook[]>(() => {
     const titleDe = b.localizations?.de?.title?.toLowerCase() ?? ''
     const titleEn = b.localizations?.en?.title?.toLowerCase() ?? ''
     const author = b.author?.toLowerCase() ?? ''
-    const series = getSeriesOfBook(b.bookId)?.name?.toLowerCase() ?? ''
+    // The series name in whichever language is on screen, so an English
+    // reader searching "christ code" hits the same books a German one
+    // reaches via "christus code".
+    const series = seriesNameOfBook(b).toLowerCase()
     return titleDe.includes(term)
       || titleEn.includes(term)
       || author.includes(term)
@@ -152,7 +161,10 @@ const upcomingBooks = computed<ApiBook[]>(() => {
 // skipped so kids never land on an empty page — this also drops the
 // reserved "NO SHOW" category, whose books the API hides anyway.
 interface CategoryRow {
+  /** German name — the server-side id, and what the route param carries. */
   name: string
+  /** Localized name for display. */
+  label: string
   icon: string
   count: number
 }
@@ -168,7 +180,7 @@ const categoryRows = computed<CategoryRow[]>(() => {
   for (const c of apiCategories.state.all ?? []) {
     const count = counts[c.name] ?? 0
     if (!count) continue
-    rows.push({ name: c.name, icon: c.icon || '', count })
+    rows.push({ name: c.name, label: categoryName(c.name), icon: c.icon || '', count })
   }
   return rows
 })
@@ -427,7 +439,7 @@ const welcomeSlides = computed(() => [
                   @error="onImgFallback"
                 )
               div(class="search-tile-meta")
-                span(class="search-tile-series") {{ getSeriesOfBook(book.bookId)?.name || book.author }}
+                span(class="search-tile-series") {{ seriesNameOfBook(book) || book.author }}
                 h4(class="search-tile-title") {{ localizedTitle(book) }}
 
           div(v-else class="search-empty")
@@ -445,10 +457,14 @@ const welcomeSlides = computed(() => [
           WelcomeSlider(
             class="welcome-banner border-8 border-solid border-border rounded-2xl overflow-hidden"
             :images="welcomeSlides"
-            :interval-ms="6000"
+            :interval-ms="60000"
           )
             template(#overlay-2)
-              div(class="welcome-cta-row scale-[62%] -mb-6")
+              div(class="slide-copy" data-swipe-through)
+                h3(class="slide-copy-title") {{ t('app.main.welcomeTitle2') }}
+                p(class="slide-copy-text") {{ t('app.main.welcomeText2') }}
+
+              div(class="welcome-cta-row scale-[62%] -mb-8")
                 ZButton(
                   type="primary"
                   icon="book"
@@ -457,8 +473,21 @@ const welcomeSlides = computed(() => [
                   @click="openWebsite"
                 ) {{ t('app.main.discoverBooks') }}
 
+            template(#overlay-0)
+              div(class="slide-copy" data-swipe-through)
+                h3(class="slide-copy-title") {{ t('app.main.welcomeTitle0') }}
+                p(class="slide-copy-text") {{ t('app.main.welcomeText0') }}
+
             template(#overlay-1)
-              div(class="welcome-donate-row -mb-4")
+              div(class="slide-copy !right-[0%]" data-swipe-through)
+                h3(class="slide-copy-title") {{ t('app.main.welcomeTitle1') }}
+                //- Hairline + diamond, matching the mission slide's design
+                //- reference; the other two slides run title straight into
+                //- body copy.
+                span(class="slide-copy-rule" aria-hidden="true")
+                p(class="slide-copy-text") {{ t('app.main.welcomeText1') }}
+
+              div(class="welcome-donate-row -mb-6")
                 KoFiButton(
                   href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W"
                   tone="paypal"
@@ -472,46 +501,6 @@ const welcomeSlides = computed(() => [
                   :compact="true"
                 )
 
-          // this is unused for now, but may be used later again
-          //div(class="continue-card")
-          //  div(class="continue-row")
-          //    //- Full-height portrait preview (3:4, height is the limit)
-          //    div(
-          //      class="continue-thumb"
-          //      @click="openBook(lastReadBook.bookId)"
-          //    )
-          //      img(
-          //        :src="withPlaceholder(pickLocalizedImage(lastReadBook.previewImage, lang))"
-          //        :alt="localizedTitle(lastReadBook)"
-          //        class="continue-thumb-img"
-          //        loading="lazy"
-          //        @error="onImgFallback"
-          //      )
-          //    div(class="continue-meta")
-          //      //- Badge sits in its own row above the cover/title so it never
-          //      //- overlaps the heading on narrow viewports.
-          //      div(class="continue-badge-row mb-0")
-          //        ZBadge(
-          //          variant="hot"
-          //          position="static"
-          //          size="md"
-          //          class="continue-badge"
-          //          :label="t('app.main.newReleased')"
-          //        )
-          //      span(class="continue-series") {{ getSeriesOfBook(lastReadBook.bookId)?.name }}
-          //      h2(class="continue-title") {{ localizedTitle(lastReadBook) }}
-          //      span(
-          //        v-if="pageCount(lastReadBook) > 0"
-          //        class="continue-page"
-          //      ) {{ t('app.main.page', { n: currentPage(lastReadBook), total: pageCount(lastReadBook) }) }}
-          //      div(class="continue-cta")
-          //        ZButton(type="primary" icon="book" size="sm" @click="openReader(lastReadBook.bookId)") {{ t('app.bookDetail.readMyself') }}
-          //        ZButton(
-          //          type="secondary"
-          //          icon="volume"
-          //          size="sm"
-          //          @click="openListen(lastReadBook.bookId)"
-          //        ) {{ t('app.bookDetail.listen') }}
 
     //- ===== Path overlay =====
     //- Sibling of `.bg-zone` so the bg_path artwork above ends right
@@ -524,7 +513,7 @@ const welcomeSlides = computed(() => [
           v-if="lastReadBook && progressPct(lastReadBook) > 0"
           class="resume-section"
         )
-          h3(class="section-title") Weiterlesen
+          h3(class="section-title") {{ t('app.main.continueReading') }}
           div(
             class="resume-card"
             @click="openReader(lastReadBook.bookId)"
@@ -642,7 +631,7 @@ const welcomeSlides = computed(() => [
                   @error="onImgFallback"
                 )
                 ZIconography(v-else name="library" :size="20")
-              span(class="category-row-name") {{ cat.name }}
+              span(class="category-row-name") {{ cat.label }}
               span(class="category-row-count") {{ cat.count }}
               span(class="category-row-chevron" aria-hidden="true")
                 ZIconography(name="chevron-right" :size="16")
@@ -805,6 +794,64 @@ button
 .welcome-banner
   margin-top: 12px
 
+// ===== Slide copy =====
+// Headline + subline parked in the artwork's top-right quadrant, which is
+// open sky/valley in all three banner illustrations — the figures always
+// sit bottom-left, so nothing important is covered.
+//
+// Sized in `cqw` against the slide (WelcomeSlider sets container-type on
+// it) rather than in vw: the banner is width-capped at 22rem on wide
+// screens, so viewport units would keep growing the type long after the
+// picture stopped growing and push the copy off the clear area.
+.slide-copy
+  position: absolute
+  top: 8%
+  right: 3%
+  width: 52%
+  display: flex
+  flex-direction: column
+  align-items: center
+  text-align: center
+  color: #15294a
+  // Base size = the body copy; the rule's em units track it.
+  font-size: clamp(9px, 3.7cqw, 23px)
+
+.slide-copy-title
+  margin: 0
+  font-weight: 800
+  font-size: clamp(15px, 6.4cqw, 40px)
+  line-height: 1.06
+  letter-spacing: -0.015em
+  text-wrap: balance
+  // Two-stop white glow: the tight stop keeps the letterforms crisp where
+  // they cross a dark leaf, the wide one lifts them off the sky.
+  text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.6), -1px 2px 12px rgba(255, 255, 255, 0.85)
+
+.slide-copy-text
+  margin: 0.34em 0 0
+  font-size: 1em
+  font-weight: 600
+  line-height: 1.3
+  text-wrap: balance
+  text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.85), -1px 2px 12px rgba(255, 255, 255, 0.95)
+
+.slide-copy-rule
+  position: relative
+  width: 78%
+  height: 1px
+  margin: 0.55em 0 0.1em
+  background: linear-gradient(90deg, rgba(21, 41, 74, 0) 0%, rgba(21, 41, 74, 0.35) 24%, rgba(21, 41, 74, 0.35) 76%, rgba(21, 41, 74, 0) 100%)
+
+  &::after
+    content: ''
+    position: absolute
+    left: 50%
+    top: 50%
+    width: 0.42em
+    height: 0.42em
+    transform: translate(-50%, -50%) rotate(45deg)
+    background: #a98b5a
+
 // Donate buttons on the second slide — PayPal-blue on the left, Ko-fi
 // red on the right, both pushed to the bottom corners so the slide's
 // illustrated headline keeps its full vertical breathing room. The dots
@@ -819,6 +866,22 @@ button
   align-items: center
   gap: 10px
 
+  :deep(.kofi-btn)
+    @media(min-width: 360px) and (max-width: 500px)
+      width: 6rem
+      height: 2rem
+      justify-items: center
+      transform: scale(130%)
+      margin: 0 .5rem
+
+  :deep(.kofi-btn)
+    @media(min-height: 360px) and (max-height: 500px)
+      width: 6rem
+      height: 2rem
+      justify-items: center
+      transform: scale(130%)
+      margin: 0 .5rem
+
 // CTA on the first slide — centred above the dots row (`bottom: 36px`
 // clears them) and width-capped so the primary button doesn't stretch
 // edge-to-edge across the banner.
@@ -831,6 +894,26 @@ button
   display: flex
   justify-content: center
 
+  @media(min-width: 360px) and (max-width: 500px)
+    margin-bottom: 1rem
+    transform: scale(100%) !important
+    bottom: 0
+    left: 45%
+    right: 0.5rem
+    :deep(button)
+      width: 6rem
+      height: 3rem
+      transform: scale(160%)
+  @media(min-height: 360px) and (max-height: 500px)
+    margin-bottom: 1rem
+    transform: scale(100%) !important
+    bottom: 0
+    left: 45%
+    right: 0.5rem
+    :deep(button)
+      width: 6rem
+      height: 3rem
+      transform: scale(160%)
 // ===== Greeting =====
 .greeting-block
   margin-top: 14px

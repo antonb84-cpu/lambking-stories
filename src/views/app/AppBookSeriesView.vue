@@ -7,6 +7,7 @@ import BookGridSection from '@/components/organisms/BookGridSection.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useApiSeries from '@/use/useApiSeries'
+import useCatalogNames from '@/use/useCatalogNames'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -18,6 +19,7 @@ const router = useRouter()
 const { getSeries } = useModels()
 const apiBooks = useApiBooks()
 const apiSeries = useApiSeries()
+const { seriesName } = useCatalogNames()
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -59,7 +61,15 @@ const description = computed<string>(() => {
     || ''
 })
 
-const seriesTitle = computed<string>(() => seriesMeta.value?.name || '')
+// Title priority mirrors the hero image: the server-side series record
+// first (the legacy `useModels` catalogue only covers one series, so it
+// left the heading blank for every other one), then the localized override
+// for the id, then the raw seriesId as a last resort.
+const seriesTitle = computed<string>(() => {
+  void apiSeries.state.all
+  const apiMeta = apiSeries.getById(seriesId.value)
+  return seriesName(seriesId.value, apiMeta?.name || seriesMeta.value?.name || '')
+})
 
 function goBack() {
   if (window.history.length > 1) router.back()
@@ -92,7 +102,7 @@ function goBack() {
         p(
           v-if="seriesMeta?.description"
           class="hero-subtitle"
-        ) Im Auftrag des Königs
+        ) {{ t('app.bookSeries.tagline') }}
 
     div(class="content")
       p(class="series-desc") {{ description }}

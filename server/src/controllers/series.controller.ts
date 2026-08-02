@@ -20,6 +20,15 @@ export const updateSeries = asyncHandler(async (req: Request, res: Response) => 
   res.json({ series })
 })
 
+// Moves a series to a new display position and renumbers the rest. Answers
+// with the whole re-sorted list so the AdminUI can swap its cache wholesale
+// instead of reconciling every shifted neighbour itself.
+export const reorderSeries = asyncHandler(async (req: Request, res: Response) => {
+  const { sortOrder } = req.body as { sortOrder: number }
+  const series = await SeriesService.reorder(req.params.id as string, sortOrder)
+  res.json({ series })
+})
+
 export const deleteSeries = asyncHandler(async (req: Request, res: Response) => {
   await SeriesService.remove(req.params.id as string)
   res.status(204).send()

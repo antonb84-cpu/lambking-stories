@@ -11,16 +11,21 @@
 
       .about-text
         .section-eyebrow Über den Autor
-        p.about-quote Kinder verdienen Geschichten, die ihnen nicht nur gefallen — sondern sie auch tragen.
+        p.about-quote „Kinder verdienen Geschichten, die Freude schenken, Glauben säen und ihnen Jesus näherbringen.“
+        | Mein Name ist Anton. Ich bin Vater einer kinderreichen Familie und bibeltreuer Christ. Aus dem Wunsch, Kindern die Botschaft der Bibel liebevoll, verständlich und kindgerecht näherzubringen, ist LambKing Stories entstanden.
         p
-          | Mein Name ist Anton. Ich bin Vater, Christ und seit über zehn Jahren Autor von christlichen Kinderbüchern und Liedern. SenfkornGeschichten ist das Projekt, das alles vereint: biblisch fundierte Inhalte, liebevoll erzählt, für Kinder in einem Alter, in dem sie langsam beginnen, ihren eigenen Glauben zu formen.
+          | Dabei geht es mir um mehr als schöne Unterhaltung. Kinder sollen Jesus Christus kennenlernen, sein Evangelium verstehen und entdecken, welches Geschenk Gott uns durch ihn gemacht hat. Sie sollen erfahren, dass die Bibel nicht nur von vergangenen Ereignissen erzählt, sondern auch heute Wahrheit, Hoffnung und Orientierung schenkt.
         p
-          | Jede Geschichte, jedes Lied, jede Ausmalseite entsteht in enger Abstimmung mit Theolog:innen und Pädagog:innen — und wird dann an meinen eigenen Kindern getestet, bevor sie zu euch kommt.
+          | Mit jeder Geschichte möchte ich einen kleinen Samen säen: einen Samen der Freude an Gottes Wort, des Vertrauens auf Jesus und eines Glaubens, der wachsen darf. Das Wachstum schenkt Gott – doch wir dürfen säen, erzählen und Kinder auf Jesus hinweisen.
+        p
+          | Ich glaube, dass Gottes Wort gerade heute ein Licht ist, das Menschen Halt und Orientierung geben kann. Deshalb entstehen bei LambKing Stories biblische Geschichten, liebevolle Illustrationen, Ausmalbilder und künftig auch Hörgeschichten, die Kinder gerne entdecken und Familien dabei unterstützen, gemeinsam über den Glauben zu sprechen.
+        p
+          | LambKing Stories soll ein kleiner Beitrag dazu sein, Gottes Reich mitzubauen – bibeltreu, kindgerecht und mit viel Liebe gestaltet.
         .about-signature
           .signature-mark A
           .about-signature-text
             strong Anton Bernt
-            span Gründer · Autor · Vater
+            span Gründer von LambKing Stories
 </template>
 
 <style scoped lang="scss">

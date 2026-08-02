@@ -29,17 +29,32 @@
         <div v-if="open" class="bb-panel">
           <div v-if="!filteredGroups.length" class="bb-empty">Keine Treffer</div>
           <template v-for="g in filteredGroups" :key="g.key">
-            <div class="bb-group-header">
-              <ChevronDown class="bb-folder-icon" />
+            <button
+              type="button"
+              class="bb-group-header"
+              :class="{ 'bb-group-header-recent': g.isRecent }"
+              :aria-expanded="isExpanded(g.key)"
+              :disabled="!!activeQuery"
+              :title="activeQuery
+                ? 'Während der Suche sind alle Gruppen offen'
+                : (isExpanded(g.key) ? 'Gruppe zuklappen' : 'Gruppe aufklappen')"
+              @mousedown.prevent
+              @click.stop="toggleGroup(g.key)"
+            >
+              <ChevronDown
+                class="bb-folder-icon"
+                :class="{ 'is-collapsed': !isExpanded(g.key) }"
+              />
               <span class="bb-group-name">{{ g.label }}</span>
               <span class="bb-group-count">{{ g.books.length }}</span>
-            </div>
+            </button>
             <button
-              v-for="b in g.books"
-              :key="b.bookId"
+              v-for="b in (isExpanded(g.key) ? g.books : [])"
+              :key="`${g.key}:${b.bookId}`"
               type="button"
               class="bb-item"
               :class="{
+                'bb-item-recent': g.isRecent,
                 'bb-item-active': b.bookId === selected,
                 'bb-item-hidden': isHidden(b)
               }"
@@ -69,6 +84,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import XButton from '@/components/atoms/XButton.vue'
 import { ChevronDown, Search } from 'lucide-vue-next'
+import { RECENT_LIMIT, useRecentBooks } from '@/composables/useRecentBooks'
 import { HIDDEN_CATEGORY, type BookDTO, type SeriesDTO } from '@/types'
 
 const props = defineProps<{
@@ -79,6 +95,20 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [bookId: string]; delete: [] }>()
 
 const NO_SERIES_KEY = '__none__'
+const RECENT_KEY = '__recent__'
+const EXPANDED_STORAGE_KEY = 'adminui.bookBrowser.expandedGroups'
+
+interface BookGroup {
+  key: string
+  label: string
+  books: BookDTO[]
+  // The pinned "recently edited" pseudo-group. Its books are duplicates of
+  // entries further down the list, so it needs its own row styling and a
+  // composite :key.
+  isRecent?: boolean
+}
+
+const { recentBookIds } = useRecentBooks()
 
 const rootEl = ref<HTMLDivElement | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
@@ -119,8 +149,8 @@ watch(
 // Natural-order collator: "fa-2" < "fa-10" instead of lexical "fa-10" < "fa-2".
 const naturalCollator = new Intl.Collator('de', { numeric: true, sensitivity: 'base' })
 
-const allGroups = computed(() => {
-  const seriesMap = new Map<string, { key: string; label: string; books: BookDTO[] }>()
+const seriesGroups = computed<BookGroup[]>(() => {
+  const seriesMap = new Map<string, BookGroup>()
   for (const s of props.series) {
     seriesMap.set(s.seriesId, {
       key: s.seriesId,
@@ -128,7 +158,7 @@ const allGroups = computed(() => {
       books: []
     })
   }
-  const noSeries: { key: string; label: string; books: BookDTO[] } = {
+  const noSeries: BookGroup = {
     key: NO_SERIES_KEY,
     label: 'Ohne Buchreihe',
     books: []
@@ -148,13 +178,37 @@ const allGroups = computed(() => {
   return ordered
 })
 
-const filteredGroups = computed(() => {
+// Shortcut back to what the user was last working on. Kept in history order
+// (most recent first), not sorted, and capped at RECENT_LIMIT — ids whose
+// book no longer exists are simply skipped, which is why the history itself
+// remembers more than it shows.
+const recentGroup = computed<BookGroup | null>(() => {
+  const byId = new Map(props.books.map((b) => [b.bookId, b]))
+  const books = recentBookIds.value
+    .map((id) => byId.get(id))
+    .filter((b): b is BookDTO => !!b)
+    .slice(0, RECENT_LIMIT)
+  if (!books.length) return null
+  return { key: RECENT_KEY, label: 'Zuletzt bearbeitet', books, isRecent: true }
+})
+
+const allGroups = computed<BookGroup[]>(() =>
+  recentGroup.value ? [recentGroup.value, ...seriesGroups.value] : seriesGroups.value
+)
+
+// The search term, or '' when the dropdown is in "browse mode": while the
+// input still shows the selected book's full label we don't filter down to
+// that single match — the whole catalogue stays visible so the user can pick
+// a different book.
+const activeQuery = computed(() => {
   const q = query.value.trim().toLowerCase()
-  // When the input still shows the selected book's full label, treat the
-  // dropdown as "browse mode" — don't filter down to the single match,
-  // show the whole catalogue so the user can pick a different one.
   const matchesSelected = selectedBook.value && query.value === labelOf(selectedBook.value)
-  if (!q || matchesSelected) return allGroups.value
+  return !q || matchesSelected ? '' : q
+})
+
+const filteredGroups = computed<BookGroup[]>(() => {
+  const q = activeQuery.value
+  if (!q) return allGroups.value
   return allGroups.value
     .map((g) => ({
       ...g,
@@ -165,6 +219,63 @@ const filteredGroups = computed(() => {
       )
     }))
     .filter((g) => g.books.length)
+})
+
+// ---- Fold / unfold -------------------------------------------------------
+// Expanded keys are stored (rather than collapsed ones) so a fresh admin
+// starts with every series folded — a compact index of the catalogue — with
+// only the recent shortcut open. The set survives reloads because the fold
+// pattern mirrors how a user works: one or two series at a time.
+function readExpanded(): Set<string> {
+  try {
+    const raw = localStorage.getItem(EXPANDED_STORAGE_KEY)
+    if (!raw) return new Set([RECENT_KEY])
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return new Set([RECENT_KEY])
+    return new Set(parsed.filter((x): x is string => typeof x === 'string'))
+  } catch {
+    return new Set([RECENT_KEY])
+  }
+}
+
+const expandedKeys = ref<Set<string>>(readExpanded())
+
+function persistExpanded() {
+  try {
+    localStorage.setItem(EXPANDED_STORAGE_KEY, JSON.stringify([...expandedKeys.value]))
+  } catch {
+    /* private mode / quota — folding still works for this session */
+  }
+}
+
+// A search hit inside a folded group would be invisible, so an active query
+// overrides the fold state entirely (standard tree-search behaviour).
+function isExpanded(key: string): boolean {
+  return !!activeQuery.value || expandedKeys.value.has(key)
+}
+
+function toggleGroup(key: string) {
+  // Folding is the *alternative* to searching — with a query active the
+  // matches decide what's visible, so the headers are inert (and rendered
+  // disabled) rather than silently writing a state nothing reflects.
+  if (activeQuery.value) return
+  const next = new Set(expandedKeys.value)
+  if (next.has(key)) next.delete(key)
+  else next.add(key)
+  expandedKeys.value = next
+  persistExpanded()
+}
+
+// Opening the dropdown unfolds whichever series holds the current book, so
+// the user always sees where they are in the catalogue.
+watch(open, (isOpen) => {
+  if (!isOpen) return
+  const groupKey = seriesGroups.value.find((g) =>
+    g.books.some((b) => b.bookId === props.selected)
+  )?.key
+  if (!groupKey || expandedKeys.value.has(groupKey)) return
+  expandedKeys.value = new Set(expandedKeys.value).add(groupKey)
+  persistExpanded()
 })
 
 function onPick(bookId: string) {
@@ -274,20 +385,48 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
 }
 
 .bb-group-header {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 10px 4px;
+  padding: 8px 10px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
   font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #8a6d3b;
+  transition: background 120ms ease;
+}
+
+.bb-group-header:hover:not(:disabled) {
+  background: rgba(210, 170, 110, 0.16);
+}
+
+/* During a search the matches decide visibility, so folding is off. */
+.bb-group-header:disabled {
+  cursor: default;
+}
+
+/* The pinned shortcut list — same blue accent as its rows below. */
+.bb-group-header-recent {
+  color: #2471a3;
 }
 
 .bb-folder-icon {
   width: 12px;
   height: 12px;
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+.bb-folder-icon.is-collapsed {
+  transform: rotate(-90deg);
 }
 
 .bb-group-name {
@@ -329,6 +468,24 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocMouseDown))
 
 .bb-item-active {
   background: rgba(52, 152, 219, 0.18);
+  font-weight: 700;
+}
+
+/* Pinned "recently edited" rows — lightblue so the shortcut block reads as
+ * one unit and is distinguishable at a glance from the catalogue below.
+ * Declared after :hover / .bb-item-active but before .bb-item-hidden: the
+ * red "NO SHOW" warning has to keep outranking the convenience tint. */
+.bb-item-recent {
+  background: rgba(133, 193, 233, 0.4);
+}
+
+.bb-item-recent:hover {
+  background: rgba(133, 193, 233, 0.6);
+}
+
+.bb-item-recent.bb-item-active,
+.bb-item-recent.bb-item-active:hover {
+  background: rgba(52, 152, 219, 0.42);
   font-weight: 700;
 }
 

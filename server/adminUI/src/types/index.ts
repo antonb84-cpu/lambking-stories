@@ -92,6 +92,9 @@ export interface SeriesDTO {
   // Optional 16:9 banner image, uploaded via the SeriesManager dropzone.
   // Empty string / undefined means "not yet set".
   coverImage?: string
+  // 1-based display position — lower sorts first, in both the AdminUI chip
+  // list and the app's series page. Server-assigned on create.
+  sortOrder?: number
 }
 
 export interface CategoryDTO {

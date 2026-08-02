@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 import ZIconography from '@/components/atoms/ZIconography.vue'
 import ZPlayButton from '@/components/atoms/ZPlayButton.vue'
 import useApiBooks from '@/use/useApiBooks'
-import useModels from '@/use/useModels'
+import useApiSeries from '@/use/useApiSeries'
+import useCatalogNames from '@/use/useCatalogNames'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -14,10 +15,13 @@ import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
 const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const apiBooks = useApiBooks()
-const { getSeriesOfBook } = useModels()
+const apiSeries = useApiSeries()
+const { seriesNameOfBook } = useCatalogNames()
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
+  // Series records back the name shown above each audio title.
+  void apiSeries.loadAll()
 })
 
 const lang = computed<Locale>(() => (locale.value === 'en' ? 'en' : 'de'))
@@ -70,7 +74,7 @@ function openBook(bookId: string) {
               @error="onImgFallback"
             )
           div(class="audio-meta")
-            span(class="audio-series") {{ getSeriesOfBook(book.bookId)?.name }}
+            span(class="audio-series") {{ seriesNameOfBook(book) }}
             h3(class="audio-title") {{ localizedTitle(book) }}
           div(class="audio-play" @click.stop="openBook(book.bookId)")
             ZPlayButton(size="sm")

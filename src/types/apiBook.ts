@@ -87,6 +87,10 @@ export interface ApiSeries {
   prefix: string
   description?: string
   coverImage?: string
+  // 1-based display position set in the AdminUI — lower comes first. The
+  // API already sorts by it; the app re-applies it because its own series
+  // tiles are derived by grouping books, not from this list's order.
+  sortOrder?: number
 }
 
 export interface ApiSeriesListResponse {

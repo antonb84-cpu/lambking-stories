@@ -27,6 +27,14 @@ export const useSeriesStore = defineStore('series', () => {
     items.value = items.value.filter((s) => s.seriesId !== id)
   }
 
+  // Reordering renumbers every series, so the server's response replaces
+  // the list wholesale — patching a single entry would leave the rest of
+  // the chips showing stale positions.
+  const setOrder = async (id: string, sortOrder: number) => {
+    items.value = await seriesApi.setOrder(id, sortOrder)
+    return items.value
+  }
+
   // Atomic cover upload — calls the dedicated server endpoint that
   // saves the file and writes the URL back onto the series in one shot,
   // then patches the local cache so the SeriesManager preview updates
@@ -38,5 +46,5 @@ export const useSeriesStore = defineStore('series', () => {
     return updated
   }
 
-  return { items, loading, load, add, remove, uploadCover }
+  return { items, loading, load, add, remove, setOrder, uploadCover }
 })

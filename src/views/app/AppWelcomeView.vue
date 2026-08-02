@@ -20,6 +20,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import ZLanguageSwitcher from '@/components/atoms/ZLanguageSwitcher.vue'
 import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -52,6 +53,11 @@ function onStart() {
           fetchpriority="high"
           decoding="async"
         )
+      //- Language picker — parked in the artwork's top-right corner so a
+      //- parent can flip the welcome copy (which is baked into the picture)
+      //- to their language before handing the phone over.
+      div(class="welcome-lang")
+        ZLanguageSwitcher(:size="34")
       button(
         type="button"
         class="welcome-cta"
@@ -94,6 +100,24 @@ $gold: #d4a83e
 //max-width: 100vw
 //max-height: 100vh
 //max-height: 100dvh
+
+// Same trick as the CTA: percentage offsets inside .welcome-stage track the
+// artwork's own box, so the flags stay pinned to the picture's corner rather
+// than the screen's — letterbox bars included. The frosted plaque is what
+// lets two small flags read against the foliage that fills that corner in
+// both the portrait and the landscape art.
+.welcome-lang
+  position: absolute
+  top: 3%
+  right: 4%
+  display: inline-flex
+  padding: 5px 7px
+  border-radius: 999px
+  line-height: 0
+  background: rgba(255, 255, 255, 0.62)
+  backdrop-filter: blur(6px)
+  -webkit-backdrop-filter: blur(6px)
+  box-shadow: 0 4px 14px -8px rgba(10, 26, 48, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.85)
 
 // Navy plaque with a gold rim, mirroring the app's primary buttons. Sizes
 // are percentages of the artwork box so the CTA keeps its proportions on

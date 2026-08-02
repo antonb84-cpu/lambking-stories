@@ -6,6 +6,7 @@ import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import BookGridSection from '@/components/organisms/BookGridSection.vue'
 import useApiBooks from '@/use/useApiBooks'
 import useApiCategories from '@/use/useApiCategories'
+import useCatalogNames from '@/use/useCatalogNames'
 import { isMobileLandscape } from '@/use/useUser'
 import type { ApiBook } from '@/types/apiBook'
 import { prependBaseUrl } from '@/utils/function'
@@ -15,6 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const apiBooks = useApiBooks()
 const apiCategories = useApiCategories()
+const { categoryName } = useCatalogNames()
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -23,11 +25,14 @@ onMounted(() => {
   void apiCategories.loadAll()
 })
 
-const categoryName = computed(() => String(route.params.category))
+// The German category name IS its server-side id, so the route param stays
+// the match key for books/icon lookups; only the heading gets localized.
+const categoryId = computed(() => String(route.params.category))
+const categoryLabel = computed(() => categoryName(categoryId.value))
 
 const categoryIcon = computed<string>(() => {
   void apiCategories.state.all
-  return apiCategories.getByName(categoryName.value)?.icon || ''
+  return apiCategories.getByName(categoryId.value)?.icon || ''
 })
 
 // Newest first — categories cut across series, so release order is the
@@ -35,7 +40,7 @@ const categoryIcon = computed<string>(() => {
 const books = computed<ApiBook[]>(() => {
   const list = (apiBooks.state.all ?? []) as ApiBook[]
   return list
-    .filter((b) => b.category === categoryName.value)
+    .filter((b) => b.category === categoryId.value)
     .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
 })
 
@@ -69,7 +74,7 @@ function goBack() {
             decoding="async"
             aria-hidden="true"
           )
-          h1(class="category-title") {{ categoryName }}
+          h1(class="category-title") {{ categoryLabel }}
 
     div(class="content")
       //- Shared book list (layout toggle + cards) — same component as
@@ -108,6 +113,7 @@ button
   position: absolute
   top: calc(max(env(safe-area-inset-top), 0.75rem))
   left: 12px
+  --back-icon-color: #1a2f4a !important
 
 .title-cluster
   display: flex

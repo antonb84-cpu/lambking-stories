@@ -71,7 +71,8 @@ withDefaults(defineProps<Props>(), {
 
 <style scoped lang="sass">
 .kofi-btn
-  display: inline-flex
+  display: flex
+  justify-content: center
   align-items: center
   gap: 8px
   padding: 9px 16px

@@ -8,6 +8,7 @@ import ZIconography from '@/components/atoms/ZIconography.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
 import useApiSeries from '@/use/useApiSeries'
+import useCatalogNames from '@/use/useCatalogNames'
 import { isMobileLandscape, isMobilePortrait } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
@@ -19,6 +20,7 @@ const router = useRouter()
 const { getSeries } = useModels()
 const apiBooks = useApiBooks()
 const apiSeries = useApiSeries()
+const { seriesName } = useCatalogNames()
 
 onMounted(() => {
   void apiBooks.loadAllBooks()
@@ -38,13 +40,15 @@ const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook
 // would be resolved by Vite as a bundled asset.
 const backdropVars = computed(() => ({
   '--series-bg-portrait': `url(${prependBaseUrl('images/bg/series_portrait.webp')})`,
-  '--series-bg-landscape': `url(${prependBaseUrl('images/bg/series_landscape.webp')})`
+  '--series-bg-landscape': `url(${prependBaseUrl('images/bg/series_portrait.webp')})`
 }))
 
 // Derive series tiles directly from the API books. Series metadata
 // (display name + tagline) comes from the static `useModels.getSeries`
 // catalog when available; otherwise we fall back to the raw seriesId so
-// brand-new series still render without a content migration.
+// brand-new series still render without a content migration. The resolved
+// German name then passes through `seriesName`, which swaps in the English
+// override in EN mode (see useCatalogNames).
 interface SeriesTile {
   seriesId: string
   name: string
@@ -52,7 +56,14 @@ interface SeriesTile {
   description: string
   bookCount: number
   coverImage: string
+  /** Display position from the AdminUI — lower first. */
+  sortOrder: number
 }
+
+// A series the editor has never positioned (or one the app knows only from
+// its books, with no server record yet) sorts after every positioned one
+// rather than jumping to the front.
+const UNPOSITIONED = Number.MAX_SAFE_INTEGER
 
 function humaniseId(id: string): string {
   return id
@@ -85,19 +96,26 @@ const seriesList = computed<SeriesTile[]>(() => {
     const firstBook = books[0]
     list.push({
       seriesId: sid,
-      name: apiMeta?.name || legacyMeta?.name || humaniseId(sid),
+      name: seriesName(sid, apiMeta?.name || legacyMeta?.name || humaniseId(sid)),
       subtitle: '',
       description: apiMeta?.description
         || legacyMeta?.description
-        || `${books.length} ${books.length === 1 ? 'Buch' : 'Bücher'}`,
+        || t('app.allBooks.bookCount', books.length),
       bookCount: books.length,
       coverImage: apiMeta?.coverImage
         || legacyMeta?.coverImage
         || (firstBook ? pickLocalizedImage(firstBook.previewImage, lang.value) : '')
-        || PLACEHOLDER_IMAGE
+        || PLACEHOLDER_IMAGE,
+      sortOrder: apiMeta?.sortOrder && apiMeta.sortOrder > 0 ? apiMeta.sortOrder : UNPOSITIONED
     })
   }
-  return list
+  // The tiles are grouped out of the books list, so they arrive in book
+  // order — re-sort by the editor's position, falling back to the display
+  // name so unpositioned series stay in a stable, readable order.
+  return list.sort((a, b) => {
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder
+    return a.name.localeCompare(b.name)
+  })
 })
 
 // Filter chips. The "Alle" chip is always present and selected by
@@ -195,7 +213,7 @@ function goBack() {
           //p(class="series-tile-desc") {{ series.description }}
           div(class="series-tile-count-row")
             span.mr-1(class="series-tile-count") {{ series.bookCount }}
-            span(class="text-[12px]") {{ series.bookCount === 1 ? 'Buch' : 'Bücher' }}
+            span(class="text-[12px]") {{ t('app.allBooks.bookLabel', series.bookCount) }}
 
 
       div(

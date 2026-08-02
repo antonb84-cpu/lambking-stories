@@ -7,6 +7,7 @@ import { logger } from './config/logger.js'
 import { connectDatabase, disconnectDatabase } from './config/db.js'
 import { getRedis, disconnectRedis } from './config/redis.js'
 import { ensureReservedCategories } from './config/categories.js'
+import { ensureSeriesOrder } from './config/series.js'
 import { createApp } from './app.js'
 import { TranslationService } from './services/TranslationService.js'
 import { startBackupJob, stopBackupJob } from './jobs/backupJob.js'
@@ -14,6 +15,7 @@ import { startBackupJob, stopBackupJob } from './jobs/backupJob.js'
 async function bootstrap() {
   await connectDatabase()
   await ensureReservedCategories()
+  await ensureSeriesOrder()
   if (env.REDIS_ENABLED) getRedis()
 
   const app = createApp()

@@ -32,6 +32,24 @@
       >
         <span class="chip-prefix">{{ s.prefix }}</span>
         <!--
+          Display position. Lower sorts first, both here and on the app's
+          Serien page. Picking a number moves this series to that slot and
+          the server renumbers the rest, so the options are always the
+          contiguous run 1…n with no gaps to reason about.
+        -->
+        <select
+          class="chip-order has-tooltip"
+          :class="{ 'is-busy': orderBusyMap[s.seriesId] }"
+          :value="positionOf(s)"
+          :disabled="orderBusyMap[s.seriesId]"
+          :data-tooltip="`Reihenfolge — ${positionOf(s)} von ${store.items.length}. Kleinere Zahl erscheint weiter oben.`"
+          :aria-label="`Reihenfolge von ${s.name}`"
+          @click.stop
+          @change="onOrderChange($event, s)"
+        >
+          <option v-for="n in store.items.length" :key="n" :value="n">{{ n }}</option>
+        </select>
+        <!--
           Minimal cover dropzone — accepts image drops or click-to-pick.
           Empty state shows a tiny placeholder thumb; once a coverImage is
           present the thumb is replaced with the uploaded preview and a
@@ -142,6 +160,38 @@ const remove = async (id: string) => {
 
 const onRemoveContext = (e: MouseEvent, id: string) => {
   if (e.altKey) remove(id)
+}
+
+// ----- Display order -----
+// The list is rendered in server order, so a chip's position in `items` is
+// its authoritative slot — `sortOrder` is only the fallback for a record
+// the backfill hasn't reached yet (a series created against an older
+// server build).
+const orderBusyMap = reactive<Record<string, boolean>>({})
+
+function positionOf(s: SeriesDTO): number {
+  const idx = store.items.findIndex((it) => it.seriesId === s.seriesId)
+  if (idx >= 0) return idx + 1
+  return s.sortOrder && s.sortOrder > 0 ? s.sortOrder : 1
+}
+
+async function onOrderChange(e: Event, s: SeriesDTO) {
+  const select = e.target as HTMLSelectElement
+  const next = Number(select.value)
+  const current = positionOf(s)
+  if (!Number.isFinite(next) || next === current) return
+  if (orderBusyMap[s.seriesId]) return
+  orderBusyMap[s.seriesId] = true
+  try {
+    await store.setOrder(s.seriesId, next)
+    toast.success(`„${s.name}" auf Position ${next} verschoben`)
+  } catch (err) {
+    // Snap the control back to the position the server still holds.
+    select.value = String(current)
+    toast.error((err as Error).message || 'Reihenfolge konnte nicht gespeichert werden')
+  } finally {
+    orderBusyMap[s.seriesId] = false
+  }
 }
 
 // ----- Cover-image dropzone -----

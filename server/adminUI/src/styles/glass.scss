@@ -271,6 +271,47 @@ textarea.glass:focus,
   letter-spacing: 0.02em;
 }
 
+/* Display-position picker, sitting between the prefix badge and the cover
+   thumb. Sized to the widest realistic value (three digits) so the chip
+   row doesn't reflow as positions change. */
+.tax-chip .chip-order {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 34px;
+  height: 18px;
+  padding: 0 12px 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: #2471a3;
+  background-color: rgba(52, 152, 219, 0.1);
+  /* Caret drawn inline — an external asset would need a CSP exception. */
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 5'%3E%3Cpath d='M0 0h8L4 5z' fill='%232471a3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 6px 4px;
+  border: 1px solid rgba(52, 152, 219, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, opacity 120ms ease;
+}
+
+.tax-chip .chip-order:hover:not(:disabled) {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.tax-chip .chip-order:focus-visible {
+  outline: 2px solid rgba(52, 152, 219, 0.6);
+  outline-offset: 1px;
+}
+
+.tax-chip .chip-order.is-busy,
+.tax-chip .chip-order:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
 .tax-chip .chip-name {
   color: #334e68;
   overflow: hidden;

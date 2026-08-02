@@ -173,6 +173,7 @@ button
   position: absolute
   top: calc(max(env(safe-area-inset-top), 0.75rem))
   left: 12px
+  --back-icon-color: #1a2f4a !important
 
 .title-cluster
   display: flex

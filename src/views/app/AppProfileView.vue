@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import ZBackButton from '@/components/atoms/ZBackButton.vue'
 import ZIconography from '@/components/atoms/ZIconography.vue'
-import ZChip from '@/components/atoms/ZChip.vue'
+import ZLanguageSwitcher from '@/components/atoms/ZLanguageSwitcher.vue'
 import AvatarPickerModal from '@/components/molecules/AvatarPickerModal.vue'
 import useModels from '@/use/useModels'
 import useApiBooks from '@/use/useApiBooks'
@@ -23,7 +23,7 @@ const { t, locale } = useI18n({ useScope: 'global' })
 const router = useRouter()
 const { watchListIds, removeFromWatchList } = useModels()
 const apiBooks = useApiBooks()
-const { userLanguage, setSettingValue } = useUser()
+const { userLanguage } = useUser()
 const { getPct } = useReadingProgress()
 const { avatarSrc } = useAvatar()
 const {
@@ -57,10 +57,6 @@ if (locale.value !== userLanguage.value) locale.value = userLanguage.value
 watch(userLanguage, (v) => {
   locale.value = v
 })
-
-function toggleLanguage() {
-  setSettingValue('language', userLanguage.value === 'en' ? 'de' : 'en')
-}
 
 const watchListBooks = computed<ApiBook[]>(() =>
   watchListIds.value
@@ -104,7 +100,10 @@ function closeAvatar() {
   avatarOpen.value = false
 }
 
-const settingsOpen = ref(false)
+// Open by default: the card only holds the language switcher, and a user
+// looking for it shouldn't have to discover the gear first. The gear is
+// now purely a way to collapse it out of the way.
+const settingsOpen = ref(true)
 
 function toggleSettings() {
   settingsOpen.value = !settingsOpen.value
@@ -305,20 +304,7 @@ function onBackendToggle(e: Event) {
         div(class="settings-row")
           span(class="settings-label") {{ t('app.profile.language') }}
           div(class="settings-actions")
-            ZChip(
-              clickable
-              :selected="userLanguage === 'de'"
-              label="DE"
-              size="sm"
-              @click="setSettingValue('language', 'de')"
-            )
-            ZChip(
-              clickable
-              :selected="userLanguage === 'en'"
-              label="EN"
-              size="sm"
-              @click="setSettingValue('language', 'en')"
-            )
+            ZLanguageSwitcher(:size="34")
 
         //- Backend feature flag — flip the API host between Render and
         //- the local dev server. Reloads the page so the IndexedDB cache
@@ -957,9 +943,9 @@ button
   .favorites-section
     grid-column: 2
 
-  // Settings card is collapsed by default (toggle in the profile header).
-  // When it isn't rendered, the favorites section would otherwise lock to
-  // column 2 and leave column 1 empty; let it span both columns instead.
+  // The settings card can be collapsed away with the header gear. When it
+  // isn't rendered, the favorites section would otherwise lock to column 2
+  // and leave column 1 empty; let it span both columns instead.
   .profile-content:not(:has(.settings-card)) .favorites-section
     grid-column: 1 / -1
 </style>

@@ -14,6 +14,13 @@ export default {
         // repeats them for screen readers.
         artAlt: 'Welcome! Discover children\'s stories that strengthen faith and bring God\'s good news to life.'
       },
+      // Shared by ZLanguageSwitcher — the flags carry no visible text, so
+      // these strings are what a screen reader announces.
+      language: {
+        aria: 'Language',
+        english: 'English',
+        german: 'German'
+      },
       main: {
         hello: 'Hello, Explorer!',
         helloName: 'Hello, {name}!',
@@ -22,7 +29,7 @@ export default {
         unlock: 'Unlock',
         newReleased: 'NEW',
         continueListening: 'CONTINUE LISTENING',
-        continueReading: 'Weiterlesen',
+        continueReading: 'Continue reading',
         page: 'Page {n} of {total}',
         continue: 'Continue',
         newInLibrary: 'New in the library',
@@ -34,7 +41,55 @@ export default {
         searchResultsTitle: 'Search results',
         searchEmpty: 'No books found.',
         discoverBooks: 'Discover',
+        welcomeTitle0: 'Welcome!',
+        welcomeText0: 'Discover stories about the Bible - to read, listen to and color.',
+        welcomeTitle1: 'Support our mission',
+        welcomeText1: 'Help us enable new stories, audiobooks and coloring pages for children.',
+        welcomeTitle2: 'Discover our book world',
+        welcomeText2: 'Beautiful printed children\'s books with biblical stories to read aloud and give as gifts.',
         categories: 'Categories'
+      },
+      // Display names for catalogue metadata the API only stores in German:
+      // series keyed by `seriesId`, categories keyed by a slug of the German
+      // name (the name IS the category's id server-side). Read through
+      // `useCatalogNames`; an id without an entry falls back to the API name.
+      catalog: {
+        series: {
+          'bibelgeschichten-zum-ausmalen': 'Bible Stories to Color',
+          'der-christus-code': 'The Christ Code',
+          'die-tiere-von-talheim': 'The Animals of Talheim',
+          'einzelne-bucher': 'Standalone Books',
+          'frucht-agenten': 'Fruit Agents',
+          'gute-nacht-lilly': 'Good Night, Lilly',
+          'levi-in-der-welt-der-bibel': 'Levi in the World of the Bible',
+          'lina-und-ben': 'Lina and Ben'
+        },
+        category: {
+          abenteuer: 'Adventure',
+          ausmalbuecher: 'Coloring Books',
+          'bibel-geschichten': 'Bible Stories',
+          forscher: 'Explorers',
+          'gute-nacht-geschichten': 'Bedtime Stories',
+          kindergeschichten: 'Children\'s Stories'
+        },
+        // Age badges are generated from `badgeAge` instead of listed here,
+        // so a new "ab 8 Jahren" needs no code change.
+        badgeAge: 'Ages {n}+',
+        badge: {
+          abenteuer: 'Adventure',
+          ausmalen: 'Coloring',
+          bibel: 'Bible',
+          'bibel-entdecken': 'Discover the Bible',
+          bibelgeschichte: 'Bible Story',
+          forscher: 'Explorers',
+          'gute-nacht': 'Good Night',
+          kindergeschichte: 'Children\'s Story',
+          '6min': '6 min',
+          '7min': '7 min',
+          '15min': '15 min',
+          'ca-5-min': 'approx. 5 min',
+          'ca-8-min': 'approx. 8 min'
+        }
       },
       categories: {
         books: 'Books',
@@ -45,7 +100,10 @@ export default {
         searchPlaceholder: 'Search …',
         filterAll: 'All',
         emptyTitle: 'No series yet',
-        emptySub: 'Series will appear here once added.'
+        emptySub: 'Series will appear here once added.',
+        bookCount: '{n} book | {n} books',
+        // Noun only — the tile renders the number in its own styled span.
+        bookLabel: 'book | books'
       },
       newBooks: {
         title: 'New Books',
@@ -59,6 +117,7 @@ export default {
       },
       bookSeries: {
         title: 'Series',
+        tagline: 'In the King\'s service',
         overview: 'OVERVIEW',
         books: 'Books in series',
         bandLabel: 'Band {n}',
@@ -189,6 +248,13 @@ export default {
         // wiederholt sie für Screenreader.
         artAlt: 'Willkommen! Entdecke Kindergeschichten, die Glauben stärken und Gottes gute Botschaft lebendig machen.'
       },
+      // Von ZLanguageSwitcher genutzt — die Flaggen tragen keinen sichtbaren
+      // Text, diese Strings liest der Screenreader vor.
+      language: {
+        aria: 'Sprache',
+        english: 'Englisch',
+        german: 'Deutsch'
+      },
       main: {
         hello: 'Hallo, Entdecker!',
         helloName: 'Hallo, {name}!',
@@ -209,7 +275,55 @@ export default {
         searchResultsTitle: 'Suchergebnisse',
         searchEmpty: 'Keine Bücher gefunden.',
         discoverBooks: 'Entdecke',
+        welcomeTitle0: 'Willkommen!',
+        welcomeText0: 'Entdecke Geschichten rund um die Bibel - zum Lesen, Anhören und Ausmalen.',
+        welcomeTitle1: 'Unterstütze unsere Mission',
+        welcomeText1: 'Hilf uns neue Geschichten, Hörbücher und Ausmalbilder für Kinder zu ermöglichen.',
+        welcomeTitle2: 'Entdecke unsere Bücherwelt',
+        welcomeText2: 'Wunderschöne gedruckte Kinderbücher mit biblischen Geschichten zum Vorlesen und Verschenken.',
         categories: 'Kategorien'
+      },
+      // Anzeigenamen für Katalog-Metadaten, die die API nur auf Deutsch
+      // führt: Serien über die `seriesId`, Kategorien über einen Slug des
+      // deutschen Namens (der Name IST serverseitig die Id). Zugriff über
+      // `useCatalogNames`; fehlt eine Id, greift der API-Name.
+      catalog: {
+        series: {
+          'bibelgeschichten-zum-ausmalen': 'Bibelgeschichten zum Ausmalen',
+          'der-christus-code': 'Der Christus Code',
+          'die-tiere-von-talheim': 'Die Tiere von Talheim',
+          'einzelne-bucher': 'Einzelne Bücher',
+          'frucht-agenten': 'Frucht Agenten',
+          'gute-nacht-lilly': 'Gute Nacht Lilly',
+          'levi-in-der-welt-der-bibel': 'Levi in der Welt der Bibel',
+          'lina-und-ben': 'Lina und Ben'
+        },
+        category: {
+          abenteuer: 'Abenteuer',
+          ausmalbuecher: 'Ausmalbücher',
+          'bibel-geschichten': 'Bibel Geschichten',
+          forscher: 'Forscher',
+          'gute-nacht-geschichten': 'Gute Nacht Geschichten',
+          kindergeschichten: 'Kindergeschichten'
+        },
+        // Altersangaben entstehen aus `badgeAge` statt aus der Liste, damit
+        // ein neues „ab 8 Jahren" ohne Code-Änderung auskommt.
+        badgeAge: 'ab {n} Jahren',
+        badge: {
+          abenteuer: 'Abenteuer',
+          ausmalen: 'Ausmalen',
+          bibel: 'Bibel',
+          'bibel-entdecken': 'Bibel entdecken',
+          bibelgeschichte: 'Bibelgeschichte',
+          forscher: 'Forscher',
+          'gute-nacht': 'Gute Nacht',
+          kindergeschichte: 'Kindergeschichte',
+          '6min': '6min',
+          '7min': '7min',
+          '15min': '15min',
+          'ca-5-min': 'ca. 5 Min.',
+          'ca-8-min': 'ca. 8 Min.'
+        }
       },
       categories: {
         books: 'Bücher',
@@ -220,7 +334,10 @@ export default {
         searchPlaceholder: 'Suchen …',
         filterAll: 'Alle',
         emptyTitle: 'Noch keine Serien',
-        emptySub: 'Hier erscheinen deine Buchreihen.'
+        emptySub: 'Hier erscheinen deine Buchreihen.',
+        bookCount: '{n} Buch | {n} Bücher',
+        // Nur das Substantiv — die Zahl rendert die Kachel in eigenem Span.
+        bookLabel: 'Buch | Bücher'
       },
       newBooks: {
         title: 'Neue Bücher',
@@ -234,6 +351,7 @@ export default {
       },
       bookSeries: {
         title: 'Serie',
+        tagline: 'Im Auftrag des Königs',
         overview: 'ÜBERSICHT',
         books: 'Bücher der Serie',
         bandLabel: 'Band {n}',
