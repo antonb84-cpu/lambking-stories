@@ -22,6 +22,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    # Lifted to job level so the publish step can gate on it — `secrets` is not
+    # an allowed context inside a step-level `if`.
+    env:
+      LAMBKING_DEPLOY_TOKEN: ${{ secrets.LAMBKING_DEPLOY_TOKEN }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -93,6 +97,14 @@ jobs:
         env:
           VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
+      # Second build of the same site, served from the root of www.lambking.de
+      # instead of the /little-bible-stories/lamb-king/ subpath.
+      - name: Build LambKing Website for www.lambking.de
+        run: npm run build-lambking-de
+        working-directory: main/website
+        env:
+          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
+
       - name: Create Dist Folder
         run: mkdir dist
 
@@ -105,8 +117,12 @@ jobs:
       - name: Copy Demo Build
         run: cp -r demo/dist/* dist/demo/
 
+      # website/dist now holds two builds (lamb-king + lambking-de), so copy the
+      # subpath one explicitly rather than globbing dist/*.
       - name: Copy LambKing Website Build
-        run: cp -r main/website/dist/* dist/lamb-king/
+        run: |
+          mkdir -p dist/lamb-king
+          cp -r main/website/dist/lamb-king/* dist/lamb-king/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -119,3 +135,22 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # Publishes only the built website to the gh-pages branch of the separate
+      # konstantinsteinmiller/lambking repo, which serves www.lambking.de.
+      # Skipped silently until LAMBKING_DEPLOY_TOKEN is set in this repo's
+      # secrets — a fine-grained PAT scoped to konstantinsteinmiller/lambking
+      # with `Contents: read and write`. Uses `personal_token` rather than
+      # `deploy_key` so there is no `ssh-add` step, which blocks forever on
+      # stdin when handed a passphrase-protected key. `timeout-minutes` is a
+      # backstop so any future auth hang fails fast instead of burning the job.
+      - name: Publish LambKing Website to lambking repo
+        if: ${{ env.LAMBKING_DEPLOY_TOKEN != '' }}
+        timeout-minutes: 5
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ secrets.LAMBKING_DEPLOY_TOKEN }}
+          external_repository: konstantinsteinmiller/lambking
+          publish_branch: gh-pages
+          publish_dir: main/website/dist/lambking-de
+          commit_message: "deploy website from little-bible-stories@${{ github.sha }}"

@@ -60,6 +60,18 @@ const schema = z.object({
       return map
     }),
 
+  // Anonymous usage tracking for the /admin/usage dashboard. Clients send a
+  // locally generated `X-User-Uuid`; the server keeps one row per user per
+  // calendar day. Set to `false` to stop recording entirely (the dashboard
+  // then just shows the history collected so far).
+  USAGE_TRACKING_ENABLED: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
+  // IANA timezone the daily buckets are cut on. Matches the backup job's
+  // default so "yesterday" means the same thing in both places.
+  USAGE_TIMEZONE: z.string().default('Europe/Berlin'),
+
   AUDIOBOOKS_DIR: z.string().default('./audiobooks'),
   UPLOADS_DIR: z.string().default('./uploads'),
 

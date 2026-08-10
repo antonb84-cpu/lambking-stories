@@ -11,11 +11,15 @@ import { ensureSeriesOrder } from './config/series.js'
 import { createApp } from './app.js'
 import { TranslationService } from './services/TranslationService.js'
 import { startBackupJob, stopBackupJob } from './jobs/backupJob.js'
+import { UsageService } from './services/UsageService.js'
 
 async function bootstrap() {
   await connectDatabase()
   await ensureReservedCategories()
   await ensureSeriesOrder()
+  // Mongoose's autoIndex is off in production, so the usage collection's
+  // (day, userUuid) unique index has to be created explicitly.
+  await UsageService.ensureIndexes()
   if (env.REDIS_ENABLED) getRedis()
 
   const app = createApp()

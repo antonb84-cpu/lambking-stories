@@ -90,7 +90,7 @@ function openAllSeries() {
 // CTA on the first welcome slide — sends the user to the book list on the
 // public LambKing web edition. Opened in a new tab (noopener) like the
 // donate links, rather than the in-app router, since it's an external URL.
-const WEBSITE_BOOKS_URL = 'https://konstantinsteinmiller.github.io/little-bible-stories/lamb-king/#books'
+const WEBSITE_BOOKS_URL = 'https://lambking.store'
 
 function openWebsite() {
   window.open(WEBSITE_BOOKS_URL, '_blank', 'noopener,noreferrer')
