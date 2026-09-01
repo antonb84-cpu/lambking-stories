@@ -55,6 +55,13 @@ services:
       # INVALID_CLIENT_KEY.
       - key: VITE_CLIENT_KEY
         sync: false
+      # Anonymous daily-active-user tracking behind /admin/usage. The Tauri
+      # app (Android / iOS) sends X-User-Uuid; the server keeps one row per
+      # user per day.
+      - key: USAGE_TRACKING_ENABLED
+        value: 'true'
+      - key: USAGE_TIMEZONE
+        value: Europe/Berlin
       - key: AUDIOBOOKS_DIR
         value: /var/data/audiobooks
       - key: UPLOADS_DIR

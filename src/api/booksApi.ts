@@ -1,15 +1,6 @@
 import type { ApiBook, ApiBookListResponse, ApiBookResponse } from '@/types/apiBook'
 import { getApiBase } from '@/use/useApiConfig'
-
-// Per-build client key. Each distribution channel (Tauri Android, GitHub
-// Pages, etc.) ships with its own value injected at build time via the
-// matching `.env.<target>` file. The server's `requireClientKey`
-// middleware uses it for attribution + as the trigger to flip CORS into
-// permissive mode (so the Tauri WebView's `https://tauri.localhost`
-// origin doesn't have to be allowlisted). Empty string disables the
-// header — the server side then falls back to legacy behaviour, which
-// keeps `pnpm dev` against an unconfigured backend working.
-const CLIENT_KEY: string = (import.meta.env.VITE_CLIENT_KEY ?? '').trim()
+import { buildApiHeaders } from '@/api/apiHeaders'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   // Resolve the base at request time — the runtime feature flag in
@@ -18,11 +9,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const apiBase = getApiBase()
   const res = await fetch(`${apiBase}${path}`, {
     ...init,
-    headers: {
-      accept: 'application/json',
-      ...(CLIENT_KEY ? { 'X-Client-Key': CLIENT_KEY } : {}),
-      ...(init?.headers ?? {})
-    }
+    headers: buildApiHeaders(init?.headers)
   })
   if (!res.ok) {
     throw new Error(`API ${res.status} ${res.statusText} on ${path}`)

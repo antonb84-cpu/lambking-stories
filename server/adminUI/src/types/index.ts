@@ -112,3 +112,32 @@ export const RESERVED_CATEGORIES: readonly string[] = [HIDDEN_CATEGORY]
 export function isReservedCategory(name: string): boolean {
   return RESERVED_CATEGORIES.includes(name)
 }
+
+/* --- Usage dashboard (/admin/usage) ------------------------------------ */
+
+/** Preset windows offered by the usage dashboard's filter row. */
+export type UsageRange = '7' | '30' | '90' | '365' | 'all'
+
+export interface UsageDayDTO {
+  /** Local calendar day as `YYYY-MM-DD` (see the report's `timezone`). */
+  day: string
+  users: number
+}
+
+export interface UsageReportDTO {
+  range: UsageRange
+  /** IANA timezone the daily buckets were cut on, e.g. `Europe/Berlin`. */
+  timezone: string
+  from: string
+  to: string
+  /** Zero-filled — one entry per day in [from, to]. */
+  days: UsageDayDTO[]
+  totals: {
+    activeToday: number
+    uniqueInRange: number
+    uniqueAllTime: number
+    averagePerDay: number
+    peak: UsageDayDTO | null
+    firstDay: string | null
+  }
+}

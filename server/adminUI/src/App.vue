@@ -74,13 +74,39 @@
           </span>
           <div class="app-header-text">
             <h1 class="app-header-title">LambKing</h1>
-            <p class="app-header-subtitle">Admin · Buchverwaltung &amp; Lokalisierung</p>
+            <p class="app-header-subtitle">{{ subtitle }}</p>
           </div>
         </div>
+        <nav class="app-nav" aria-label="Admin-Bereiche">
+          <button
+            type="button"
+            class="app-nav-link"
+            :class="{ 'is-active': route === 'books' }"
+            :aria-current="route === 'books' ? 'page' : undefined"
+            @click="navigate('books')"
+          >Bücher
+          </button>
+          <button
+            type="button"
+            class="app-nav-link"
+            :class="{ 'is-active': route === 'usage' }"
+            :aria-current="route === 'usage' ? 'page' : undefined"
+            @click="navigate('usage')"
+          >Nutzung
+          </button>
+        </nav>
       </header>
 
       <main class="px-4 py-4 max-w-[1800px] mx-auto">
-        <DashboardView />
+        <!--
+          v-if rather than v-show: DashboardView owns the draft autosave
+          timer and the book/series/category fetches, so leaving it mounted
+          behind the usage screen would keep both running. Unsaved drafts
+          survive the unmount — they are mirrored to localStorage and
+          restored by `restoreNewDraft()` on the way back.
+        -->
+        <DashboardView v-if="route === 'books'" />
+        <UsageView v-else />
       </main>
 
       <XToaster />
@@ -89,16 +115,28 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import DashboardView from '@/views/DashboardView.vue'
 import XToaster from '@/components/atoms/XToaster.vue'
 import { useServerStatusStore } from '@/stores/serverStatus'
 import { useBookDraftStore } from '@/stores/bookDraft'
+import { useAdminRoute } from '@/composables/useAdminRoute'
+
+// Split out of the main bundle — the usage dashboard is a side trip, not
+// the screen the admin opens every day.
+const UsageView = defineAsyncComponent(() => import('@/views/UsageView.vue'))
 
 type AuthState = 'loading' | 'authorized' | 'denied'
 const authState = ref<AuthState>('loading')
 const serverStatus = useServerStatusStore()
 const draft = useBookDraftStore()
+const { route, navigate } = useAdminRoute()
+
+const subtitle = computed(() =>
+  route.value === 'usage'
+    ? 'Admin · App-Nutzung'
+    : 'Admin · Buchverwaltung & Lokalisierung'
+)
 
 async function checkAuth() {
   authState.value = 'loading'
@@ -211,6 +249,36 @@ onMounted(checkAuth)
   justify-content: center;
   gap: 16px;
   text-align: center;
+}
+
+.app-nav {
+  max-width: 1800px;
+  margin: 14px auto 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.app-nav-link {
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.app-nav-link:hover {
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+}
+
+.app-nav-link.is-active {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2471a3;
+  border-color: rgba(255, 255, 255, 0.95);
 }
 
 .app-header-logo {
