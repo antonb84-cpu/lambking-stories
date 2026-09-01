@@ -58,7 +58,7 @@ Wir setzen keine Analyse-Tools (wie Google Analytics) und keine Werbenetzwerke e
 Sprachdaten
 Es werden keine Sprachaufnahmen durch den Nutzer erstellt, verarbeitet oder auf Servern gespeichert.
 
-4. Datenerfassung auf der Webseite (www.lambking.store)
+4. Datenerfassung auf der Webseite (lambking.de)
    Hosting und Server-Log-Files
    Der Provider der Seiten erhebt und speichert automatisch Informationen in sogenannten Server-Log-Files, die dein
    Browser automatisch an uns übermittelt. Dies sind:

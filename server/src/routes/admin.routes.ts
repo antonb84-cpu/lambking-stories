@@ -34,11 +34,7 @@ export function adminRouter(): Router {
          </div>`
       )
     }
-    // Same splat shape as the built branch so /admin/usage also lands on the
-    // hint page instead of a bare 404. (Express 5 rejects the bare `*`
-    // wildcard — the parameterised `{*splat}` form is the replacement.)
     router.get('/admin', devMessage)
-    router.get('/admin/{*splat}', devMessage)
   }
 
   return router

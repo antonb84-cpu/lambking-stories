@@ -326,52 +326,6 @@ load.
 
 ---
 
-## Usage tracking
-
-### `X-User-Uuid` request header
-
-Optional on every `/api/*` request. The **Tauri app** (Android / iOS)
-generates a random UUID on first launch, stores it in `localStorage`, and sends
-it with each call; the web and Electron builds send nothing, so the dashboard
-counts mobile installs rather than web visits. The client decides this at
-runtime (`isTauri()`), so the server accepts the header from any caller. The
-server records **one row per (uuid, calendar day)** — no request log, no
-personal data, no third-party analytics. Malformed values are ignored, not
-rejected.
-
-Day buckets are cut in `USAGE_TIMEZONE` (default `Europe/Berlin`), and tracking
-can be turned off entirely with `USAGE_TRACKING_ENABLED=false`.
-
-### GET /api/admin/usage/daily?range=7|30|90|365|all
-
-Basic auth. Feeds the `/admin/usage` dashboard. `range` defaults to `30`; any
-other value is a `VALIDATION_ERROR`. `days` is zero-filled across the whole
-window, `from`/`to` are inclusive, and `range=all` starts at the first recorded
-day.
-
-```json
-{
-  "range": "7",
-  "timezone": "Europe/Berlin",
-  "from": "2026-08-26",
-  "to": "2026-09-01",
-  "days": [{ "day": "2026-08-26", "users": 49 }],
-  "totals": {
-    "activeToday": 39,
-    "uniqueInRange": 303,
-    "uniqueAllTime": 896,
-    "averagePerDay": 49.3,
-    "peak": { "day": "2026-08-30", "users": 63 },
-    "firstDay": "2025-07-28"
-  }
-}
-```
-
-`uniqueInRange` counts distinct users over the window (not the sum of `days`) —
-one person active on five days counts once.
-
----
-
 ## Static assets
 
 - `GET /audiobooks/<lang>/<bookId>.ogg` — supports `Range` headers for seeking.
@@ -391,11 +345,6 @@ URLs are content-hashed.
 
 Basic auth. Serves the admin UI SPA (built into `public/admin/`). History-fallback is
 enabled so deep links to `/admin/...` work after a reload.
-
-### GET /admin/usage
-
-Same SPA, same basic auth — the usage dashboard screen (daily active users with
-7 / 30 / 90 / 365 / all-time filters).
 
 ---
 
