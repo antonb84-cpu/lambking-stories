@@ -38,7 +38,7 @@ function escapeHtml(s: string): string {
 
 function autoLink(s: string): string {
   // Auto-link http(s) URLs and bare e-mail addresses (the imprint
-  // contains `hello@lambking.de` as plain text — make it clickable).
+  // contains `hello@lambking.store` as plain text — make it clickable).
   return s
     .replace(/\bhttps?:\/\/[^\s<)]+/g, (url) => {
       const trimmed = url.replace(/[.,;:]+$/, '')

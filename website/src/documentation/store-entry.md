@@ -29,7 +29,7 @@ Externe Links: Links zu externen Inhalten (Webseite/Shop) sind klar gekennzeichn
 Hinweis: Falls von den Stores gefordert, ist ein „Parental Gate“ / Kindersicherung für diese Links implementiert).
 
 4. Technischer Stack
-   Webseite: lambking.de (Informationsseite)
+   Webseite: lambking.store (Informationsseite)
 
 E-Commerce: Verlinkung zu einem externen Etsy-Shop (geplanter Wechsel zu Shopify). Es findet kein Datenaustausch
 zwischen der App-Laufzeit und den Shop-Systemen statt.

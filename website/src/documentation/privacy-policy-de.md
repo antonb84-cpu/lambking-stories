@@ -6,9 +6,9 @@ Allmendstr. 35
 
 Kontakt:
 
-E-Mail: hello@lambking.de
+E-Mail: hello@lambking.store
 
-Internet: www.lambking.de
+Internet: www.lambking.store
 
 EU-Streitschlichtung:
 
@@ -36,7 +36,7 @@ Die App folgt dem Prinzip der Datensparsamkeit.
 Anton Bernt
 Allmendstr. 35
 75223 Niefern-Öschelbronn
-E-Mail: hello@lambking.de
+E-Mail: hello@lambking.store
 
 3. Datenerfassung in der App
    Verzicht auf Registrierung und Login
@@ -58,7 +58,7 @@ Wir setzen keine Analyse-Tools (wie Google Analytics) und keine Werbenetzwerke e
 Sprachdaten
 Es werden keine Sprachaufnahmen durch den Nutzer erstellt, verarbeitet oder auf Servern gespeichert.
 
-4. Datenerfassung auf der Webseite (lambking.de)
+4. Datenerfassung auf der Webseite (lambking.store)
    Hosting und Server-Log-Files
    Der Provider der Seiten erhebt und speichert automatisch Informationen in sogenannten Server-Log-Files, die dein
    Browser automatisch an uns übermittelt. Dies sind:

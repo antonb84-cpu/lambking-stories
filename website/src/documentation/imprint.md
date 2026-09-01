@@ -6,4 +6,4 @@ Allmendstr. 35
 
 Kontakt:
 
-E-Mail: hello@lambking.de
+E-Mail: hello@lambking.store
