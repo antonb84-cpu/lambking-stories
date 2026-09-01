@@ -489,7 +489,7 @@ const welcomeSlides = computed(() => [
 
               div(class="welcome-donate-row -mb-6")
                 KoFiButton(
-                  href="https://www.paypal.com/ncp/payment/DWHKRPTCU6N3W"
+                  href="https://www.paypal.com/ncp/payment/5CWTQPB6NGWLU"
                   tone="paypal"
                   label="PayPal"
                   :compact="true"
