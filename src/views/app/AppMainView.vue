@@ -20,6 +20,7 @@ import { isMobileLandscape, isMobilePortrait } from '@/use/useUser'
 import type { ApiBook, Locale } from '@/types/apiBook'
 import { pickLocalizedImage } from '@/types/apiBook'
 import { onImgFallback, withPlaceholder } from '@/utils/placeholder'
+import { openExternal } from '@/utils/openExternal'
 import { prependBaseUrl } from '@/utils/function'
 
 const { t, locale } = useI18n({ useScope: 'global' })
@@ -87,13 +88,16 @@ function openAllSeries() {
   router.push({ name: 'app-all-books' })
 }
 
-// CTA on the first welcome slide — sends the user to the book list on the
-// public LambKing web edition. Opened in a new tab (noopener) like the
-// donate links, rather than the in-app router, since it's an external URL.
+// CTA on the welcome slider — sends the user to the book list on the public
+// LambKing web edition. Routed through `openExternal` rather than
+// `window.open`/the in-app router: inside the Tauri WebView a bare
+// `window.open` loads the site *into the app's own webview* (no address bar,
+// no way out but the hardware back button), so we hand the URL to the system
+// browser instead. Same helper the donate buttons use.
 const WEBSITE_BOOKS_URL = 'https://lambking.store'
 
 function openWebsite() {
-  window.open(WEBSITE_BOOKS_URL, '_blank', 'noopener,noreferrer')
+  void openExternal(WEBSITE_BOOKS_URL)
 }
 
 const allBooks = computed<ApiBook[]>(() => (apiBooks.state.all ?? []) as ApiBook[])
@@ -866,12 +870,18 @@ button
   align-items: center
   gap: 10px
 
+  // The size-up is handed over as a variable rather than written as
+  // `transform: scale(130%)` here. A transform set from this side lands on the
+  // same element as the button's own press transform at equal specificity and,
+  // being later in the cascade, silently won — which killed the press animation
+  // on exactly the phone viewports the Android build runs at. `KoFiButton`
+  // folds `--kofi-scale` into every one of its own transforms instead.
   :deep(.kofi-btn)
     @media(min-width: 360px) and (max-width: 500px)
       width: 6rem
       height: 2rem
       justify-items: center
-      transform: scale(130%)
+      --kofi-scale: 1.3
       margin: 0 .5rem
 
   :deep(.kofi-btn)
@@ -879,7 +889,7 @@ button
       width: 6rem
       height: 2rem
       justify-items: center
-      transform: scale(130%)
+      --kofi-scale: 1.3
       margin: 0 .5rem
 
 // CTA on the first slide — centred above the dots row (`bottom: 36px`

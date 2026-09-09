@@ -3,7 +3,15 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue({
+      // Absolute `src="/images/…"` paths are `public/` assets that Vite
+      // serves verbatim. The dev/build config resolves them through the
+      // public dir; here there is none, so leave them untransformed instead
+      // of failing to resolve `file:///images/…` while mounting a component.
+      template: { transformAssetUrls: { includeAbsolute: false } }
+    })
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')

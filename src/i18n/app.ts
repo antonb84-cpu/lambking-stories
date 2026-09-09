@@ -41,6 +41,9 @@ export default {
         searchResultsTitle: 'Search results',
         searchEmpty: 'No books found.',
         discoverBooks: 'Discover',
+        // Screen-reader name for the PayPal / Ko-fi donate buttons, which
+        // show only a brand glyph plus the brand word.
+        donateVia: 'Donate via {method}',
         welcomeTitle0: 'Welcome!',
         welcomeText0: 'Discover stories about the Bible - to read, listen to and color.',
         welcomeTitle1: 'Support our mission',
@@ -275,6 +278,7 @@ export default {
         searchResultsTitle: 'Suchergebnisse',
         searchEmpty: 'Keine Bücher gefunden.',
         discoverBooks: 'Entdecke',
+        donateVia: 'Spenden über {method}',
         welcomeTitle0: 'Willkommen!',
         welcomeText0: 'Entdecke Geschichten rund um die Bibel - zum Lesen, Anhören und Ausmalen.',
         welcomeTitle1: 'Unterstütze unsere Mission',
