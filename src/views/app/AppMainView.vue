@@ -473,7 +473,7 @@ const welcomeSlides = computed(() => [
                   type="primary"
                   icon="book"
                   size="sm"
-                  class="-mb-1 -mr-10"
+                  class="-mb-1 -mr-14"
                   @click="openWebsite"
                 ) {{ t('app.main.discoverBooks') }}
 
