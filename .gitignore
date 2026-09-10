@@ -26,6 +26,11 @@ coverage
 # bumped by scripts/bump-android-version-code.mjs — must stay tracked.
 !.env.tauri.remote
 
+# Handover / migration notes contain account passwords and keys — this repo
+# is public, so these must never be committed. Share the PDF privately.
+/handover-*.md
+/handover-*.pdf
+
 # Editor directories and files
 .vscode/settings.json
 !.vscode/extensions.json

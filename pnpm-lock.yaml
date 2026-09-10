@@ -108,6 +108,9 @@ importers:
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0(@noble/hashes@1.8.0)
+      marked:
+        specifier: ^18.0.12
+        version: 18.0.12
       npm-run-all2:
         specifier: ^8.0.4
         version: 8.0.4
@@ -4469,6 +4472,11 @@ packages:
 
   markdown-it@14.1.1:
     resolution: {integrity: sha512-BuU2qnTti9YKgK5N+IeMubp14ZUKUUw7yeJbkjtosvHiP0AZ5c8IAgEMk79D0eC8F23r4Ac/q8cAIFdm2FtyoA==}
+    hasBin: true
+
+  marked@18.0.12:
+    resolution: {integrity: sha512-LEm4ga2YeI2T3GVHj9b0BaDPPk93LLTHMFeMyQbNIzPxc8vCI0y/scy0ZA6z6lXKyT9j9Nhl/OC6ZYKYGuFScA==}
+    engines: {node: '>= 20'}
     hasBin: true
 
   matcher@3.0.0:
@@ -10408,6 +10416,8 @@ snapshots:
       mdurl: 2.0.0
       punycode.js: 2.3.1
       uc.micro: 2.1.0
+
+  marked@18.0.12: {}
 
   matcher@3.0.0:
     dependencies:
