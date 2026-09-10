@@ -23,8 +23,8 @@ pnpm --filter little-bible-stories-server dev       # :4000
 pnpm --filter little-bible-stories-adminui dev      # :5173 → proxies /api to :4000
 ```
 
-Then visit <http://localhost:5173> and log in with the basic-auth credentials from
-`.env` (`admin` / `***REMOVED***` by default — rotate before prod).
+Then visit <http://localhost:5173> and log in with the basic-auth credentials you
+set in `.env` (`ADMIN_USER` / `ADMIN_PASSWORD` — there is no default password).
 
 The server also serves the built admin UI at <http://localhost:4000/admin>.
 

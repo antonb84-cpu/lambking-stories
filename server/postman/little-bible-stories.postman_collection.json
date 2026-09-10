@@ -29,7 +29,7 @@
           "// Apply Basic Auth only to requests that are marked as secured.",
           "// Read endpoints can override auth: 'noauth' in their request config.",
           "const user = pm.environment.get('adminUser') || 'admin';",
-          "const pass = pm.environment.get('adminPassword') || '***REMOVED***';",
+          "const pass = pm.environment.get('adminPassword') || '';",
           "pm.variables.set('adminUser', user);",
           "pm.variables.set('adminPassword', pass);"
         ]

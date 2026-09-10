@@ -69,16 +69,11 @@ The error message states exactly which field failed and why. No free-form fallba
 ## Authentication
 
 The admin surface and every write endpoint are protected by HTTP Basic Auth
-(`express-basic-auth`). The credentials are configured via `ADMIN_USER` and
-`ADMIN_PASSWORD`. Default values in `.env.example`:
-
-```
-ADMIN_USER=admin
-ADMIN_PASSWORD=***REMOVED***
-```
-
-**Rotate the password before deploying to any public environment.** The `.env` file is
-git-ignored; production secrets live in Render's encrypted env var store.
+(`express-basic-auth`). The credentials are configured via `ADMIN_USER` (default
+`admin`) and `ADMIN_PASSWORD`. There is no default password — the server refuses to
+start unless `ADMIN_PASSWORD` is set (minimum 8 characters). Use a long random value,
+e.g. `openssl rand -base64 24`, and never commit it: the `.env` files are git-ignored
+and production secrets live in Render's encrypted env var store.
 
 Future hardening ideas:
 
