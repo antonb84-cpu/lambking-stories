@@ -8,9 +8,9 @@
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "build-only": "vite build",
-    "build-github-main": "vite build --base=/little-bible-stories/ --outDir=dist",
-    "build-github-develop": "vite build --base=/little-bible-stories/develop/ --outDir=dist/develop",
-    "build-github-demo": "vite build --mode demo --base=/little-bible-stories/demo/ --outDir=dist/demo",
+    "build-github-main": "vite build --base=/lambking-stories/ --outDir=dist",
+    "build-github-develop": "vite build --base=/lambking-stories/develop/ --outDir=dist/develop",
+    "build-github-demo": "vite build --mode demo --base=/lambking-stories/demo/ --outDir=dist/demo",
     "validated-build": "vue-tsc -b && vite build",
     "deploy": "vite build && surge dist/ --domain little-bible-stories.surge.sh",
     "deploy-demo": "vite build --mode demo && surge dist/ --domain little-bible-stories-demo.surge.sh",
@@ -38,7 +38,7 @@
     "tauri:build-android-aab": "node scripts/patch-android-signing.mjs && dotenv -e .env.tauri -e .env.tauri.remote -- tauri android build --aab && node scripts/rename-android-output.mjs aab && node scripts/bump-android-version-code.mjs",
     "tauri:build-ios": "dotenv -e .env.tauri -- tauri ios build",
     "ci:ios:testflight": "gh workflow run ios-build.yml -f export_method=app-store-connect -f upload_testflight=true && echo \"Triggered iOS TestFlight build — track at: $(gh repo view --json url -q .url)/actions/workflows/ios-build.yml\"",
-    "handover:pdf": "node scripts/md-to-pdf.mjs handover-lambking-stories-de.md --lang=de && node scripts/md-to-pdf.mjs handover-migration-runbook.md"
+    "handover:pdf": "node scripts/md-to-pdf.mjs handover-lambking-stories.md --lang=de && node scripts/md-to-pdf.mjs handover-migration-runbook.md"
   },
   "build": {
     "appId": "com.stories.lambking",

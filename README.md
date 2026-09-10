@@ -2,8 +2,8 @@
 
 LambKing is an audiobook and stories app
 
-prototype: [WIP demo](https://konstantinsteinmiller.github.io/little-bible-stories/)
+prototype: [WIP demo](https://antonb84-cpu.github.io/lambking-stories/)
 
-![Home screen](https://github.com/konstantinsteinmiller/little-bible-stories/blob/main/src/assets/documentation/home.webp)
+![Home screen](src/assets/documentation/home.webp)
 
 # Todo

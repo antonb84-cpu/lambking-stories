@@ -22,7 +22,7 @@ services:
   - name: api
     environment_slug: node-js
     github:
-      repo: konstantinsteinmiller/kanaan-stories
+      repo: antonb84-cpu/lambking-stories
       branch: main
       deploy_on_push: true
     source_dir: /

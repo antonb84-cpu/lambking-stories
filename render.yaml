@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: lbs-be
+    name: lambking-api
     runtime: node
     region: frankfurt
     plan: starter

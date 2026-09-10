@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
   workflow_dispatch:
 
 permissions:
@@ -22,24 +21,16 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
+      # Backend both Pages builds talk to. Set the repository variable
+      # API_BASE_URL to move them to another backend without a code change.
+      # The fallback matters: an unset variable would otherwise arrive as an
+      # empty string, which the website treats as "use the Vite dev proxy".
+      VITE_API_BASE_URL: ${{ vars.API_BASE_URL || 'https://lbs-be.onrender.com' }}
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          path: main
-
-      - name: Checkout develop
-        uses: actions/checkout@v4
-        with:
-          ref: develop
-          path: develop
-
-      - name: Checkout demo
-        uses: actions/checkout@v4
-        with:
-          ref: develop
-          path: demo
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
@@ -51,62 +42,20 @@ jobs:
         with:
           node-version: '22.8.0'
 
-      - name: Clean install dependencies (Main)
-        run: |
-          rm -rf main/node_modules
-          pnpm install --no-frozen-lockfile
-        working-directory: main
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Clean install dependencies (Develop)
-        run: |
-          rm -rf develop/node_modules
-          pnpm install --no-frozen-lockfile
-        working-directory: develop
-
-      - name: Clean install dependencies (Demo)
-        run: |
-          rm -rf demo/node_modules
-          pnpm install --no-frozen-lockfile
-        working-directory: demo
-
-      - name: Build Main Production
+      - name: Build app
         run: npm run build-github-main
-        working-directory: main
-        env:
-          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
 
-      - name: Build Develop Production
-        run: npm run build-github-develop
-        working-directory: develop
-        env:
-          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
-
-      - name: Build Demo Production
-        run: npm run build-github-demo
-        working-directory: demo
-        env:
-          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
-
-      - name: Build LambKing Website Production
+      - name: Build LambKing website
         run: npm run build-github-lamb-king
-        working-directory: main/website
-        env:
-          VITE_CLIENT_KEY: ${{ secrets.LBS_CLIENT_KEY_PAGES }}
+        working-directory: website
 
-      - name: Create Dist Folder
-        run: mkdir dist
-
-      - name: Copy Main Build
-        run: cp -r main/dist/* dist/
-
-      - name: Copy Develop Build
-        run: cp -r develop/dist/* dist/develop/
-
-      - name: Copy Demo Build
-        run: cp -r demo/dist/* dist/demo/
-
-      - name: Copy LambKing Website Build
-        run: cp -r main/website/dist/* dist/lamb-king/
+      - name: Add website build to the Pages artifact
+        run: |
+          mkdir -p dist/lamb-king
+          cp -r website/dist/lamb-king/* dist/lamb-king/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
